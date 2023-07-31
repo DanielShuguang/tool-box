@@ -32,7 +32,9 @@
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "wailsjs/**/*.ts",
+    "wailsjs/**/*.d.ts"
   ],
   "references": [
     {
