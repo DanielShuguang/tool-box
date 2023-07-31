@@ -1,4 +1,4 @@
-import { DownloadUrlToPath, OpenDirByDialog } from 'backend/core/app'
+import { DownloadUrlToPath, OpenDirByDialog, GetCpuInfo, SaveDataToFile } from 'backend/core/app'
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { FileInfo, SettledFileInfo } from 'naive-ui/es/upload/src/interface'
 
@@ -20,11 +20,13 @@ export function useUpdateSavingDir() {
 
 export function useManageRegexSelect() {
   const regText = ref('')
-  const selectedReg = ref('')
+  const selectedReg = ref<string | null>(null)
 
   const regList: SelectMixedOption[] = [
-    { label: '图片', value: '(https|http)://.*.(jpg|png|jpeg|gif)' },
-    { label: '视频', value: '(https|http)://.*.(mp4|rmvb|mkv|avi)' }
+    { label: '图片', value: '(https|http)://.*\\.(jpg|png|jpeg|gif)' },
+    { label: '视频', value: '(https|http)://.*\\.(mp4|rmvb|mkv|avi)' },
+    { label: '软件', value: '(https|http)://.*\\.(exe|msi)' },
+    { label: '压缩包', value: '(https|http)://.*\\.(zip|7z|rar|iso)' }
   ]
 
   function handleSelect(v: string) {
@@ -35,8 +37,9 @@ export function useManageRegexSelect() {
   return { regText, selectedReg, regList, handleSelect }
 }
 
-export function useAnalysisFileContent(regText: Ref<string>) {
+export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string>) {
   const message = useMessage()
+  const isUrl = ref(false)
 
   const fileList = shallowRef<FileInfo[]>([])
   const searched = shallowRef<string[]>([])
@@ -56,9 +59,19 @@ export function useAnalysisFileContent(regText: Ref<string>) {
       const contents = text.match(reg) || []
       searched.value = contents
       removeDuplicates()
-      message.success('分析完成')
+      checkContentIsUrl()
+      message.success(`分析完成，存在${searched.value.length}条可用数据`, { duration: 5000 })
     } catch (err) {
       message.error(err as any)
+    }
+  }
+
+  function checkContentIsUrl() {
+    isUrl.value = false
+    if (!searched.value.length) return
+
+    if (regText.value.includes('http') || regText.value.includes('www.')) {
+      isUrl.value = true
     }
   }
 
@@ -81,14 +94,24 @@ export function useAnalysisFileContent(regText: Ref<string>) {
     searched.value = dst
   }
 
-  return { fileList, searched, analysisContent, handleSelectFile }
+  async function saveToFile() {
+    await SaveDataToFile({
+      data: searched.value.join('\n'),
+      fullPath: `${dirPath.value}/searched-result.txt`
+    })
+    message.success('导出完成')
+  }
+
+  return { fileList, searched, isUrl, saveToFile, analysisContent, handleSelectFile }
 }
 
 export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string>) {
   const message = useMessage()
+  const { concurrentCount } = useDownloadConcurrent()
 
   const isDownloading = ref(false)
   const downloadCount = ref(0)
+  const maxDownloadCount = ref(5)
 
   async function handleDownload() {
     const reqs: Promise<any>[] = []
@@ -99,14 +122,18 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
         return
       }
 
-      const downFn = DownloadUrlToPath(url, dirPath.value).then(msg => {
+      const downFn = DownloadUrlToPath({
+        concurrent: concurrentCount.value,
+        dirPath: dirPath.value,
+        url
+      }).then(msg => {
         !msg && downloadCount.value++
         const i = reqs.findIndex(f => f === downFn)
         reqs.splice(i, 1)
       })
       reqs.push(downFn)
 
-      if (reqs.length >= 5) {
+      if (reqs.length >= maxDownloadCount.value) {
         await Promise.any(reqs)
       }
     }
@@ -116,5 +143,25 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
     isDownloading.value = false
   }
 
-  return { isDownloading, downloadCount, handleDownload, stopDownload }
+  return {
+    isDownloading,
+    downloadCount,
+    concurrentCount,
+    maxDownloadCount,
+    handleDownload,
+    stopDownload
+  }
+}
+
+export function useDownloadConcurrent() {
+  const concurrentCount = ref(5)
+
+  onMounted(async () => {
+    const { info, err } = await GetCpuInfo()
+    if (info.length && !err) {
+      concurrentCount.value = info[0].cores
+    }
+  })
+
+  return { concurrentCount }
 }

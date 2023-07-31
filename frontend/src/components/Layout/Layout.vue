@@ -22,10 +22,16 @@ function changeSelect(v: string) {
 watchEffect(() => {
   activePath.value = router.currentRoute.value.path
 })
+
+function disableContextmenu(ev: MouseEvent) {
+  if (!import.meta.env.DEV) {
+    ev.preventDefault()
+  }
+}
 </script>
 
 <template>
-  <div class="layout">
+  <div class="layout" @contextmenu="disableContextmenu">
     <header class="layout-header">
       <label class="select-label">
         <span>当前页面功能：</span>

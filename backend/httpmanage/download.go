@@ -13,7 +13,6 @@ import (
 	"sync"
 	"toolbox/backend/utils"
 
-	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -40,6 +39,7 @@ type HttpDownloader struct {
 	numThreads    int    // 同时下载线程数
 	dirPath       string // 文件存放路径
 	current       int    // 已下载
+	fullPath      string // 完整存放路径，带文件名
 }
 
 func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context) *HttpDownloader {
@@ -56,6 +56,7 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 	httpDownload.filename = filename
 	httpDownload.dirPath = dirPath
 	httpDownload.ctx = ctx
+	httpDownload.fullPath = path.Join(dirPath, filename)
 
 	if len(res.Header["Accept-Ranges"]) != 0 && res.Header["Accept-Ranges"][0] == "bytes" {
 		httpDownload.acceptRanges = true
@@ -75,20 +76,25 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 }
 
 func (h *HttpDownloader) Download() {
-	f, err := os.Create(h.filename)
+	if checkFileExist(h.fullPath) {
+		fmt.Println("文件已存在，跳过下载：", h.fullPath)
+		return
+	}
+
+	f, err := os.Create(h.fullPath)
 	check(err)
 	defer f.Close()
 
 	if !h.acceptRanges {
-		fmt.Println("该文件不支持多线程下载，单线程下载中：")
+		fmt.Println("该文件不支持多线程下载，单线程下载中：", h.filename)
 		resp, err := http.Get(h.url)
 		check(err)
 
-		save2file(h.filename, 0, NewReader(resp.Body, h))
+		save2file(h.fullPath, 0, NewReader(resp.Body, h), true)
 	} else {
 		var wg sync.WaitGroup
+		fmt.Println("多线程下载中：", h.filename)
 		for _, ranges := range h.Split() {
-			fmt.Printf("多线程下载中:%d-%d\n", ranges[0], ranges[1])
 			wg.Add(1)
 			go func(start, end int) {
 				defer wg.Done()
@@ -96,6 +102,7 @@ func (h *HttpDownloader) Download() {
 			}(ranges[0], ranges[1])
 		}
 		wg.Wait()
+		_ = os.Rename(h.fullPath+".temp", h.fullPath)
 	}
 }
 
@@ -122,13 +129,14 @@ func (h *HttpDownloader) download(start, end int) {
 	check(err)
 	defer resp.Body.Close()
 
-	save2file(path.Join(h.dirPath, h.filename), int64(start), NewReader(resp.Body, h))
+	finished := h.current == h.contentLength
+	save2file(h.fullPath, int64(start), NewReader(resp.Body, h), finished)
 }
 
-func save2file(filename string, offset int64, reader io.Reader) {
-	tmpFile, err := os.OpenFile(filename+".temp", os.O_WRONLY, 0660)
+func save2file(filePath string, offset int64, reader io.Reader, finished bool) {
+	tmpFile, err := os.OpenFile(filePath+".temp", os.O_WRONLY, 0660)
 	if err != nil {
-		tmpFile, err = os.Create(filename + ".temp")
+		tmpFile, err = os.Create(filePath + ".temp")
 	}
 	defer tmpFile.Close()
 	check(err)
@@ -137,8 +145,10 @@ func save2file(filename string, offset int64, reader io.Reader) {
 	_, err = io.Copy(tmpFile, reader)
 	check(err)
 
-	err = os.Rename(filename+".temp", filename)
-	check(err)
+	if finished {
+		err = os.Rename(filePath+".temp", filePath)
+		check(err)
+	}
 }
 
 func check(e error) {
@@ -148,15 +158,17 @@ func check(e error) {
 	}
 }
 
-// 多线程下载文件到指定目录
-func Download(url, dirPath string, ctx context.Context) string {
-	coreCount, err := cpu.Counts(true)
-	if err != nil {
-		coreCount = 5
-	}
+type DownloadPayload struct {
+	Url        string `json:"url"`
+	DirPath    string `json:"dirPath"`
+	Concurrent int    `json:"concurrent"`
+}
 
+// 多线程下载文件到指定目录
+func Download(payload DownloadPayload, ctx context.Context) string {
+	var err error = nil
 	utils.Try(func() {
-		downloader := newHttpDownloader(url, dirPath, coreCount, ctx)
+		downloader := newHttpDownloader(payload.Url, payload.DirPath, payload.Concurrent, ctx)
 		downloader.Download()
 	}, func(res any) {
 		v, ok := res.(error)
@@ -171,4 +183,9 @@ func Download(url, dirPath string, ctx context.Context) string {
 		return err.Error()
 	}
 	return ""
+}
+
+func checkFileExist(fullPath string) bool {
+	_, err := os.ReadFile(fullPath)
+	return err == nil
 }

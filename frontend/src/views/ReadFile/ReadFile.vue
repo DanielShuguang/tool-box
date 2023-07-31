@@ -6,17 +6,23 @@ import {
   useManageRegexSelect,
   useUpdateSavingDir
 } from './logic'
+import { NInputNumber } from 'naive-ui'
 
 const { dirPath, selectSavingDir } = useUpdateSavingDir()
 
 const { regList, regText, selectedReg, handleSelect } = useManageRegexSelect()
 
-const { fileList, searched, analysisContent, handleSelectFile } = useAnalysisFileContent(regText)
+const { fileList, searched, isUrl, analysisContent, handleSelectFile, saveToFile } =
+  useAnalysisFileContent(regText, dirPath)
 
-const { isDownloading, downloadCount, handleDownload, stopDownload } = useManageDownloader(
-  searched,
-  dirPath
-)
+const {
+  isDownloading,
+  concurrentCount,
+  maxDownloadCount,
+  downloadCount,
+  handleDownload,
+  stopDownload
+} = useManageDownloader(searched, dirPath)
 </script>
 
 <template>
@@ -32,37 +38,53 @@ const { isDownloading, downloadCount, handleDownload, stopDownload } = useManage
       </NUploadDragger>
     </NUpload>
 
-    <NFormItem label-placement="left" required label="输入查询的正则表达式">
-      <NInput v-model:value="regText" @update:value="selectedReg = ''" />
-      <NSelect
-        placeholder="预制匹配符"
-        :value="selectedReg"
-        style="width: 200px"
-        :options="regList"
-        @update:value="handleSelect"
-      />
-    </NFormItem>
+    <NForm label-placement="left">
+      <NFormItem required label="输入查询的正则表达式">
+        <NInput v-model:value="regText" @update:value="selectedReg = null" />
+        <NSelect
+          placeholder="预制正则列表"
+          :value="selectedReg"
+          style="width: 200px"
+          :options="regList"
+          @update:value="handleSelect"
+        />
+      </NFormItem>
 
-    <NFormItem label-placement="left" required label="保存目录">
-      <NInput
-        :value="dirPath"
-        class="dir-select"
-        placeholder="请选择文件夹路径"
-        readonly
-        @click="selectSavingDir"
-      />
-      <NButton></NButton>
-    </NFormItem>
+      <NFormItem required label="保存目录">
+        <NInput
+          :value="dirPath"
+          class="dir-select"
+          placeholder="请选择文件夹路径"
+          readonly
+          @click="selectSavingDir"
+        />
+        <NButton></NButton>
+      </NFormItem>
+      <NFormItem label="同时下载任务数">
+        <NInputNumber v-model:value="maxDownloadCount" :min="1" :disabled="isDownloading" />
+      </NFormItem>
+      <NFormItem label="单个任务的下载线程数">
+        <NInputNumber v-model:value="concurrentCount" :min="1" :disabled="isDownloading" />
+        <span style="margin-left: 15px">
+          下载线程越多，理论下载速度越快，请根据电脑配置合理设置
+        </span>
+      </NFormItem>
+    </NForm>
 
     <div class="btn-group">
       <div>
         <NButton type="primary" :disabled="!regText || !fileList.length" @click="analysisContent">
           读取匹配内容
         </NButton>
-        <NButton v-if="searched.length && !isDownloading" type="primary" @click="handleDownload">
-          开始下载
+        <NButton v-if="searched.length" :disabled="!dirPath" type="primary" @click="saveToFile">
+          导出到文件
         </NButton>
-        <NButton v-else-if="isDownloading" type="primary" @click="stopDownload">停止下载</NButton>
+        <template v-if="isUrl">
+          <NButton v-if="searched.length && !isDownloading" type="primary" @click="handleDownload">
+            开始下载
+          </NButton>
+          <NButton v-else-if="isDownloading" type="primary" @click="stopDownload">停止下载</NButton>
+        </template>
       </div>
 
       <span v-if="downloadCount" class="download-count">
