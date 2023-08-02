@@ -1,6 +1,7 @@
-import { DownloadUrlToPath, OpenDirByDialog, GetCpuInfo, SaveDataToFile } from 'backend/core/app'
+import { DownloadUrlToPath, OpenDirByDialog, GetCpuInfo, SaveDataToFile } from 'backend/core/App'
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { FileInfo, SettledFileInfo } from 'naive-ui/es/upload/src/interface'
+import { excludeFileTypes } from '@/utils/binary-file-types'
 
 export function useUpdateSavingDir() {
   const message = useMessage()
@@ -46,6 +47,11 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
 
   function handleSelectFile(files: SettledFileInfo[]) {
     fileList.value = files.slice(-1)
+
+    const isBinary = excludeFileTypes.some(fileType =>
+      fileList.value[0].file?.name.endsWith(`.${fileType}`)
+    )
+    isBinary && message.warning('文件不是正常文本文件格式，可能会读取失败', { duration: 5000 })
   }
 
   async function analysisContent() {
