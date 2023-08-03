@@ -39,11 +39,17 @@ function disableContextmenu(ev: MouseEvent) {
           class="select-page"
           :options="options"
           v-model:value="activePath"
-          @change="changeSelect"
+          @update:value="changeSelect"
         />
       </label>
     </header>
-    <RouterView class="page-content" />
+    <RouterView class="page-content" v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <keep-alive>
+          <component :is="Component"></component>
+        </keep-alive>
+      </transition>
+    </RouterView>
   </div>
 </template>
 
@@ -80,5 +86,15 @@ function disableContextmenu(ev: MouseEvent) {
   padding: 5px;
   background: rgb(241, 242, 243);
   box-sizing: border-box;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
