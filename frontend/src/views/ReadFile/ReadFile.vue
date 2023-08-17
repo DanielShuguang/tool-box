@@ -58,7 +58,6 @@ const {
           readonly
           @click="selectSavingDir"
         />
-        <NButton></NButton>
       </NFormItem>
       <NFormItem label="同时下载任务数">
         <NInputNumber v-model:value="maxDownloadCount" :min="1" :disabled="isDownloading" />
