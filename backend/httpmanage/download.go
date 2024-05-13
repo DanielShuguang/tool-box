@@ -52,6 +52,7 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 	httpDownload := new(HttpDownloader)
 	httpDownload.url = url
 	httpDownload.contentLength = int(res.ContentLength)
+	httpDownload.current = 0
 	httpDownload.numThreads = numThreads
 	httpDownload.filename = filename
 	httpDownload.dirPath = dirPath
@@ -81,16 +82,12 @@ func (h *HttpDownloader) Download() {
 		return
 	}
 
-	f, err := os.Create(h.fullPath)
-	check(err)
-	defer f.Close()
-
 	if !h.acceptRanges {
 		fmt.Println("该文件不支持多线程下载，单线程下载中：", h.filename)
 		resp, err := http.Get(h.url)
 		check(err)
 
-		save2file(h.fullPath, 0, NewReader(resp.Body, h), true)
+		save2file(h.fullPath+".temp", 0, NewReader(resp.Body, h), true)
 	} else {
 		var wg sync.WaitGroup
 		fmt.Println("多线程下载中：", h.filename)
@@ -102,7 +99,11 @@ func (h *HttpDownloader) Download() {
 			}(ranges[0], ranges[1])
 		}
 		wg.Wait()
-		_ = os.Rename(h.fullPath+".temp", h.fullPath)
+	}
+
+	err := os.Rename(h.fullPath+".temp", h.fullPath)
+	if err != nil {
+		fmt.Println("重命名错误：", err)
 	}
 }
 
@@ -128,15 +129,16 @@ func (h *HttpDownloader) download(start, end int) {
 	resp, err := http.DefaultClient.Do(req)
 	check(err)
 	defer resp.Body.Close()
+	h.current++
 
 	finished := h.current == h.contentLength
-	save2file(h.fullPath, int64(start), NewReader(resp.Body, h), finished)
+	save2file(h.fullPath+".temp", int64(start), NewReader(resp.Body, h), finished)
 }
 
 func save2file(filePath string, offset int64, reader io.Reader, finished bool) {
-	tmpFile, err := os.OpenFile(filePath+".temp", os.O_WRONLY, 0660)
+	tmpFile, err := os.OpenFile(filePath, os.O_WRONLY, 0660)
 	if err != nil {
-		tmpFile, err = os.Create(filePath + ".temp")
+		tmpFile, err = os.Create(filePath)
 	}
 	defer tmpFile.Close()
 	check(err)
@@ -145,9 +147,8 @@ func save2file(filePath string, offset int64, reader io.Reader, finished bool) {
 	_, err = io.Copy(tmpFile, reader)
 	check(err)
 
-	if finished {
-		err = os.Rename(filePath+".temp", filePath)
-		check(err)
+	if finished { // 下载完成
+		tmpFile.Close()
 	}
 }
 

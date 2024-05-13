@@ -86,7 +86,7 @@ const {
         </template>
       </div>
 
-      <span v-if="downloadCount" class="download-count">
+      <span v-if="searched" class="download-count">
         已下载：{{ downloadCount }}；总共：{{ searched.length }}
       </span>
     </div>
