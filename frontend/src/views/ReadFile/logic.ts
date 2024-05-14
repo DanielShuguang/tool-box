@@ -1,7 +1,9 @@
 import { DownloadUrlToPath, OpenDirByDialog, GetCpuInfo, SaveDataToFile } from 'backend/core/App'
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { FileInfo, SettledFileInfo } from 'naive-ui/es/upload/src/interface'
 import { excludeFileTypes } from '@/utils/binary-file-types'
+import { UploadFileInfo, UploadSettledFileInfo } from 'naive-ui'
+import { EventsOn } from 'runtime'
+import { debounce } from 'lodash-es'
 
 export function useUpdateSavingDir() {
   const message = useMessage()
@@ -42,10 +44,10 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
   const message = useMessage()
   const isUrl = ref(false)
 
-  const fileList = shallowRef<FileInfo[]>([])
+  const fileList = shallowRef<UploadFileInfo[]>([])
   const searched = shallowRef<string[]>([])
 
-  function handleSelectFile(files: SettledFileInfo[]) {
+  function handleSelectFile(files: UploadSettledFileInfo[]) {
     fileList.value = files.slice(-1)
 
     const isBinary = excludeFileTypes.some(fileType =>
@@ -170,4 +172,32 @@ export function useDownloadConcurrent() {
   })
 
   return { concurrentCount }
+}
+
+export function useBackendOutput() {
+  const outputs = ref<string[]>([])
+  const outputRef = ref<HTMLDivElement>()
+
+  const clear = EventsOn('backend:output', (msg: string) => {
+    outputs.value.push(msg)
+    if (outputs.value.length > 100) {
+      outputs.value.shift()
+    }
+
+    updateOutputScroll()
+  })
+
+  const updateOutputScroll = debounce(() => {
+    if (!outputRef.value) return
+
+    outputRef.value.scrollTop = outputRef.value.scrollHeight
+  }, 200)
+
+  function clearOutputs() {
+    outputs.value.length = 0
+  }
+
+  onUnmounted(() => clear())
+
+  return { outputs, outputRef, clearOutputs }
 }

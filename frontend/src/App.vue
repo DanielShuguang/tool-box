@@ -3,7 +3,7 @@ import { zhCN } from 'naive-ui'
 </script>
 
 <template>
-  <NConfigProvider class="container" :locale="zhCN">
+  <NConfigProvider class="w-[100vw] h-[100vh] m-0 p-0" :locale="zhCN">
     <NMessageProvider>
       <NDialogProvider>
         <Layout />
@@ -15,10 +15,7 @@ import { zhCN } from 'naive-ui'
 <style lang="scss">
 body,
 html,
-#app,
-.container {
-  height: 100vh;
-  width: 100vw;
+#app {
   margin: 0;
   padding: 0;
 }

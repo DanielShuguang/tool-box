@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -47,7 +46,7 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 	var filename string = urlSplits[len(urlSplits)-1]
 
 	res, err := http.Head(url)
-	check(err)
+	check(ctx, err)
 
 	httpDownload := new(HttpDownloader)
 	httpDownload.url = url
@@ -78,19 +77,19 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 
 func (h *HttpDownloader) Download() {
 	if checkFileExist(h.fullPath) {
-		fmt.Println("文件已存在，跳过下载：", h.fullPath)
+		utils.Output(h.ctx, "文件已存在，跳过下载：", h.fullPath)
 		return
 	}
 
 	if !h.acceptRanges {
-		fmt.Println("该文件不支持多线程下载，单线程下载中：", h.filename)
+		utils.Output(h.ctx, "该文件不支持多线程下载，单线程下载中：", h.filename)
 		resp, err := http.Get(h.url)
-		check(err)
+		check(h.ctx, err)
 
-		save2file(h.fullPath+".temp", 0, NewReader(resp.Body, h), true)
+		save2file(h.ctx, h.fullPath+".temp", 0, NewReader(resp.Body, h), true)
 	} else {
 		var wg sync.WaitGroup
-		fmt.Println("多线程下载中：", h.filename)
+		utils.Output(h.ctx, "多线程下载中：", h.filename)
 		for _, ranges := range h.Split() {
 			wg.Add(1)
 			go func(start, end int) {
@@ -103,7 +102,7 @@ func (h *HttpDownloader) Download() {
 
 	err := os.Rename(h.fullPath+".temp", h.fullPath)
 	if err != nil {
-		fmt.Println("重命名错误：", err)
+		utils.Output(h.ctx, "重命名错误：", err)
 	}
 }
 
@@ -123,38 +122,38 @@ func (h *HttpDownloader) Split() [][]int {
 
 func (h *HttpDownloader) download(start, end int) {
 	req, err := http.NewRequest("GET", h.url, nil)
-	check(err)
+	check(h.ctx, err)
 	req.Header.Set("Range", fmt.Sprintf("bytes=%v-%v", start, end))
 
 	resp, err := http.DefaultClient.Do(req)
-	check(err)
+	check(h.ctx, err)
 	defer resp.Body.Close()
 	h.current++
 
 	finished := h.current == h.contentLength
-	save2file(h.fullPath+".temp", int64(start), NewReader(resp.Body, h), finished)
+	save2file(h.ctx, h.fullPath+".temp", int64(start), NewReader(resp.Body, h), finished)
 }
 
-func save2file(filePath string, offset int64, reader io.Reader, finished bool) {
+func save2file(ctx context.Context, filePath string, offset int64, reader io.Reader, finished bool) {
 	tmpFile, err := os.OpenFile(filePath, os.O_WRONLY, 0660)
 	if err != nil {
 		tmpFile, err = os.Create(filePath)
 	}
 	defer tmpFile.Close()
-	check(err)
+	check(ctx, err)
 	tmpFile.Seek(offset, 0)
 
 	_, err = io.Copy(tmpFile, reader)
-	check(err)
+	check(ctx, err)
 
 	if finished { // 下载完成
 		tmpFile.Close()
 	}
 }
 
-func check(e error) {
+func check(ctx context.Context, e error) {
 	if e != nil {
-		log.Println(e)
+		utils.Output(ctx, e)
 		panic(e)
 	}
 }
