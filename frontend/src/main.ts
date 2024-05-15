@@ -1,4 +1,5 @@
-import 'virtual:uno.css'
+import './assets/style/tailwind.css'
+
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from '@/router'
