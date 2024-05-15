@@ -38,7 +38,7 @@ function disableContextmenu(ev: MouseEvent) {
     <header class="w-full h-[45px] p-[5px_5px_0] bg-[#fff]">
       <label class="flex items-center">
         <span>当前页面功能：</span>
-        <NSelect
+        <n-select
           class="inline-block w-[150px]"
           :options="options"
           v-model:value="activePath"
@@ -46,7 +46,7 @@ function disableContextmenu(ev: MouseEvent) {
         />
       </label>
     </header>
-    <RouterView
+    <router-view
       class="w-full h-[calc(100%-45px)] p-[5px] bg-[rgb(241,242,243)] box-border"
       v-slot="{ Component }"
     >
@@ -55,7 +55,7 @@ function disableContextmenu(ev: MouseEvent) {
           <component :is="Component"></component>
         </keep-alive>
       </transition>
-    </RouterView>
+    </router-view>
   </div>
 </template>
 

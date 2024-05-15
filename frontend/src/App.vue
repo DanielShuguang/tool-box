@@ -3,13 +3,13 @@ import { zhCN } from 'naive-ui'
 </script>
 
 <template>
-  <NConfigProvider class="w-[100vw] h-[100vh] m-0 p-0" :locale="zhCN">
-    <NMessageProvider>
-      <NDialogProvider>
+  <n-config-provider class="w-[100vw] h-[100vh] m-0 p-0" :locale="zhCN">
+    <n-message-provider>
+      <n-dialog-provider>
         <Layout />
-      </NDialogProvider>
-    </NMessageProvider>
-  </NConfigProvider>
+      </n-dialog-provider>
+    </n-message-provider>
+  </n-config-provider>
 </template>
 
 <style lang="scss">

@@ -124,8 +124,10 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
   async function handleDownload() {
     const reqs: Promise<any>[] = []
     isDownloading.value = true
+    downloadCount.value = 0
     for (const url of searched.value) {
       if (!isDownloading.value) {
+        await Promise.allSettled(reqs)
         message.info('已停止下载')
         return
       }
@@ -145,6 +147,11 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
         await Promise.any(reqs)
       }
     }
+
+    await Promise.allSettled(reqs)
+
+    message.info('下载完成')
+    isDownloading.value = false
   }
 
   function stopDownload() {
@@ -174,12 +181,19 @@ export function useDownloadConcurrent() {
   return { concurrentCount }
 }
 
+interface OutputObject {
+  module: string
+  message: string
+}
+
 export function useBackendOutput() {
   const outputs = ref<string[]>([])
   const outputRef = ref<HTMLDivElement>()
 
-  const clear = EventsOn('backend:output', (msg: string) => {
-    outputs.value.push(msg)
+  const clear = EventsOn('backend:output', ({ module, message }: OutputObject) => {
+    if (module !== 'download') return
+
+    outputs.value.push(message)
     if (outputs.value.length > 100) {
       outputs.value.shift()
     }

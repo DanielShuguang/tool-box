@@ -39,6 +39,7 @@ type HttpDownloader struct {
 	dirPath       string // 文件存放路径
 	current       int    // 已下载
 	fullPath      string // 完整存放路径，带文件名
+	output        *utils.OutputImpl
 }
 
 func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context) *HttpDownloader {
@@ -46,9 +47,11 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 	var filename string = urlSplits[len(urlSplits)-1]
 
 	res, err := http.Head(url)
-	check(ctx, err)
 
 	httpDownload := new(HttpDownloader)
+	httpDownload.output = utils.NewOutputImpl(ctx, "download")
+	check(httpDownload, err)
+
 	httpDownload.url = url
 	httpDownload.contentLength = int(res.ContentLength)
 	httpDownload.current = 0
@@ -77,19 +80,19 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 
 func (h *HttpDownloader) Download() {
 	if checkFileExist(h.fullPath) {
-		utils.Output(h.ctx, "文件已存在，跳过下载：", h.fullPath)
+		h.output.Output("文件已存在，跳过下载：", h.fullPath)
 		return
 	}
 
 	if !h.acceptRanges {
-		utils.Output(h.ctx, "该文件不支持多线程下载，单线程下载中：", h.filename)
+		h.output.Output("该文件不支持多线程下载，单线程下载中：", h.filename)
 		resp, err := http.Get(h.url)
-		check(h.ctx, err)
+		check(h, err)
 
-		save2file(h.ctx, h.fullPath+".temp", 0, NewReader(resp.Body, h), true)
+		save2file(h, h.fullPath+".temp", 0, NewReader(resp.Body, h), true)
 	} else {
 		var wg sync.WaitGroup
-		utils.Output(h.ctx, "多线程下载中：", h.filename)
+		h.output.Output("多线程下载中：", h.filename)
 		for _, ranges := range h.Split() {
 			wg.Add(1)
 			go func(start, end int) {
@@ -102,7 +105,7 @@ func (h *HttpDownloader) Download() {
 
 	err := os.Rename(h.fullPath+".temp", h.fullPath)
 	if err != nil {
-		utils.Output(h.ctx, "重命名错误：", err)
+		h.output.Output("重命名错误：", err)
 	}
 }
 
@@ -122,38 +125,38 @@ func (h *HttpDownloader) Split() [][]int {
 
 func (h *HttpDownloader) download(start, end int) {
 	req, err := http.NewRequest("GET", h.url, nil)
-	check(h.ctx, err)
+	check(h, err)
 	req.Header.Set("Range", fmt.Sprintf("bytes=%v-%v", start, end))
 
 	resp, err := http.DefaultClient.Do(req)
-	check(h.ctx, err)
+	check(h, err)
 	defer resp.Body.Close()
 	h.current++
 
 	finished := h.current == h.contentLength
-	save2file(h.ctx, h.fullPath+".temp", int64(start), NewReader(resp.Body, h), finished)
+	save2file(h, h.fullPath+".temp", int64(start), NewReader(resp.Body, h), finished)
 }
 
-func save2file(ctx context.Context, filePath string, offset int64, reader io.Reader, finished bool) {
+func save2file(h *HttpDownloader, filePath string, offset int64, reader io.Reader, finished bool) {
 	tmpFile, err := os.OpenFile(filePath, os.O_WRONLY, 0660)
 	if err != nil {
 		tmpFile, err = os.Create(filePath)
 	}
 	defer tmpFile.Close()
-	check(ctx, err)
+	check(h, err)
 	tmpFile.Seek(offset, 0)
 
 	_, err = io.Copy(tmpFile, reader)
-	check(ctx, err)
+	check(h, err)
 
 	if finished { // 下载完成
 		tmpFile.Close()
 	}
 }
 
-func check(ctx context.Context, e error) {
+func check(h *HttpDownloader, e error) {
 	if e != nil {
-		utils.Output(ctx, e)
+		h.output.Output(e)
 		panic(e)
 	}
 }
