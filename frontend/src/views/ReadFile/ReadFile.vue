@@ -32,9 +32,9 @@ const {
     <n-upload :file-list="fileList" @update:file-list="handleSelectFile">
       <n-upload-dragger>
         <div class="mb-[12px]">
-          <NIcon size="48" :depth="3">
+          <n-icon size="48" :depth="3">
             <ArchiveOutline />
-          </NIcon>
+          </n-icon>
         </div>
         <n-text class="text-[16px]">点击或者拖动文件到该区域</n-text>
       </n-upload-dragger>
@@ -43,7 +43,7 @@ const {
     <n-form label-placement="left">
       <n-form-item required label="输入查询的正则表达式">
         <n-input v-model:value="regText" @update:value="selectedReg = null" />
-        <NSelect
+        <n-select
           placeholder="预制正则列表"
           :value="selectedReg"
           class="w-[200px]"

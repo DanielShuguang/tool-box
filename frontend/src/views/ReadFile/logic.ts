@@ -64,7 +64,7 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
     try {
       const text = await file.text()
       const reg = new RegExp(regText.value, 'ig')
-      const contents = text.match(reg) || []
+      const contents = Array.from(text.match(reg) || [])
       searched.value = contents
       removeDuplicates()
       checkContentIsUrl()
@@ -87,19 +87,7 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
   function removeDuplicates() {
     if (!searched.value.length) return
 
-    const freq = new Set<string>()
-    const dst: string[] = []
-
-    searched.value.forEach(str => {
-      if (freq.has(str)) {
-        return
-      }
-
-      freq.add(str)
-      dst.push(str)
-    })
-
-    searched.value = dst
+    searched.value = [...new Set(searched.value)]
   }
 
   async function saveToFile() {
@@ -174,7 +162,7 @@ export function useDownloadConcurrent() {
   onMounted(async () => {
     const { info, err } = await GetCpuInfo()
     if (info.length && !err) {
-      concurrentCount.value = info[0].cores
+      concurrentCount.value = info.reduce((pre, el) => el.cores + pre, 0)
     }
   })
 
