@@ -114,7 +114,7 @@ const {
 
     <div
       ref="outputRef"
-      class="relative flex-1 bg-[#fff] border border-[#ddd] p-[10px] overflow-auto"
+      class="relative flex-1 bg-[#fff] border border-[#ddd] border-solid p-[10px] overflow-auto"
     >
       <n-button
         v-show="outputs.length"
