@@ -18,7 +18,7 @@ func (tr *TempReader) Read(p []byte) (n int, err error) {
 	runtime.EventsEmit(tr.down.ctx, "backend:download-progress", DownloadPercentResult{
 		Url:     tr.down.url,
 		Current: tr.down.current,
-		Total:   tr.down.contentLength,
+		Total:   tr.down.fullSize,
 	})
 	return
 }

@@ -16,11 +16,11 @@ import (
 )
 
 type DownloadMissionInfo struct {
-	Url           string `json:"url"`
-	Filename      string `json:"filename"`
-	ContentLength int64  `json:"contentLength"`
-	AcceptRanges  bool   `json:"acceptRanges"`
-	DirPath       string `json:"dirPath"`
+	Url       string `json:"url"`
+	Filename  string `json:"filename"`
+	FullSize  int64  `json:"fullSize"`
+	StopAndGo bool   `json:"stopAndGo"`
+	DirPath   string `json:"dirPath"`
 }
 
 type DownloadPercentResult struct {
@@ -30,16 +30,16 @@ type DownloadPercentResult struct {
 }
 
 type HttpDownloader struct {
-	ctx           context.Context
-	url           string
-	filename      string
-	contentLength int64  // 总大小
-	acceptRanges  bool   // 是否支持断点续传
-	numThreads    int64  // 同时下载线程数
-	dirPath       string // 文件存放路径
-	current       int64  // 已下载
-	fullPath      string // 完整存放路径，带文件名
-	output        *utils.OutputImpl
+	ctx        context.Context
+	url        string
+	filename   string
+	fullSize   int64  // 总大小
+	stopAndGo  bool   // 是否支持断点续传
+	numThreads int64  // 同时下载线程数
+	dirPath    string // 文件存放路径
+	current    int64  // 已下载
+	fullPath   string // 完整存放路径，带文件名
+	output     *utils.OutputImpl
 }
 
 func newHttpDownloader(url, dirPath string, numThreads int64, ctx context.Context) *HttpDownloader {
@@ -53,7 +53,7 @@ func newHttpDownloader(url, dirPath string, numThreads int64, ctx context.Contex
 	check(httpDownload, err)
 
 	httpDownload.url = url
-	httpDownload.contentLength = res.ContentLength
+	httpDownload.fullSize = res.ContentLength
 	httpDownload.current = 0
 	httpDownload.numThreads = numThreads
 	httpDownload.filename = filename
@@ -61,18 +61,14 @@ func newHttpDownloader(url, dirPath string, numThreads int64, ctx context.Contex
 	httpDownload.ctx = ctx
 	httpDownload.fullPath = path.Join(dirPath, filename)
 
-	if len(res.Header["Accept-Ranges"]) != 0 && res.Header["Accept-Ranges"][0] == "bytes" {
-		httpDownload.acceptRanges = true
-	} else {
-		httpDownload.acceptRanges = false
-	}
+	httpDownload.stopAndGo = len(res.Header["Accept-Ranges"]) != 0 && res.Header["Accept-Ranges"][0] == "bytes"
 
 	runtime.EventsEmit(ctx, "backend:download-info", DownloadMissionInfo{
-		Url:           httpDownload.url,
-		Filename:      httpDownload.filename,
-		ContentLength: httpDownload.contentLength,
-		AcceptRanges:  httpDownload.acceptRanges,
-		DirPath:       httpDownload.dirPath,
+		Url:       httpDownload.url,
+		Filename:  httpDownload.filename,
+		FullSize:  httpDownload.fullSize,
+		StopAndGo: httpDownload.stopAndGo,
+		DirPath:   httpDownload.dirPath,
 	})
 
 	return httpDownload
@@ -84,7 +80,7 @@ func (h *HttpDownloader) Download() {
 		return
 	}
 
-	if !h.acceptRanges {
+	if !h.stopAndGo {
 		h.output.Output("该文件不支持多线程下载，单线程下载中：", h.filename)
 		resp, err := http.Get(h.url)
 		check(h, err)
@@ -111,13 +107,13 @@ func (h *HttpDownloader) Download() {
 
 func (h *HttpDownloader) Split() [][]int64 {
 	ranges := [][]int64{}
-	blockSize := h.contentLength / h.numThreads
+	blockSize := h.fullSize / h.numThreads
 	var i int64
 	for i = 0; i < h.numThreads; i++ {
 		var start int64 = i * blockSize
 		var end int64 = (i+1)*blockSize - 1
 		if i == h.numThreads-1 {
-			end = h.contentLength - 1
+			end = h.fullSize - 1
 		}
 		ranges = append(ranges, []int64{start, end})
 	}
@@ -134,7 +130,7 @@ func (h *HttpDownloader) download(start, end int64) {
 	defer resp.Body.Close()
 	h.current++
 
-	finished := h.current == h.contentLength
+	finished := h.current == h.fullSize
 	save2file(h, h.fullPath+".temp", start, NewReader(resp.Body, h), finished)
 }
 
