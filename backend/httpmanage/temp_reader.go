@@ -13,7 +13,7 @@ type TempReader struct {
 
 func (tr *TempReader) Read(p []byte) (n int, err error) {
 	n, err = tr.reader.Read(p)
-	tr.down.current += n
+	tr.down.current += int64(n)
 
 	runtime.EventsEmit(tr.down.ctx, "backend:download-progress", DownloadPercentResult{
 		Url:     tr.down.url,

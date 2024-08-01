@@ -18,31 +18,31 @@ import (
 type DownloadMissionInfo struct {
 	Url           string `json:"url"`
 	Filename      string `json:"filename"`
-	ContentLength int    `json:"contentLength"`
+	ContentLength int64  `json:"contentLength"`
 	AcceptRanges  bool   `json:"acceptRanges"`
 	DirPath       string `json:"dirPath"`
 }
 
 type DownloadPercentResult struct {
 	Url     string `json:"url"`
-	Total   int    `json:"total"`
-	Current int    `json:"current"`
+	Total   int64  `json:"total"`
+	Current int64  `json:"current"`
 }
 
 type HttpDownloader struct {
 	ctx           context.Context
 	url           string
 	filename      string
-	contentLength int    // 总大小
+	contentLength int64  // 总大小
 	acceptRanges  bool   // 是否支持断点续传
-	numThreads    int    // 同时下载线程数
+	numThreads    int64  // 同时下载线程数
 	dirPath       string // 文件存放路径
-	current       int    // 已下载
+	current       int64  // 已下载
 	fullPath      string // 完整存放路径，带文件名
 	output        *utils.OutputImpl
 }
 
-func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context) *HttpDownloader {
+func newHttpDownloader(url, dirPath string, numThreads int64, ctx context.Context) *HttpDownloader {
 	var urlSplits []string = strings.Split(url, "/")
 	var filename string = urlSplits[len(urlSplits)-1]
 
@@ -53,7 +53,7 @@ func newHttpDownloader(url, dirPath string, numThreads int, ctx context.Context)
 	check(httpDownload, err)
 
 	httpDownload.url = url
-	httpDownload.contentLength = int(res.ContentLength)
+	httpDownload.contentLength = res.ContentLength
 	httpDownload.current = 0
 	httpDownload.numThreads = numThreads
 	httpDownload.filename = filename
@@ -95,7 +95,7 @@ func (h *HttpDownloader) Download() {
 		h.output.Output("多线程下载中：", h.filename)
 		for _, ranges := range h.Split() {
 			wg.Add(1)
-			go func(start, end int) {
+			go func(start, end int64) {
 				defer wg.Done()
 				h.download(start, end)
 			}(ranges[0], ranges[1])
@@ -109,21 +109,22 @@ func (h *HttpDownloader) Download() {
 	}
 }
 
-func (h *HttpDownloader) Split() [][]int {
-	ranges := [][]int{}
+func (h *HttpDownloader) Split() [][]int64 {
+	ranges := [][]int64{}
 	blockSize := h.contentLength / h.numThreads
-	for i := 0; i < h.numThreads; i++ {
-		var start int = i * blockSize
-		var end int = (i+1)*blockSize - 1
+	var i int64
+	for i = 0; i < h.numThreads; i++ {
+		var start int64 = i * blockSize
+		var end int64 = (i+1)*blockSize - 1
 		if i == h.numThreads-1 {
 			end = h.contentLength - 1
 		}
-		ranges = append(ranges, []int{start, end})
+		ranges = append(ranges, []int64{start, end})
 	}
 	return ranges
 }
 
-func (h *HttpDownloader) download(start, end int) {
+func (h *HttpDownloader) download(start, end int64) {
 	req, err := http.NewRequest("GET", h.url, nil)
 	check(h, err)
 	req.Header.Set("Range", fmt.Sprintf("bytes=%v-%v", start, end))
@@ -134,7 +135,7 @@ func (h *HttpDownloader) download(start, end int) {
 	h.current++
 
 	finished := h.current == h.contentLength
-	save2file(h, h.fullPath+".temp", int64(start), NewReader(resp.Body, h), finished)
+	save2file(h, h.fullPath+".temp", start, NewReader(resp.Body, h), finished)
 }
 
 func save2file(h *HttpDownloader, filePath string, offset int64, reader io.Reader, finished bool) {
@@ -164,7 +165,7 @@ func check(h *HttpDownloader, e error) {
 type DownloadPayload struct {
 	Url        string `json:"url"`
 	DirPath    string `json:"dirPath"`
-	Concurrent int    `json:"concurrent"`
+	Concurrent int64  `json:"concurrent"`
 }
 
 // 多线程下载文件到指定目录
