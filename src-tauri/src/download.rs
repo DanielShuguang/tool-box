@@ -20,8 +20,8 @@ use tokio::{
 use crate::utils::output::{Message, OutputEvent};
 
 /// 检测文件是否支持断点续传，是否是重定向链接
-async fn check_request_info<U: IntoUrl>(
-    url: U,
+async fn check_request_info(
+    url: &str,
     output: State<'_, Output>,
 ) -> AnyResult<(bool, String, u64)> {
     let req = reqwest::Client::new().head(url);
@@ -94,7 +94,7 @@ async fn download<U: IntoUrl>(
     Ok(())
 }
 
-async fn rename_file<P: AsRef<Path>>(temp_path: P, real_path: P) -> AnyResult<()> {
+async fn rename_file(temp_path: &str, real_path: &str) -> AnyResult<()> {
     match fs::rename(temp_path, real_path).await {
         Ok(_) => Ok(()),
         Err(e) => Err(Error::msg(format!("重命名文件失败: {}", e))),
@@ -106,23 +106,11 @@ async fn check_file_exist<P: AsRef<Path>>(path: P) -> bool {
 }
 
 /// 开始下载任务
-async fn run<U: IntoUrl, P: AsRef<Path>>(
-    url: U,
-    path: P,
-    task_num: u64,
-    output: State<'_, Output>,
-) -> AnyResult<()> {
-    let url = url.into_url()?;
+async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) -> AnyResult<()> {
     let mut handles = vec![];
-    let (range, url, length) = check_request_info(url.clone(), output.clone()).await?;
-    let temp_path = path.as_ref().to_string_lossy().to_string() + ".tmp";
-    let file_name = path
-        .as_ref()
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
+    let (range, url, length) = check_request_info(url, output.clone()).await?;
+    let temp_path = path.to_string() + ".tmp";
+    let file_name = path.to_string();
     if check_file_exist(&temp_path).await || check_file_exist(&path).await {
         output
             .send(OutputEvent::new(
@@ -153,7 +141,7 @@ async fn run<U: IntoUrl, P: AsRef<Path>>(
         let ret = join_all(handles).await;
         drop(file);
         let err = ret.into_iter().flatten().any(|n| n.is_err());
-        rename_file(&temp_path, &path.as_ref().to_string_lossy().to_string()).await?;
+        rename_file(&temp_path, path).await?;
         err
     } else {
         output
@@ -165,7 +153,7 @@ async fn run<U: IntoUrl, P: AsRef<Path>>(
         let err = download(url.clone(), (0, length - 1), false, file)
             .await
             .is_err();
-        rename_file(&temp_path, &path.as_ref().to_string_lossy().to_string()).await?;
+        rename_file(&temp_path, path).await?;
         err
     };
     if is_error {
@@ -204,7 +192,7 @@ async fn download_file(
         None => return Ok(Message::failure("url错误")),
     };
     let path = format!("{}/{}", dir_path, file_name);
-    match run(url, path, concurrent, output).await {
+    match run(&url, &path, concurrent, output).await {
         Ok(_) => Ok(Message::success(Some(String::from("下载成功")))),
         Err(e) => Ok(Message::failure(&e.to_string())),
     }
