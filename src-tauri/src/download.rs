@@ -4,7 +4,7 @@ use anyhow::{Error, Result as AnyResult};
 use futures::{future::join_all, lock::Mutex};
 use reqwest::{
     header::{HeaderValue, ACCEPT_RANGES, CONTENT_LENGTH, RANGE},
-    IntoUrl, Response,
+    Response,
 };
 use serde::Deserialize;
 use tauri::{
@@ -66,12 +66,12 @@ async fn check_redirected_url(resp: &Response, output: State<'_, Output>) -> Any
                 .ok_or(Error::msg("获取重定向URL失败"));
         }
     }
-    Ok(resp.url().to_string().into())
+    Ok(resp.url().to_string())
 }
 
 /// 下载指定的文件切片
-async fn download<U: IntoUrl>(
-    url: U,
+async fn download(
+    url: String,
     (start, end): (u64, u64),
     is_partial: bool,
     file: Arc<Mutex<File>>,
