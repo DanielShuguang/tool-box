@@ -5,6 +5,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import UnoCSS from 'unocss/vite'
+import legacy from '@vitejs/plugin-legacy'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -26,6 +27,10 @@ export default defineConfig(({ command }) => {
       Components({
         resolvers: [NaiveUiResolver()],
         dts: './src/types/components.d.ts'
+      }),
+      legacy({
+        targets: ['defaults', 'not IE 11'],
+        modernPolyfills: true
       })
     ],
     resolve: {
