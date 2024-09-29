@@ -4,7 +4,9 @@ import { UploadFileInfo, UploadSettledFileInfo } from 'naive-ui'
 import { debounce, isString } from 'lodash-es'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
 import { writeTextFile } from '@tauri-apps/api/fs'
-import { dialog, invoke } from '@tauri-apps/api'
+import { dialog } from '@tauri-apps/api'
+import { getCpuCoreCount } from '@/backend-channel/utils'
+import { downloadFile } from '@/backend-channel/download'
 
 export function useUpdateSavingDir() {
   const dirPath = ref('')
@@ -99,7 +101,6 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
 export enum DownloadStatus {
   Default = 'default',
   Processing = 'processing',
-  Success = 'success',
   Shutdown = 'Shutdown'
 }
 
@@ -123,14 +124,12 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
         return
       }
 
-      const downFn = invoke<BackendResp<string>>('plugin:download|download_file', {
-        payload: {
-          concurrent: concurrentCount.value,
-          dir_path: dirPath.value,
-          url
-        }
-      }).then(res => {
-        res.code === 200 && downloadCount.value++
+      const downFn = downloadFile({
+        concurrent: concurrentCount.value,
+        dir_path: dirPath.value,
+        url
+      }).then(({ code }) => {
+        code === 200 && downloadCount.value++
         const i = reqs.findIndex(f => f === downFn)
         reqs.splice(i, 1)
       })
@@ -166,7 +165,7 @@ export function useDownloadConcurrent() {
   const concurrentCount = ref(5)
 
   onMounted(async () => {
-    const cores = await invoke<number>('plugin:os|get_cpu_info')
+    const cores = await getCpuCoreCount()
     if (cores) {
       concurrentCount.value = Math.floor(cores / 2)
     }
@@ -180,8 +179,6 @@ export function useBackendOutput() {
   const outputRef = ref<HTMLDivElement>()
 
   useRuntimeEvent<string>('download-output', ({ payload }) => {
-    console.log('downloading', payload)
-
     outputs.value.push(payload)
     if (outputs.value.length > 100) {
       outputs.value.shift()
