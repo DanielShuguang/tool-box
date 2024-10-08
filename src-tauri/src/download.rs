@@ -1,4 +1,4 @@
-use std::{io::SeekFrom, path::Path, sync::Arc};
+use std::{io::SeekFrom, sync::Arc};
 
 use anyhow::{Error, Result as AnyResult};
 use futures::{future::join_all, lock::Mutex};
@@ -101,7 +101,7 @@ async fn rename_file(temp_path: &str, real_path: &str) -> AnyResult<()> {
     }
 }
 
-async fn check_file_exist<P: AsRef<Path>>(path: P) -> bool {
+async fn check_file_exist(path: &str) -> bool {
     fs::metadata(path).await.is_ok()
 }
 
