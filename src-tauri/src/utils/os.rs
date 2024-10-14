@@ -1,8 +1,4 @@
 use sysinfo::System;
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Runtime as TauriRuntime,
-};
 
 #[tauri::command]
 pub fn get_cpu_info() -> usize {
@@ -12,10 +8,11 @@ pub fn get_cpu_info() -> usize {
     sys.cpus().len()
 }
 
-pub fn init<R: TauriRuntime>() -> TauriPlugin<R> {
-    println!("OS plugin init");
-
-    Builder::new("os")
-        .invoke_handler(tauri::generate_handler![get_cpu_info])
-        .build()
+pub fn get_system_name() -> String {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+    match sysinfo::System::name() {
+        Some(name) => name,
+        None => String::from("Unknown"),
+    }
 }

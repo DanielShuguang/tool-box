@@ -1,5 +1,5 @@
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api/core'
 
 export function getCpuCoreCount() {
-  return invoke<number>('plugin:os|get_cpu_info')
+  return invoke<number>('get_cpu_info')
 }

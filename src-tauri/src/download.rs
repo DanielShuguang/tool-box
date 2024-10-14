@@ -1,7 +1,8 @@
-use std::{io::SeekFrom, sync::Arc};
+use std::{io::SeekFrom, path::Path, sync::Arc};
 
 use anyhow::{Error, Result as AnyResult};
 use futures::{future::join_all, lock::Mutex};
+
 use reqwest::{
     header::{HeaderValue, ACCEPT_RANGES, CONTENT_LENGTH, RANGE},
     Response,
@@ -9,7 +10,7 @@ use reqwest::{
 use serde::Deserialize;
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    Manager, State,
+    Emitter, Manager, State,
 };
 use tokio::{
     fs::{self, remove_file, File},
@@ -17,7 +18,10 @@ use tokio::{
     sync::mpsc,
 };
 
-use crate::utils::output::{Message, OutputEvent};
+use crate::utils::{
+    os,
+    output::{Message, OutputEvent},
+};
 
 /// 检测文件是否支持断点续传，是否是重定向链接
 async fn check_request_info(
@@ -101,7 +105,7 @@ async fn rename_file(temp_path: &str, real_path: &str) -> AnyResult<()> {
     }
 }
 
-async fn check_file_exist(path: &str) -> bool {
+async fn check_file_exist<P: AsRef<Path>>(path: P) -> bool {
     fs::metadata(path).await.is_ok()
 }
 
@@ -110,12 +114,12 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
     let mut handles = vec![];
     let (range, url, length) = check_request_info(url, output.clone()).await?;
     let temp_path = path.to_string() + ".tmp";
-    let file_name = path.to_string();
+    let file_path = path.to_string();
     if check_file_exist(&temp_path).await || check_file_exist(&path).await {
         output
             .send(OutputEvent::new(
                 Events::DownloadOutput,
-                format!("文件已存在，跳过下载：{}", file_name),
+                format!("文件已存在，跳过下载：{}", file_path),
             ))
             .await?;
         return Ok(());
@@ -125,7 +129,7 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
         output
             .send(OutputEvent::new(
                 Events::DownloadOutput,
-                format!("多线程下载中：{}", file_name),
+                format!("多线程下载中：{}", file_path),
             ))
             .await?;
         let length = length / task_num;
@@ -147,7 +151,7 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
         output
             .send(OutputEvent::new(
                 Events::DownloadOutput,
-                format!("该文件不支持多线程下载，单线程下载中：{}", file_name),
+                format!("该文件不支持多线程下载，单线程下载中：{}", file_path),
             ))
             .await?;
         let err = download(url.clone(), (0, length - 1), false, file)
@@ -163,7 +167,7 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
         output
             .send(OutputEvent::new(
                 Events::DownloadOutput,
-                format!("下载完成：{}", file_name),
+                format!("下载完成：{}", file_path),
             ))
             .await?;
         Ok(())
@@ -171,14 +175,14 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
 }
 
 #[derive(Deserialize)]
-struct DownloadPayload {
+pub struct DownloadPayload {
     url: String,
     dir_path: String,
     concurrent: u64,
 }
 
 #[tauri::command]
-async fn download_file(
+pub async fn download_file(
     payload: DownloadPayload,
     output: State<'_, Output>,
 ) -> Result<Message<String>, ()> {
@@ -191,18 +195,24 @@ async fn download_file(
         Some(v) => v,
         None => return Ok(Message::failure("url错误")),
     };
-    let path = format!("{}/{}", dir_path, file_name);
+    let system_name = os::get_system_name();
+    let splitter = if system_name.to_lowercase() == "windows" {
+        "\\"
+    } else {
+        "/"
+    };
+    let path = format!("{}{}{}", dir_path, splitter, file_name);
     match run(&url, &path, concurrent, output).await {
         Ok(_) => Ok(Message::success(Some(String::from("下载成功")))),
         Err(e) => Ok(Message::failure(&e.to_string())),
     }
 }
 
-enum Events {
+pub enum Events {
     DownloadOutput,
 }
 
-struct Output {
+pub struct Output {
     tx: Mutex<mpsc::Sender<OutputEvent<String, Events>>>,
 }
 
@@ -225,12 +235,11 @@ pub fn init<R: tauri::Runtime>() -> TauriPlugin<R> {
 
     let (output_tx, mut output_rx) = mpsc::channel(5);
     Builder::new("download")
-        .invoke_handler(tauri::generate_handler![download_file])
-        .setup(|app| {
+        .setup(|app, _| {
             app.manage(Output {
                 tx: Mutex::new(output_tx),
             });
-            let handle = app.app_handle();
+            let handle = app.app_handle().clone();
 
             tauri::async_runtime::spawn(async move {
                 loop {
@@ -239,7 +248,7 @@ pub fn init<R: tauri::Runtime>() -> TauriPlugin<R> {
                         let event_name = match output.event {
                             Events::DownloadOutput => "download-output",
                         };
-                        match handle.emit_all(event_name, output.data) {
+                        match handle.emit(event_name, output.data) {
                             Ok(_) => {}
                             Err(e) => println!("[download] 事件发送失败：{e}"),
                         };

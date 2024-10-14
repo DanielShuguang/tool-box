@@ -24,6 +24,7 @@ impl<T: Serialize> Message<T> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn custom(code: usize, message: &str, data: Option<T>) -> Self {
         Self {
             code,

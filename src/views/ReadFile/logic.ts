@@ -3,16 +3,16 @@ import { excludeFileTypes } from '@/utils/binary-file-types'
 import { UploadFileInfo, UploadSettledFileInfo } from 'naive-ui'
 import { debounce, isString } from 'lodash-es'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
-import { writeTextFile } from '@tauri-apps/api/fs'
-import { dialog } from '@tauri-apps/api'
 import { getCpuCoreCount } from '@/backend-channel/utils'
 import { downloadFile } from '@/backend-channel/download'
+import { writeTextFile } from '@tauri-apps/plugin-fs'
+import { open } from '@tauri-apps/plugin-dialog'
 
 export function useUpdateSavingDir() {
   const dirPath = ref('')
 
   async function selectSavingDir() {
-    const res = await dialog.open({ directory: true, multiple: false })
+    const res = await open({ directory: true, multiple: false })
     if (isString(res)) {
       dirPath.value = res
     }
