@@ -1,7 +1,7 @@
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { excludeFileTypes } from '@/utils/binary-file-types'
 import { UploadFileInfo, UploadSettledFileInfo } from 'naive-ui'
-import { debounce, isString } from 'lodash-es'
+import { isString } from 'lodash-es'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
 import { getCpuCoreCount } from '@/backend-channel/utils'
 import { downloadFile } from '@/backend-channel/download'
@@ -178,6 +178,12 @@ export function useBackendOutput() {
   const outputs = ref<string[]>([])
   const outputRef = ref<HTMLDivElement>()
 
+  const updateOutputScroll = useDebounceFn(() => {
+    if (!outputRef.value) return
+
+    outputRef.value.scrollTop = outputRef.value.scrollHeight
+  }, 200)
+
   useRuntimeEvent<string>('download-output', ({ payload }) => {
     outputs.value.push(payload)
     if (outputs.value.length > 100) {
@@ -186,12 +192,6 @@ export function useBackendOutput() {
 
     updateOutputScroll()
   })
-
-  const updateOutputScroll = debounce(() => {
-    if (!outputRef.value) return
-
-    outputRef.value.scrollTop = outputRef.value.scrollHeight
-  }, 200)
 
   function clearOutputs() {
     outputs.value.length = 0
