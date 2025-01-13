@@ -7,6 +7,8 @@ import { getCpuCoreCount } from '@/backend-channel/utils'
 import { downloadFile } from '@/backend-channel/download'
 import { writeTextFile } from '@tauri-apps/plugin-fs'
 import { open } from '@tauri-apps/plugin-dialog'
+import mammoth from 'mammoth'
+import XLSX from 'xlsx'
 
 export function useUpdateSavingDir() {
   const dirPath = ref('')
@@ -40,6 +42,41 @@ export function useManageRegexSelect() {
   return { regText, selectedReg, regList, handleSelect }
 }
 
+// 分析受支持的二进制文件内容
+function useAnalysisBinaryFile(getMatchContent: (text: string) => void) {
+  const message = useMessage()
+
+  // 读取 excel 内容
+  async function readExcelContent(file: File) {
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+      const sheets = workbook.SheetNames
+      const content = sheets.reduce((pre, sheet) => {
+        const worksheet = workbook.Sheets[sheet]
+        const data = XLSX.utils.sheet_to_txt(worksheet)
+        return `${pre}\n${data}`
+      }, '')
+      getMatchContent(content)
+    } catch (err) {
+      message.error(err as any)
+    }
+  }
+
+  // 读取 word 文档内容
+  async function readWordDocContent(file: File) {
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const { value } = await mammoth.extractRawText({ arrayBuffer })
+      getMatchContent(value)
+    } catch (err) {
+      message.error(err as any)
+    }
+  }
+
+  return { readExcelContent, readWordDocContent }
+}
+
 export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string>) {
   const message = useMessage()
   const isUrl = ref(false)
@@ -56,24 +93,43 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
     isBinary && message.warning('文件不是正常文本文件格式，可能会读取失败', { duration: 5000 })
   }
 
-  async function analysisContent() {
+  // 获取匹配内容
+  function getMatchContent(text: string) {
+    const reg = new RegExp(regText.value, 'ig')
+    const contents = Array.from(text.match(reg) || [])
+    searched.value = contents
+    removeDuplicates()
+    checkContentIsUrl()
+    message.success(`分析完成，存在${searched.value.length}条可用数据`, { duration: 5000 })
+  }
+
+  const { readExcelContent, readWordDocContent } = useAnalysisBinaryFile(getMatchContent)
+
+  // 分析文件内容
+  function analysisContent() {
     const currentFile = fileList.value[0]
     const file = currentFile.file
     if (!file) return
 
+    if (['doc', 'docx'].some(type => file.name.endsWith(`.${type}`))) {
+      return readWordDocContent(file)
+    } else if (['xls', 'xlsx'].some(type => file.name.endsWith(`.${type}`))) {
+      return readExcelContent(file)
+    }
+    readNormalTextContent(file)
+  }
+
+  // 读取普通文本文件内容
+  async function readNormalTextContent(file: File) {
     try {
       const text = await file.text()
-      const reg = new RegExp(regText.value, 'ig')
-      const contents = Array.from(text.match(reg) || [])
-      searched.value = contents
-      removeDuplicates()
-      checkContentIsUrl()
-      message.success(`分析完成，存在${searched.value.length}条可用数据`, { duration: 5000 })
+      getMatchContent(text)
     } catch (err) {
       message.error(err as any)
     }
   }
 
+  // 检查内容是否为 url
   function checkContentIsUrl() {
     isUrl.value = false
     if (!searched.value.length) return
@@ -83,7 +139,7 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
     }
   }
 
-  /** 去重 */
+  // 去重
   function removeDuplicates() {
     if (!searched.value.length) return
 
