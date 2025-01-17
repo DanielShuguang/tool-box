@@ -1,4 +1,7 @@
+use std::fmt::Debug;
+
 use serde::Serialize;
+use tauri::Emitter;
 
 #[derive(Serialize)]
 pub struct Message<T: Serialize> {
@@ -34,13 +37,27 @@ impl<T: Serialize> Message<T> {
     }
 }
 
-pub struct OutputEvent<T, E = String> {
-    pub data: T,
-    pub event: E,
+#[derive(Clone)]
+pub struct MessageSender {
+    app_handle: tauri::AppHandle,
+    plugin_name: String,
 }
 
-impl<T, E> OutputEvent<T, E> {
-    pub fn new(event: E, data: T) -> Self {
-        Self { data, event }
+impl MessageSender {
+    pub fn new(app_handle: tauri::AppHandle, plugin_name: &str) -> Self {
+        Self {
+            app_handle,
+            plugin_name: plugin_name.to_string(),
+        }
+    }
+
+    pub fn send<S: Serialize + Clone + Debug>(&self, event: &str, payload: S, output: bool) {
+        if output {
+            println!("[{}] {:?}", self.plugin_name, payload);
+        }
+        match self.app_handle.emit(event, payload) {
+            Ok(_) => {}
+            Err(e) => println!("[{}] 事件发送失败：{}", self.plugin_name, e),
+        }
     }
 }

@@ -8,32 +8,26 @@ use reqwest::{
     Response,
 };
 use serde::Deserialize;
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Emitter, Manager, State,
-};
 use tokio::{
     fs::{self, remove_file, File},
     io::{AsyncSeekExt, AsyncWriteExt},
-    sync::mpsc,
 };
 
 use crate::utils::{
     os,
-    output::{Message, OutputEvent},
+    output::{Message, MessageSender},
 };
 
+static DOWNLOAD_EVENT: &'static str = "download-output";
+
 /// 检测文件是否支持断点续传，是否是重定向链接
-async fn check_request_info(
-    url: &str,
-    output: State<'_, Output>,
-) -> AnyResult<(bool, String, u64)> {
+async fn check_request_info(url: &str, sender: MessageSender) -> AnyResult<(bool, String, u64)> {
     let req = reqwest::Client::new().head(url);
     let resp = req.send().await?;
     if !resp.status().is_success() {
         return Err(Error::msg("请求失败"));
     }
-    let url = check_redirected_url(&resp, output).await?;
+    let url = check_redirected_url(&resp, sender).await?;
     let headers = resp.headers();
     let range = headers
         .get(ACCEPT_RANGES)
@@ -52,14 +46,13 @@ async fn check_request_info(
 }
 
 /// 检测重定向链接
-async fn check_redirected_url(resp: &Response, output: State<'_, Output>) -> AnyResult<String> {
+async fn check_redirected_url(resp: &Response, sender: MessageSender) -> AnyResult<String> {
     if resp.status().is_redirection() {
-        output
-            .send(OutputEvent::new(
-                Events::DownloadOutput,
-                format!("检测到重定向链接: {}", resp.url()),
-            ))
-            .await?;
+        sender.send(
+            DOWNLOAD_EVENT,
+            format!("检测到重定向链接: {}", resp.url()),
+            true,
+        );
 
         let headers = resp.headers();
         if let Some(val) = headers.get(reqwest::header::LOCATION) {
@@ -110,28 +103,22 @@ async fn check_file_exist<P: AsRef<Path>>(path: P) -> bool {
 }
 
 /// 开始下载任务
-async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) -> AnyResult<()> {
+async fn run(url: &str, path: &str, task_num: u64, sender: MessageSender) -> AnyResult<()> {
     let mut handles = vec![];
-    let (range, url, length) = check_request_info(url, output.clone()).await?;
+    let (range, url, length) = check_request_info(url, sender.clone()).await?;
     let temp_path = path.to_string() + ".tmp";
     let file_path = path.to_string();
     if check_file_exist(&temp_path).await || check_file_exist(&path).await {
-        output
-            .send(OutputEvent::new(
-                Events::DownloadOutput,
-                format!("文件已存在，跳过下载：{}", file_path),
-            ))
-            .await?;
+        sender.send(
+            DOWNLOAD_EVENT,
+            format!("文件已存在，跳过下载：{}", file_path),
+            true,
+        );
         return Ok(());
     }
     let file = Arc::new(Mutex::new(File::create(&temp_path).await?));
     let is_error = if range {
-        output
-            .send(OutputEvent::new(
-                Events::DownloadOutput,
-                format!("多线程下载中：{}", file_path),
-            ))
-            .await?;
+        sender.send(DOWNLOAD_EVENT, format!("多线程下载中：{}", file_path), true);
         let length = length / task_num;
         for i in 0..task_num {
             let file = Arc::clone(&file);
@@ -148,12 +135,11 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
         rename_file(&temp_path, path).await?;
         err
     } else {
-        output
-            .send(OutputEvent::new(
-                Events::DownloadOutput,
-                format!("该文件不支持多线程下载，单线程下载中：{}", file_path),
-            ))
-            .await?;
+        sender.send(
+            DOWNLOAD_EVENT,
+            format!("该文件不支持多线程下载，单线程下载中：{}", file_path),
+            true,
+        );
         let err = download(url.clone(), (0, length - 1), false, file)
             .await
             .is_err();
@@ -164,12 +150,7 @@ async fn run(url: &str, path: &str, task_num: u64, output: State<'_, Output>) ->
         remove_file(&path).await?;
         Err(Error::msg("下载失败"))
     } else {
-        output
-            .send(OutputEvent::new(
-                Events::DownloadOutput,
-                format!("下载完成：{}", file_path),
-            ))
-            .await?;
+        sender.send(DOWNLOAD_EVENT, format!("下载完成：{}", file_path), true);
         Ok(())
     }
 }
@@ -184,13 +165,14 @@ pub struct DownloadPayload {
 #[tauri::command]
 pub async fn download_file(
     payload: DownloadPayload,
-    output: State<'_, Output>,
+    app_handle: tauri::AppHandle,
 ) -> Result<Message<String>, ()> {
     let DownloadPayload {
         url,
         dir_path,
         concurrent,
     } = payload;
+    let sender = MessageSender::new(app_handle, "download");
     let file_name = match url.split('/').last() {
         Some(v) => v,
         None => return Ok(Message::failure("url错误")),
@@ -202,61 +184,8 @@ pub async fn download_file(
         "/"
     };
     let path = format!("{}{}{}", dir_path, splitter, file_name);
-    match run(&url, &path, concurrent, output).await {
+    match run(&url, &path, concurrent, sender).await {
         Ok(_) => Ok(Message::success(Some(String::from("下载成功")))),
         Err(e) => Ok(Message::failure(&e.to_string())),
     }
-}
-
-pub enum Events {
-    DownloadOutput,
-}
-
-pub struct Output {
-    tx: Mutex<mpsc::Sender<OutputEvent<String, Events>>>,
-}
-
-impl Output {
-    pub async fn send(
-        &self,
-        event: OutputEvent<String, Events>,
-    ) -> Result<(), mpsc::error::SendError<OutputEvent<String, Events>>> {
-        self.tx
-            .lock()
-            .await
-            .send(OutputEvent::new(event.event, event.data))
-            .await?;
-        Ok(())
-    }
-}
-
-pub fn init<R: tauri::Runtime>() -> TauriPlugin<R> {
-    println!("download plugin init");
-
-    let (output_tx, mut output_rx) = mpsc::channel(5);
-    Builder::new("download")
-        .setup(|app, _| {
-            app.manage(Output {
-                tx: Mutex::new(output_tx),
-            });
-            let handle = app.app_handle().clone();
-
-            tauri::async_runtime::spawn(async move {
-                loop {
-                    if let Some(output) = output_rx.recv().await {
-                        println!("[download] {}", output.data);
-                        let event_name = match output.event {
-                            Events::DownloadOutput => "download-output",
-                        };
-                        match handle.emit(event_name, output.data) {
-                            Ok(_) => {}
-                            Err(e) => println!("[download] 事件发送失败：{e}"),
-                        };
-                    }
-                }
-            });
-
-            Ok(())
-        })
-        .build()
 }

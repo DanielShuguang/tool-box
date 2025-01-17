@@ -29,7 +29,7 @@ const {
 </script>
 
 <template>
-  <div class="flex flex-col size-full">
+  <div class="flex flex-col">
     <n-upload :file-list="fileList" @update:file-list="handleSelectFile">
       <n-upload-dragger>
         <div class="mb-[12px]">

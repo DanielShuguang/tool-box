@@ -1,4 +1,4 @@
-use sysinfo::System;
+use sysinfo::{Disks, System};
 
 #[tauri::command]
 pub fn get_cpu_info() -> usize {
@@ -15,4 +15,20 @@ pub fn get_system_name() -> String {
         Some(name) => name,
         None => String::from("Unknown"),
     }
+}
+
+#[tauri::command]
+pub fn get_harddisk_info() -> Vec<String> {
+    let mut disks = Disks::new();
+    disks.refresh(true);
+
+    let mut list = vec![];
+    disks
+        .list()
+        .iter()
+        .for_each(|disk| match disk.mount_point().to_str() {
+            Some(str) => list.push(str.to_string()),
+            None => println!("获取硬盘名称失败"),
+        });
+    list
 }

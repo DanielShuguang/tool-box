@@ -52,7 +52,7 @@ function disableContextmenu(ev: MouseEvent) {
     >
       <transition name="fade" mode="out-in">
         <keep-alive>
-          <component :is="Component"></component>
+          <component :is="Component" class="size-full"></component>
         </keep-alive>
       </transition>
     </router-view>

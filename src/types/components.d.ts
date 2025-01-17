@@ -9,6 +9,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     Layout: typeof import('./../components/Layout/Layout.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
+    NCheckbox: typeof import('naive-ui')['NCheckbox']
+    NCheckboxGroup: typeof import('naive-ui')['NCheckboxGroup']
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NDialogProvider: typeof import('naive-ui')['NDialogProvider']
     NForm: typeof import('naive-ui')['NForm']
@@ -18,9 +20,11 @@ declare module 'vue' {
     NInputNumber: typeof import('naive-ui')['NInputNumber']
     NMessageProvider: typeof import('naive-ui')['NMessageProvider']
     NSelect: typeof import('naive-ui')['NSelect']
+    NSpace: typeof import('naive-ui')['NSpace']
     NText: typeof import('naive-ui')['NText']
     NUpload: typeof import('naive-ui')['NUpload']
     NUploadDragger: typeof import('naive-ui')['NUploadDragger']
+    NVirtualList: typeof import('naive-ui')['NVirtualList']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
