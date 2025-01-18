@@ -6,6 +6,7 @@ import Components from 'unplugin-vue-components/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import UnoCSS from 'unocss/vite'
 import legacy from '@vitejs/plugin-legacy'
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -31,7 +32,8 @@ export default defineConfig(({ command }) => {
       legacy({
         targets: ['defaults', 'not IE 11'],
         modernPolyfills: true
-      })
+      }),
+      vueDevTools()
     ],
     resolve: {
       alias: {
