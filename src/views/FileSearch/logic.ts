@@ -2,6 +2,7 @@ import { cancelSearchTask, searchHarddiskFile } from '@/backend-channel/file-sea
 import { getHarddiskInfo } from '@/backend-channel/utils'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
 import { uniqWith } from 'lodash-es'
+import { useDownloadConcurrent } from '../ReadFile/logic'
 
 export function useInitDisk() {
   const selectedPoint = ref<string[]>([])
@@ -47,13 +48,16 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
   const searchResult = ref<ResultFileModel[]>([])
   const taskStatus = ref(SearchStatus.Default)
 
+  const { concurrentCount } = useDownloadConcurrent()
+
   function handleSearch() {
     searchResult.value = []
     taskStatus.value = SearchStatus.Processing
 
     searchHarddiskFile({
       name: searchText.value,
-      disks: selectedPoint.value
+      disks: selectedPoint.value,
+      concurrent: concurrentCount.value
     })
   }
 
@@ -86,6 +90,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
 
   return {
     searchText,
+    concurrentCount,
     searchResult,
     renderItems,
     taskStatus,

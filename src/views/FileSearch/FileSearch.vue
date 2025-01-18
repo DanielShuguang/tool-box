@@ -3,8 +3,15 @@ import { SearchStatus, useInitDisk, useSearchFile } from './logic'
 
 const { diskMountPoints, selectedPoint, selectAll } = useInitDisk()
 
-const { searchText, renderItems, taskStatus, clearResult, handleSearch, handleStopSearchTask } =
-  useSearchFile(selectedPoint)
+const {
+  searchText,
+  renderItems,
+  taskStatus,
+  concurrentCount,
+  clearResult,
+  handleSearch,
+  handleStopSearchTask
+} = useSearchFile(selectedPoint)
 
 const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
   itemHeight: 30
@@ -24,6 +31,10 @@ const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
             <n-checkbox v-for="disk in diskMountPoints" :value="disk" :label="disk" :key="disk" />
           </n-space>
         </n-checkbox-group>
+      </n-form-item>
+      <n-form-item label="搜索使用线程数">
+        <n-input-number v-model:value="concurrentCount" :min="1" />
+        <span class="ml-[15px]">搜索线程越多，速度越快，请根据电脑配置合理设置</span>
       </n-form-item>
       <n-form-item>
         <n-button v-if="taskStatus === SearchStatus.Default" type="primary" @click="handleSearch">
@@ -57,7 +68,7 @@ const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
             class="flex items-center px-[10px] h-[30px]"
           >
             <div class="mr-[15px]">{{ item.index + 1 }}.</div>
-            <n-popover content-class="max-w-[70vw]">
+            <n-popover content-class="max-w-[70vw]" :delay="500">
               <template #trigger>
                 <n-highlight
                   class="text-ellipsis overflow-hidden text-nowrap"

@@ -24,6 +24,7 @@ static SEARCH_STREAM_EVENT: &'static str = "search-disk-file-output";
 #[derive(Deserialize)]
 pub struct SearchDiskFilePayload {
     name: String,
+    concurrent: usize,
     disks: Vec<String>,
 }
 
@@ -102,7 +103,11 @@ async fn do_search_task(
     cancel_rx: watch::Receiver<bool>,
     sender: MessageSender,
 ) -> Result<Message<()>, String> {
-    let SearchDiskFilePayload { name, disks } = payload;
+    let SearchDiskFilePayload {
+        name,
+        disks,
+        concurrent: _,
+    } = payload;
 
     let mut handles = vec![];
 
@@ -144,7 +149,7 @@ pub async fn search_disk_file_real_time(
     app_handle: tauri::AppHandle,
 ) -> Result<Message<()>, String> {
     let rt = match runtime::Builder::new_multi_thread()
-        .worker_threads(5)
+        .worker_threads(payload.concurrent)
         .enable_all()
         .build()
     {
