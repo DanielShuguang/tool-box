@@ -1,21 +1,39 @@
 import { cancelSearchTask, searchHarddiskFile } from '@/backend-channel/file-search'
 import { getHarddiskInfo } from '@/backend-channel/utils'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
-import { debounce } from 'lodash-es'
+import { uniqWith } from 'lodash-es'
 
 export function useInitDisk() {
+  const selectedPoint = ref<string[]>([])
   const diskMountPoints = ref<string[]>([])
+  const selectAll = ref(false)
 
   async function getDiskMountPoints() {
     try {
       const disks = await getHarddiskInfo()
       diskMountPoints.value = disks
-    } catch (error) {}
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   getDiskMountPoints()
 
-  return { diskMountPoints }
+  watch(selectAll, val => {
+    if (val) {
+      selectedPoint.value = [...diskMountPoints.value]
+    } else {
+      selectedPoint.value = []
+    }
+  })
+
+  return { diskMountPoints, selectedPoint, selectAll }
+}
+
+export enum SearchStatus {
+  Default = 'default',
+  Processing = 'processing',
+  Shutdown = 'Shutdown'
 }
 
 interface ResultFileModel {
@@ -24,47 +42,54 @@ interface ResultFileModel {
   type: 'file' | 'dir'
 }
 
-export function useSearchFile(diskMountPoints: Ref<string[]>) {
+export function useSearchFile(selectedPoint: Ref<string[]>) {
   const searchText = ref('')
   const searchResult = ref<ResultFileModel[]>([])
-  const isRunning = ref(false)
-  const isStopping = ref(false)
+  const taskStatus = ref(SearchStatus.Default)
 
   function handleSearch() {
     searchResult.value = []
-    isRunning.value = true
+    taskStatus.value = SearchStatus.Processing
 
     searchHarddiskFile({
       name: searchText.value,
-      disks: diskMountPoints.value
+      disks: selectedPoint.value
     })
   }
 
   useRuntimeEvent<ResultFileModel[] | null>('search-disk-file-output', async ({ payload }) => {
     if (!payload) {
+      taskStatus.value = SearchStatus.Shutdown
       setTimeout(() => {
-        isRunning.value = false
-        isStopping.value = false
+        taskStatus.value = SearchStatus.Default
       }, 500)
+      return
+    }
+    if (taskStatus.value === SearchStatus.Shutdown) {
       return
     }
 
     searchResult.value.push(...payload)
+    searchResult.value = uniqWith(searchResult.value, (a, b) => a.path === b.path)
   })
 
   const renderItems = useDebounce(searchResult, 500)
 
   function handleStopSearchTask() {
-    isStopping.value = true
+    taskStatus.value = SearchStatus.Shutdown
     cancelSearchTask()
+  }
+
+  function clearResult() {
+    searchResult.value.length = 0
   }
 
   return {
     searchText,
     searchResult,
     renderItems,
-    isStopping,
-    isRunning,
+    taskStatus,
+    clearResult,
     handleSearch,
     handleStopSearchTask
   }

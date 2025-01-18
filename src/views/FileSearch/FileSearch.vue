@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { useInitDisk, useSearchFile } from './logic'
+import { SearchStatus, useInitDisk, useSearchFile } from './logic'
 
-const selectedPoint = ref<string[]>([])
+const { diskMountPoints, selectedPoint, selectAll } = useInitDisk()
 
-const { diskMountPoints } = useInitDisk()
+const { searchText, renderItems, taskStatus, clearResult, handleSearch, handleStopSearchTask } =
+  useSearchFile(selectedPoint)
 
-const { searchText, renderItems, isRunning, isStopping, handleSearch, handleStopSearchTask } =
-  useSearchFile(diskMountPoints)
+const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
+  itemHeight: 30
+})
 </script>
 
 <template>
@@ -16,6 +18,7 @@ const { searchText, renderItems, isRunning, isStopping, handleSearch, handleStop
         <n-input v-model:value="searchText" />
       </n-form-item>
       <n-form-item label="需要搜索的磁盘">
+        <n-checkbox class="mr-[10px]" v-model:checked="selectAll" label="全选"></n-checkbox>
         <n-checkbox-group v-model:value="selectedPoint">
           <n-space item-class="flex">
             <n-checkbox v-for="disk in diskMountPoints" :value="disk" :label="disk" :key="disk" />
@@ -23,22 +26,55 @@ const { searchText, renderItems, isRunning, isStopping, handleSearch, handleStop
         </n-checkbox-group>
       </n-form-item>
       <n-form-item>
-        <n-button v-if="isRunning" :loading="isStopping" @click="handleStopSearchTask">
+        <n-button v-if="taskStatus === SearchStatus.Default" type="primary" @click="handleSearch">
+          搜索
+        </n-button>
+        <n-button
+          v-else
+          :loading="taskStatus === SearchStatus.Shutdown"
+          @click="handleStopSearchTask"
+        >
           取消
         </n-button>
-        <n-button v-else type="primary" @click="handleSearch">搜索</n-button>
+        <n-button v-if="list.length" class="ml-[10px]" @click="clearResult">清空</n-button>
       </n-form-item>
     </n-form>
 
-    <div class="flex-1 min-h-0 bg-[#fff] border-(1px solid #ddd) p-[10px] overflow-auto">
-      <n-virtual-list :visible-items-props="{}" :item-size="42" :items="renderItems">
-        <template #default="{ item, index }">
-          <div class="flex items-center justify-between px-[20px]">
-            <div>{{ index + 1 }}</div>
-            <div>{{ item.path }}</div>
+    <div class="position-relative flex-1 min-h-0">
+      <n-spin
+        v-if="taskStatus === SearchStatus.Processing"
+        class="position-(absolute top-[10px] right-[10px])"
+        size="small"
+      />
+      <div
+        class="bg-[#fff] size-full border-(1px solid #ddd) p-[10px] box-border"
+        :="containerProps"
+      >
+        <div :="wrapperProps">
+          <div
+            v-for="item in list"
+            :key="item.data.path"
+            class="flex items-center px-[10px] h-[30px]"
+          >
+            <div class="mr-[15px]">{{ item.index + 1 }}.</div>
+            <n-popover content-class="max-w-[70vw]">
+              <template #trigger>
+                <n-highlight
+                  class="text-ellipsis overflow-hidden text-nowrap"
+                  highlight-class="text-red-500 underline bg-[transparent]"
+                  :text="item.data.path"
+                  :patterns="[searchText]"
+                />
+              </template>
+              <n-highlight
+                :text="item.data.path"
+                highlight-class="text-red-500 underline bg-[transparent]"
+                :patterns="[searchText]"
+              />
+            </n-popover>
           </div>
-        </template>
-      </n-virtual-list>
+        </div>
+      </div>
     </div>
   </div>
 </template>
