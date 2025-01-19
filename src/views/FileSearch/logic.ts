@@ -47,6 +47,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
   const searchText = ref('')
   const searchResult = ref<ResultFileModel[]>([])
   const taskStatus = ref(SearchStatus.Default)
+  const supportFolder = ref(false)
 
   const { concurrentCount } = useDownloadConcurrent()
 
@@ -73,7 +74,8 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
       return
     }
 
-    searchResult.value.push(...payload)
+    const list = supportFolder.value ? payload : payload.filter(item => item.type === 'file')
+    searchResult.value.push(...list)
     searchResult.value = uniqWith(searchResult.value, (a, b) => a.path === b.path)
   })
 
@@ -93,6 +95,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
     concurrentCount,
     searchResult,
     renderItems,
+    supportFolder,
     taskStatus,
     clearResult,
     handleSearch,

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Copy } from '@vicons/ionicons5'
 import { SearchStatus, useInitDisk, useSearchFile } from './logic'
 
 const { diskMountPoints, selectedPoint, selectAll } = useInitDisk()
@@ -7,6 +8,7 @@ const {
   searchText,
   renderItems,
   taskStatus,
+  supportFolder,
   concurrentCount,
   clearResult,
   handleSearch,
@@ -16,6 +18,20 @@ const {
 const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
   itemHeight: 30
 })
+
+const { copy } = useClipboard()
+
+const message = useMessage()
+
+async function handleCopy(path: string) {
+  try {
+    await copy(path)
+    message.success('复制成功')
+  } catch (error) {
+    message.error('复制失败')
+    console.error(error)
+  }
+}
 </script>
 
 <template>
@@ -35,6 +51,9 @@ const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
       <n-form-item label="搜索使用线程数">
         <n-input-number v-model:value="concurrentCount" :min="1" />
         <span class="ml-[15px]">搜索线程越多，速度越快，请根据电脑配置合理设置</span>
+      </n-form-item>
+      <n-form-item label="搜索文件夹">
+        <n-switch v-model:value="supportFolder"></n-switch>
       </n-form-item>
       <n-form-item>
         <n-button v-if="taskStatus === SearchStatus.Default" type="primary" @click="handleSearch">
@@ -83,6 +102,13 @@ const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
                 :patterns="[searchText]"
               />
             </n-popover>
+            <n-icon
+              :size="15"
+              class="ml-[15px] cursor-pointer hover:text-[#18a058]"
+              title="复制路径"
+            >
+              <Copy @click="handleCopy(item.data.path)" />
+            </n-icon>
           </div>
         </div>
       </div>
