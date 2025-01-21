@@ -7,10 +7,5 @@ export function searchHarddiskFile(payload: FileSearchPayload) {
 }
 
 export function cancelSearchTask() {
-  return invoke('cancel_search_task').then(res => {
-    setTimeout(() => {
-      invoke('cancel_search_task', { payload: false })
-    }, 100)
-    return res
-  })
+  return invoke('cancel_search_task')
 }
