@@ -12,6 +12,11 @@
       "identifier": "shell:allow-execute",
       "allow": [
         {
+          "name": "powershell",
+          "cmd": "powershell",
+          "args": true
+        },
+        {
           "name": "cscript",
           "cmd": "cscript",
           "args": true
