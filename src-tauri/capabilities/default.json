@@ -8,6 +8,21 @@
   "permissions": [
     "core:default",
     "shell:allow-open",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "cscript",
+          "cmd": "cscript",
+          "args": true
+        },
+        {
+          "name": "wscript",
+          "cmd": "wscript",
+          "args": true
+        }
+      ]
+    },
     "fs:default",
     "fs:write-all",
     "dialog:default",

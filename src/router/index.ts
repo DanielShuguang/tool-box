@@ -14,6 +14,11 @@ const routes: RouteRecordRaw[] = [
     path: '/fileSearch',
     component: () => import('@/views/FileSearch/FileSearch.vue'),
     meta: { title: '文件搜索' }
+  },
+  {
+    path: '/windowsActivatiion',
+    component: () => import('@/views/WindowsActivatiion/WindowsActivatiion.vue'),
+    meta: { title: 'Windows激活' }
   }
 ]
 
