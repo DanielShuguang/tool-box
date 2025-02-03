@@ -12,7 +12,7 @@ export function useInitDisk() {
   async function getDiskMountPoints() {
     try {
       const disks = await getHarddiskInfo()
-      diskMountPoints.value = disks
+      diskMountPoints.value = disks.sort((a, b) => (a > b ? 1 : -1))
     } catch (error) {
       console.error(error)
     }
