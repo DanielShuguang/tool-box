@@ -39,8 +39,8 @@ export enum SearchStatus {
 
 interface ResultFileModel {
   path: string
-  size: number
-  type: 'file' | 'dir'
+  size: string
+  is_dir: boolean
 }
 
 export function useSearchFile(selectedPoint: Ref<string[]>) {
@@ -74,12 +74,12 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
       return
     }
 
-    const list = supportFolder.value ? payload : payload.filter(item => item.type === 'file')
+    const list = supportFolder.value ? payload : payload.filter(item => !item.is_dir)
     searchResult.value.push(...list)
     searchResult.value = uniqWith(searchResult.value, (a, b) => a.path === b.path)
   })
 
-  const renderItems = useDebounce(searchResult, 500)
+  const renderItems = useThrottle(searchResult, 500, true)
 
   function handleStopSearchTask() {
     taskStatus.value = SearchStatus.Shutdown
