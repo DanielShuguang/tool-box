@@ -22,35 +22,38 @@ const textColor = computed(() => {
 })
 
 async function handleClick() {
-  await handleActive()
+  const isSucceed = await handleActive()
+  if (!isSucceed) return
+
   activeState.value = dayjs().add(180, 'days').unix()
 }
 
-const activeCmds = [
-  'slmgr /ipk NPPR9-FWDCX-D2C8J-H872K-2YT43',
-  'slmgr /skms kms.0t.net.cn',
-  'slmgr /ato'
-]
+const terminalScript = 'powershell'
+const scriptRunner = 'cscript //nologo C:/Windows/System32/slmgr.vbs'
+const activeCmds = ['/ipk NPPR9-FWDCX-D2C8J-H872K-2YT43', '/skms kms.0t.net.cn', '/ato']
 
 async function handleActive() {
   for (const element of activeCmds) {
-    const script = `cscript //nologo C:/Windows/System32/slmgr.vbs ${element}`
-    const { stdout } = await Command.create('powershell', script, { encoding: 'gbk' }).execute()
+    const script = `${scriptRunner} ${element}`
+    const { stdout } = await Command.create(terminalScript, script, {
+      encoding: 'gbk'
+    }).execute()
 
     const errors = ['错误', 'error']
     if (errors.some(error => stdout.includes(error))) {
-      return message.error(`[激活失败] ${stdout}`)
+      message.error(`[激活失败] ${stdout}`)
+      return false
     }
   }
+
+  return true
 }
 
 async function checkWindowsActiveInfo() {
   try {
-    const { stdout } = await Command.create(
-      'powershell',
-      'cscript //nologo C:/Windows/System32/slmgr.vbs /xpr',
-      { encoding: 'gbk' }
-    ).execute()
+    const { stdout } = await Command.create(terminalScript, `${scriptRunner} /xpr`, {
+      encoding: 'gbk'
+    }).execute()
     const errors = ['找不到产品密钥', 'error', 'not found']
     if (errors.some(error => stdout.includes(error))) {
       activeState.value = 0
