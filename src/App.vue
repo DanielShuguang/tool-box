@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { zhCN } from 'naive-ui'
+import { zhCN, darkTheme } from 'naive-ui'
+import { useEmitter } from './utils/event'
+
+const isDark = ref(false)
+
+useEmitter('theme-change', val => {
+  isDark.value = val
+})
 </script>
 
 <template>
-  <n-config-provider class="w-[100vw] h-[100vh] m-0 p-0" :locale="zhCN">
+  <n-config-provider
+    class="w-[100vw] h-[100vh] m-0 p-0"
+    :locale="zhCN"
+    :theme="isDark ? darkTheme : undefined"
+  >
     <n-message-provider>
       <n-dialog-provider>
         <Layout />

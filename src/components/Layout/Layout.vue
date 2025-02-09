@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
+import { useSystemTheme } from './logic'
+import { Sunny, Moon } from '@vicons/ionicons5'
 
 const router = useRouter()
 
@@ -28,6 +30,8 @@ function disableContextmenu(ev: MouseEvent) {
     ev.preventDefault()
   }
 }
+
+const { isDark, isAuto, handleChangeTheme, handleChangeThemeState } = useSystemTheme()
 </script>
 
 <template>
@@ -35,8 +39,8 @@ function disableContextmenu(ev: MouseEvent) {
     class="flex flex-col size-full box-border overflow-x-hidden overflow-y-auto"
     @contextmenu="disableContextmenu"
   >
-    <header class="w-full h-[45px] p-[5px_5px_0] bg-[#fff]">
-      <label class="flex items-center">
+    <header class="w-full h-[45px] p-[5px_5px_0] bg-[#fff] flex items-center">
+      <label class="flex items-center mr-[15px]">
         <span>当前页面功能：</span>
         <n-select
           class="inline-block w-[150px]"
@@ -45,6 +49,15 @@ function disableContextmenu(ev: MouseEvent) {
           @update:value="changeSelect"
         />
       </label>
+      <n-button :disabled="isAuto" @click="handleChangeTheme">
+        <n-icon size="14">
+          <Moon v-if="isDark" />
+          <Sunny v-else />
+        </n-icon>
+      </n-button>
+      <n-button :type="isAuto ? 'success' : 'default'" @click="handleChangeThemeState">
+        跟随系统
+      </n-button>
     </header>
     <router-view
       class="w-full h-[calc(100%-45px)] p-[5px] bg-[rgb(241,242,243)] box-border"
