@@ -51,12 +51,20 @@ useUpdateThemeVariables(isDark)
           @update:value="changeSelect"
         />
       </label>
-      <n-button :disabled="isAuto" @click="handleChangeTheme">
-        <n-icon size="14">
-          <Moon v-if="isDark" />
-          <Sunny v-else />
-        </n-icon>
-      </n-button>
+      <n-tooltip>
+        <template #trigger>
+          <n-button :disabled="isAuto" @click="handleChangeTheme">
+            <n-icon size="14">
+              <Moon v-if="isDark" />
+              <Sunny v-else />
+            </n-icon>
+          </n-button>
+        </template>
+        <span v-if="isAuto">跟随系统</span>
+        <span v-else>
+          {{ isDark ? '深色' : '浅色' }}
+        </span>
+      </n-tooltip>
       <n-button :type="isAuto ? 'success' : 'default'" @click="handleChangeThemeState">
         跟随系统
       </n-button>
