@@ -97,7 +97,7 @@ async function handleCopy(path: string) {
               </template>
               {{ item.data.is_dir ? '文件夹' : '文件' }}
             </n-tooltip>
-            <n-popover content-class="max-w-[70vw]" :delay="500">
+            <n-tooltip content-class="max-w-[70vw]" :delay="500">
               <template #trigger>
                 <PathHighlight
                   class="text-ellipsis overflow-hidden text-nowrap"
@@ -111,7 +111,7 @@ async function handleCopy(path: string) {
                 highlight-class="text-[--errorColor] underline bg-[transparent]"
                 :search="searchText"
               />
-            </n-popover>
+            </n-tooltip>
             <span v-if="!item.data.is_dir" class="text-[--infoColor]">
               {{ getCorrectSize(item.data.size) }}
             </span>

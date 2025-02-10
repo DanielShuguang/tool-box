@@ -9,10 +9,6 @@ const props = defineProps({
   ...highlightProps
 })
 
-defineOptions({
-  inheritAttrs: false
-})
-
 const sep = getSep()
 const sepReg = /(\\|\/)/
 
