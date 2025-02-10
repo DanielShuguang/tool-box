@@ -1,4 +1,5 @@
 import { emitter } from '@/utils/event'
+import { useThemeVars } from 'naive-ui'
 
 export function useSystemTheme() {
   const isAuto = useLocalStorage('theme-state', false)
@@ -35,4 +36,20 @@ export function useSystemTheme() {
   watch(isDark, val => emitter.emit('theme-change', val))
 
   return { isDark, isAuto, handleChangeTheme, handleChangeThemeState }
+}
+
+export function useUpdateThemeVariables(isDark: ComputedRef<boolean>) {
+  const vars = useThemeVars()
+
+  watch(
+    () => isDark.value,
+    () => {
+      const bodyStyle = document.body.style
+
+      Object.entries(vars.value).forEach(([key, value]) => {
+        bodyStyle.setProperty(`--${key}`, value)
+      })
+    },
+    { immediate: true }
+  )
 }

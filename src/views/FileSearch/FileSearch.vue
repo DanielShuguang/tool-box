@@ -77,7 +77,7 @@ async function handleCopy(path: string) {
         size="small"
       />
       <div
-        class="bg-[#fff] size-full border-(1px solid #ddd) p-[10px] box-border"
+        class="bg-[--avatarColor] size-full border-(1px solid) border-[--borderColor] p-[10px] box-border"
         :="containerProps"
       >
         <div :="wrapperProps">
@@ -91,20 +91,20 @@ async function handleCopy(path: string) {
               <template #trigger>
                 <n-highlight
                   class="text-ellipsis overflow-hidden text-nowrap"
-                  highlight-class="text-red-500 underline bg-[transparent]"
+                  highlight-class="text-[--errorColor] underline bg-[transparent]"
                   :text="item.data.path"
                   :patterns="[searchText]"
                 />
               </template>
               <n-highlight
                 :text="item.data.path"
-                highlight-class="text-red-500 underline bg-[transparent]"
+                highlight-class="text-[--errorColor] underline bg-[transparent]"
                 :patterns="[searchText]"
               />
             </n-popover>
             <n-icon
               :size="15"
-              class="ml-[15px] cursor-pointer hover:text-[#18a058]"
+              class="ml-[15px] cursor-pointer hover:text-[--primaryColorHover]"
               title="复制路径"
             >
               <Copy @click="handleCopy(item.data.path)" />

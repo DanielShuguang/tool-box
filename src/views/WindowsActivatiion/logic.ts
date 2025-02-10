@@ -9,7 +9,7 @@ const activeCmds = ['/ipk NPPR9-FWDCX-D2C8J-H872K-2YT43', '/skms kms.0t.net.cn',
 
 export function useActivationInfo() {
   // 剩余不同时间有不同颜色
-  const colors = ['text-red-500', 'text-yellow-500', 'text-green-500']
+  const colors = ['text-[--errorColor]', 'text-[--warningColor]', 'text-[--successColor]']
 
   const activeState = useLocalStorage('windows-activation', 0)
 

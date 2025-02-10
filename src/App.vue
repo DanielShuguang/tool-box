@@ -13,8 +13,9 @@ useEmitter('theme-change', val => {
   <n-config-provider
     class="w-[100vw] h-[100vh] m-0 p-0"
     :locale="zhCN"
-    :theme="isDark ? darkTheme : undefined"
+    :theme="isDark ? darkTheme : null"
   >
+    <n-global-style />
     <n-message-provider>
       <n-dialog-provider>
         <Layout />

@@ -22,8 +22,8 @@ const { handleClick } = useActivateWindows(activeState)
             </span>
             到期
           </span>
-          <span v-else-if="activeState === 1" class="text-green-500">已永久激活</span>
-          <span v-else class="text-red-500">未激活</span>
+          <span v-else-if="activeState === 1" class="text-[--successColor]">已永久激活</span>
+          <span v-else class="text-[--errorColor]">未激活</span>
         </n-text>
       </n-card>
       <n-button class="mt-[15px]" type="primary" @click="handleClick">激活</n-button>
