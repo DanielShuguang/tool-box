@@ -42,10 +42,11 @@ export function useUpdateThemeVariables(isDark: ComputedRef<boolean>) {
   const vars = useThemeVars()
 
   watch(
-    () => isDark.value,
-    () => {
+    isDark,
+    async () => {
       const bodyStyle = document.body.style
 
+      await nextTick()
       Object.entries(vars.value).forEach(([key, value]) => {
         bodyStyle.setProperty(`--${key}`, value)
       })

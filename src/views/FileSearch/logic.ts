@@ -3,6 +3,7 @@ import { getHarddiskInfo } from '@/backend-channel/utils'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
 import { uniqWith } from 'lodash-es'
 import { useDownloadConcurrent } from '../ReadFile/logic'
+import Big from 'big.js'
 
 export function useInitDisk() {
   const selectedPoint = ref<string[]>([])
@@ -101,4 +102,34 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
     handleSearch,
     handleStopSearchTask
   }
+}
+
+/**
+ * 去掉小数点后多余的 0
+ * @param numStr
+ * @returns
+ */
+function removeTrailingZero(numStr: string): string {
+  numStr = numStr.replace(/\.?0+$/, '')
+  return numStr
+}
+
+/**
+ * 获取正确的文件大小，最大单位为 GB
+ * @param size 字节大小
+ */
+export function getCorrectSize(size: string) {
+  const sizeObj = new Big(size)
+  const gbOffset = new Big(1024).pow(3)
+  const mbOffset = new Big(1024).pow(2)
+  const kbOffset = 1024
+
+  if (sizeObj.gt(gbOffset)) {
+    return `${removeTrailingZero(sizeObj.div(gbOffset).toFixed(2))} GB`
+  } else if (sizeObj.gt(mbOffset)) {
+    return `${removeTrailingZero(sizeObj.div(mbOffset).toFixed(2))} MB`
+  } else if (sizeObj.gt(kbOffset)) {
+    return `${removeTrailingZero(sizeObj.div(kbOffset).toFixed(2))} KB`
+  }
+  return `${removeTrailingZero(sizeObj.toFixed(2))} B`
 }

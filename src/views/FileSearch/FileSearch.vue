@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { Copy } from '@vicons/ionicons5'
-import { SearchStatus, useInitDisk, useSearchFile } from './logic'
+import { Copy, FolderOpenOutline, DocumentTextOutline } from '@vicons/ionicons5'
+import { getCorrectSize, SearchStatus, useInitDisk, useSearchFile } from './logic'
+import PathHighlight from './PathHighlight.vue'
 
 const { diskMountPoints, selectedPoint, selectAll } = useInitDisk()
 
@@ -84,31 +85,44 @@ async function handleCopy(path: string) {
           <div
             v-for="item in list"
             :key="item.data.path"
-            class="flex items-center px-[10px] h-[30px]"
+            class="flex items-center px-[10px] h-[30px] gap-[15px]"
           >
-            <div class="mr-[15px]">{{ item.index + 1 }}.</div>
+            <div>{{ item.index + 1 }}.</div>
+            <n-tooltip>
+              <template #trigger>
+                <n-icon :size="15">
+                  <FolderOpenOutline v-if="item.data.is_dir" />
+                  <DocumentTextOutline v-else />
+                </n-icon>
+              </template>
+              {{ item.data.is_dir ? '文件夹' : '文件' }}
+            </n-tooltip>
             <n-popover content-class="max-w-[70vw]" :delay="500">
               <template #trigger>
-                <n-highlight
+                <PathHighlight
                   class="text-ellipsis overflow-hidden text-nowrap"
                   highlight-class="text-[--errorColor] underline bg-[transparent]"
-                  :text="item.data.path"
-                  :patterns="[searchText]"
+                  :data="item.data.path"
+                  :search="searchText"
                 />
               </template>
-              <n-highlight
-                :text="item.data.path"
+              <PathHighlight
+                :data="item.data.path"
                 highlight-class="text-[--errorColor] underline bg-[transparent]"
-                :patterns="[searchText]"
+                :search="searchText"
               />
             </n-popover>
-            <n-icon
-              :size="15"
-              class="ml-[15px] cursor-pointer hover:text-[--primaryColorHover]"
-              title="复制路径"
-            >
-              <Copy @click="handleCopy(item.data.path)" />
-            </n-icon>
+            <span v-if="!item.data.is_dir" class="text-[--infoColor]">
+              {{ getCorrectSize(item.data.size) }}
+            </span>
+            <n-tooltip>
+              <template #trigger>
+                <n-icon :size="15" class="cursor-pointer hover:text-[--primaryColorHover]">
+                  <Copy @click="handleCopy(item.data.path)" />
+                </n-icon>
+              </template>
+              复制路径
+            </n-tooltip>
           </div>
         </div>
       </div>

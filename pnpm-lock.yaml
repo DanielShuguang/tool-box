@@ -26,6 +26,9 @@ importers:
       '@vueuse/core':
         specifier: ^12.0.0
         version: 12.5.0(typescript@5.7.3)
+      big.js:
+        specifier: ^6.2.2
+        version: 6.2.2
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
@@ -57,6 +60,9 @@ importers:
       '@tauri-apps/cli':
         specifier: ^2.2.2
         version: 2.2.7
+      '@types/big.js':
+        specifier: ^6.2.2
+        version: 6.2.2
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
@@ -1274,6 +1280,9 @@ packages:
   '@tauri-apps/plugin-shell@2.2.0':
     resolution: {integrity: sha512-iC3Ic1hLmasoboG7BO+7p+AriSoqAwKrIk+Hpk+S/bjTQdXqbl2GbdclghI4gM32X0bls7xHzIFqhRdrlvJeaA==}
 
+  '@types/big.js@6.2.2':
+    resolution: {integrity: sha512-e2cOW9YlVzFY2iScnGBBkplKsrn2CsObHQ2Hiw4V1sSyiGbgWL8IyqE3zFi1Pt5o1pdAtYkDAIsF3KKUPjdzaA==}
+
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
@@ -1522,6 +1531,9 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha1-GxtEAWClv3rUC2UPCVljSBkDkwo=}
+
+  big.js@6.2.2:
+    resolution: {integrity: sha512-y/ie+Faknx7sZA5MfGA2xKlu0GDv8RWrXGsmlteyJQ2lvoKv9GBK/fpRMc2qlSoBAgNxrixICFCBefIq8WCQpQ==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -3592,6 +3604,8 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.2.0
 
+  '@types/big.js@6.2.2': {}
+
   '@types/estree@1.0.6': {}
 
   '@types/gensync@1.0.4': {}
@@ -3987,6 +4001,8 @@ snapshots:
   balanced-match@1.0.2: {}
 
   base64-js@1.5.1: {}
+
+  big.js@6.2.2: {}
 
   binary-extensions@2.3.0: {}
 

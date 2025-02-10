@@ -14,7 +14,10 @@ const { handleClick } = useActivateWindows(activeState)
     <n-alert v-if="!isWindows" type="warning">请在 Windows 下使用本功能</n-alert>
     <template v-else>
       <n-card>
-        <n-alert class="mb-[15px]" type="info">请确认本应用使用管理员权限打开</n-alert>
+        <n-alert class="mb-[15px]" type="info">
+          <div>请确认本应用使用管理员权限打开。</div>
+          <div>本程序只能提供180天的激活（基于KMS），到期需要重新激活。</div>
+        </n-alert>
         <n-text>
           <span v-if="activeState > 1">
             <span :class="textColor">

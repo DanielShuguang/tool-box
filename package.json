@@ -16,6 +16,7 @@
     "@tauri-apps/plugin-shell": "^2.2.0",
     "@vicons/ionicons5": "^0.12.0",
     "@vueuse/core": "^12.0.0",
+    "big.js": "^6.2.2",
     "dayjs": "^1.11.13",
     "lodash-es": "^4.17.21",
     "mammoth": "^1.9.0",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.2.2",
+    "@types/big.js": "^6.2.2",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.10.1",
     "@vitejs/plugin-legacy": "^6.0.0",
