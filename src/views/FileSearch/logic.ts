@@ -1,7 +1,7 @@
 import { cancelSearchTask, searchHarddiskFile } from '@/backend-channel/file-search'
 import { getHarddiskInfo } from '@/backend-channel/utils'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
-import { uniqWith } from 'lodash-es'
+import { unique } from 'radash'
 import { useDownloadConcurrent } from '../ReadFile/logic'
 import Big from 'big.js'
 
@@ -77,7 +77,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
 
     const list = supportFolder.value ? payload : payload.filter(item => !item.is_dir)
     searchResult.value.push(...list)
-    searchResult.value = uniqWith(searchResult.value, (a, b) => a.path === b.path)
+    searchResult.value = unique(searchResult.value, el => el.path)
   })
 
   const renderItems = useThrottle(searchResult, 500, true)

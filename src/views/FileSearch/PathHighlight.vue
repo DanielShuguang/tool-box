@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { getSep } from '@/utils/system'
-import { omit } from 'lodash-es'
+import { omit } from 'radash'
 import { highlightProps } from 'naive-ui'
 
 const props = defineProps({
