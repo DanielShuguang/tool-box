@@ -2,7 +2,8 @@
   <trustInfo>
   <security>
       <requestedPrivileges>
-      <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/>
+      <!-- 打包时需要管理员权限可设置为 level="requireAdministrator" -->
+      <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
       </requestedPrivileges>
   </security>
   </trustInfo>

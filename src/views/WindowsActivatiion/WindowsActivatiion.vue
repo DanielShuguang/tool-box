@@ -6,7 +6,7 @@ const { activeState, textColor } = useActivationInfo()
 
 const { isWindows } = useCheckCurrentActivation(activeState)
 
-const { handleClick } = useActivateWindows(activeState)
+const { loading, handleClick } = useActivateWindows(activeState)
 </script>
 
 <template>
@@ -29,7 +29,9 @@ const { handleClick } = useActivateWindows(activeState)
           <span v-else class="text-[--errorColor]">未激活</span>
         </n-text>
       </n-card>
-      <n-button class="mt-[15px]" type="primary" @click="handleClick">激活</n-button>
+      <n-button class="mt-[15px]" type="primary" :loading="loading" @click="handleClick">
+        激活
+      </n-button>
     </template>
   </div>
 </template>

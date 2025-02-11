@@ -64,6 +64,7 @@ export function useCheckCurrentActivation(activeState: RemovableRef<number>) {
 
 export function useActivateWindows(activeState: RemovableRef<number>) {
   const message = useMessage()
+  const loading = ref(false)
 
   async function handleClick() {
     const isSucceed = await handleActive()
@@ -73,21 +74,29 @@ export function useActivateWindows(activeState: RemovableRef<number>) {
   }
 
   async function handleActive() {
-    for (const element of activeCmds) {
-      const script = `${scriptRunner} ${element}`
-      const { stdout } = await Command.create(terminalScript, script, {
-        encoding: 'gbk'
-      }).execute()
+    loading.value = true
+    try {
+      for (const element of activeCmds) {
+        const script = `${scriptRunner} ${element}`
+        const { stdout } = await Command.create(terminalScript, script, {
+          encoding: 'gbk'
+        }).execute()
 
-      const errors = ['错误', 'error']
-      if (errors.some(error => stdout.includes(error))) {
-        message.error(`[激活失败] ${stdout}`)
-        return false
+        const errors = ['错误', 'error']
+        if (errors.some(error => stdout.includes(error))) {
+          message.error(`[激活失败] ${stdout}`)
+          return false
+        }
       }
-    }
 
-    return true
+      message.success('激活成功')
+      return true
+    } catch (error) {
+      message.error(String(error))
+    } finally {
+      loading.value = false
+    }
   }
 
-  return { handleClick }
+  return { loading, handleClick }
 }
