@@ -34,5 +34,5 @@ const lastLetter = computed(() => {
       :text="lastLetter || data"
       :patterns="[search]"
     />
-  </component :is="">
+  </component>
 </template>
