@@ -18,16 +18,18 @@ use crate::utils::{
     output::{Message, MessageSender},
 };
 
-static DOWNLOAD_EVENT: &'static str = "download-output";
-
 /// 检测文件是否支持断点续传，是否是重定向链接
-async fn check_request_info(url: &str, sender: MessageSender) -> AnyResult<(bool, String, u64)> {
+async fn check_request_info(
+    url: &str,
+    sender: MessageSender,
+    event_name: String,
+) -> AnyResult<(bool, String, u64)> {
     let req = reqwest::Client::new().head(url);
     let resp = req.send().await?;
     if !resp.status().is_success() {
         return Err(Error::msg("请求失败"));
     }
-    let url = check_redirected_url(&resp, sender).await?;
+    let url = check_redirected_url(&resp, sender, event_name).await?;
     let headers = resp.headers();
     let range = headers
         .get(ACCEPT_RANGES)
@@ -46,10 +48,14 @@ async fn check_request_info(url: &str, sender: MessageSender) -> AnyResult<(bool
 }
 
 /// 检测重定向链接
-async fn check_redirected_url(resp: &Response, sender: MessageSender) -> AnyResult<String> {
+async fn check_redirected_url(
+    resp: &Response,
+    sender: MessageSender,
+    event_name: String,
+) -> AnyResult<String> {
     if resp.status().is_redirection() {
         sender.send(
-            DOWNLOAD_EVENT,
+            &event_name,
             format!("检测到重定向链接: {}", resp.url()),
             true,
         );
@@ -103,14 +109,20 @@ async fn check_file_exist<P: AsRef<Path>>(path: P) -> bool {
 }
 
 /// 开始下载任务
-async fn run(url: &str, path: &str, task_num: u64, sender: MessageSender) -> AnyResult<()> {
+async fn run(
+    payload: DownloadPayload,
+    path: &str,
+    sender: MessageSender,
+    event_name: String,
+) -> AnyResult<()> {
     let mut handles = vec![];
-    let (range, url, length) = check_request_info(url, sender.clone()).await?;
+    let (range, url, length) =
+        check_request_info(&payload.url, sender.clone(), event_name.clone()).await?;
     let temp_path = path.to_string() + ".tmp";
     let file_path = path.to_string();
     if check_file_exist(&temp_path).await || check_file_exist(&path).await {
         sender.send(
-            DOWNLOAD_EVENT,
+            &event_name,
             format!("文件已存在，跳过下载：{}", file_path),
             true,
         );
@@ -118,9 +130,9 @@ async fn run(url: &str, path: &str, task_num: u64, sender: MessageSender) -> Any
     }
     let file = Arc::new(Mutex::new(File::create(&temp_path).await?));
     let is_error = if range {
-        sender.send(DOWNLOAD_EVENT, format!("多线程下载中：{}", file_path), true);
-        let length = length / task_num;
-        for i in 0..task_num {
+        sender.send(&event_name, format!("多线程下载中：{}", file_path), true);
+        let length = length / payload.concurrent;
+        for i in 0..payload.concurrent {
             let file = Arc::clone(&file);
             handles.push(tokio::spawn(download(
                 url.clone(),
@@ -136,7 +148,7 @@ async fn run(url: &str, path: &str, task_num: u64, sender: MessageSender) -> Any
         err
     } else {
         sender.send(
-            DOWNLOAD_EVENT,
+            &event_name,
             format!("该文件不支持多线程下载，单线程下载中：{}", file_path),
             true,
         );
@@ -150,16 +162,17 @@ async fn run(url: &str, path: &str, task_num: u64, sender: MessageSender) -> Any
         remove_file(&path).await?;
         Err(Error::msg("下载失败"))
     } else {
-        sender.send(DOWNLOAD_EVENT, format!("下载完成：{}", file_path), true);
+        sender.send(&event_name, format!("下载完成：{}", file_path), true);
         Ok(())
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct DownloadPayload {
     url: String,
     dir_path: String,
     concurrent: u64,
+    plugin_name: String,
 }
 
 #[tauri::command]
@@ -167,13 +180,9 @@ pub async fn download_file(
     payload: DownloadPayload,
     app_handle: tauri::AppHandle,
 ) -> Result<Message<String>, ()> {
-    let DownloadPayload {
-        url,
-        dir_path,
-        concurrent,
-    } = payload;
-    let sender = MessageSender::new(app_handle, "download");
-    let file_name = match url.split('/').last() {
+    let sender = MessageSender::new(app_handle, &payload.plugin_name);
+    let event_name = format!("{}:download-output", payload.plugin_name);
+    let file_name = match payload.url.split('/').last() {
         Some(v) => v,
         None => return Ok(Message::failure("url错误")),
     };
@@ -183,8 +192,8 @@ pub async fn download_file(
     } else {
         "/"
     };
-    let path = format!("{}{}{}", dir_path, splitter, file_name);
-    match run(&url, &path, concurrent, sender).await {
+    let path = format!("{}{}{}", payload.dir_path, splitter, file_name);
+    match run(payload, &path, sender, event_name).await {
         Ok(_) => Ok(Message::success(Some(String::from("下载成功")))),
         Err(e) => Ok(Message::failure(&e.to_string())),
     }

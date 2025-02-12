@@ -10,6 +10,8 @@ import { open } from '@tauri-apps/plugin-dialog'
 import mammoth from 'mammoth'
 import XLSX from 'xlsx'
 
+const pluginName = 'ReadFile'
+
 export function useUpdateSavingDir() {
   const dirPath = ref('')
 
@@ -183,7 +185,8 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
       const downFn = downloadFile({
         concurrent: concurrentCount.value,
         dir_path: dirPath.value,
-        url
+        url,
+        plugin_name: pluginName
       }).then(({ code }) => {
         code === 200 && downloadCount.value++
         const i = reqs.findIndex(f => f === downFn)
@@ -240,7 +243,7 @@ export function useBackendOutput() {
     outputRef.value.scrollTop = outputRef.value.scrollHeight
   }, 200)
 
-  useRuntimeEvent<string>('download-output', ({ payload }) => {
+  useRuntimeEvent<string>(`${pluginName}:download-output`, ({ payload }) => {
     outputs.value.push(payload)
     if (outputs.value.length > 100) {
       outputs.value.shift()
