@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { Copy, FolderOpenOutline, DocumentTextOutline } from '@vicons/ionicons5'
-import { getCorrectSize, SearchStatus, useInitDisk, useSearchFile } from './logic'
+import {
+  getCorrectSize,
+  SearchStatus,
+  useInitDisk,
+  useSearchFile,
+  useViewFileInExplorer
+} from './logic'
 import PathHighlight from './PathHighlight.vue'
 
 const { diskMountPoints, selectedPoint, selectAll } = useInitDisk()
@@ -19,6 +25,8 @@ const {
 const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
   itemHeight: 30
 })
+
+const { openInExplorer } = useViewFileInExplorer()
 
 const { copy } = useClipboard()
 
@@ -54,10 +62,18 @@ async function handleCopy(path: string) {
         <span class="ml-[15px]">搜索线程越多，速度越快，请根据电脑配置合理设置</span>
       </n-form-item>
       <n-form-item label="搜索文件夹">
-        <n-switch v-model:value="supportFolder"></n-switch>
+        <n-switch
+          :disabled="taskStatus === SearchStatus.Processing"
+          v-model:value="supportFolder"
+        />
       </n-form-item>
       <n-form-item>
-        <n-button v-if="taskStatus === SearchStatus.Default" type="primary" @click="handleSearch">
+        <n-button
+          v-if="taskStatus === SearchStatus.Default"
+          :disabled="!selectedPoint.length"
+          type="primary"
+          @click="handleSearch"
+        >
           搜索
         </n-button>
         <n-button
@@ -68,10 +84,13 @@ async function handleCopy(path: string) {
           取消
         </n-button>
         <n-button v-if="list.length" class="ml-[10px]" @click="clearResult">清空</n-button>
+        <n-alert v-if="list.length" class="ml-[15px]" type="info">
+          点击路径可以快速打开文件所在文件夹，打开高权限文件夹需要赋予应用所需权限，否则可能会打开失败。
+        </n-alert>
       </n-form-item>
     </n-form>
 
-    <div class="position-relative flex-1 min-h-0">
+    <div v-show="renderItems.length" class="position-relative flex-1 min-h-0">
       <n-spin
         v-if="taskStatus === SearchStatus.Processing"
         class="position-(absolute top-[10px] right-[10px])"
@@ -100,10 +119,12 @@ async function handleCopy(path: string) {
             <n-tooltip content-class="max-w-[70vw]" :delay="500">
               <template #trigger>
                 <PathHighlight
-                  class="text-ellipsis overflow-hidden text-nowrap"
+                  class="text-ellipsis overflow-hidden text-nowrap cursor-pointer hover:underline"
                   highlight-class="text-[--errorColor] underline bg-[transparent]"
                   :data="item.data.path"
                   :search="searchText"
+                  component-type="a"
+                  @click="openInExplorer(item.data)"
                 />
               </template>
               <PathHighlight
@@ -112,7 +133,7 @@ async function handleCopy(path: string) {
                 :search="searchText"
               />
             </n-tooltip>
-            <span v-if="!item.data.is_dir" class="text-[--infoColor]">
+            <span v-if="!item.data.is_dir" class="text-[--infoColor] text-nowrap">
               {{ getCorrectSize(item.data.size) }}
             </span>
             <n-tooltip>

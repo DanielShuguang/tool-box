@@ -17,13 +17,18 @@
           "args": true
         },
         {
-          "name": "cscript",
-          "cmd": "cscript",
+          "name": "explorer",
+          "cmd": "explorer",
           "args": true
         },
         {
-          "name": "wscript",
-          "cmd": "wscript",
+          "name": "open",
+          "cmd": "open",
+          "args": true
+        },
+        {
+          "name": "xdg-open",
+          "cmd": "xdg-open",
           "args": true
         }
       ]

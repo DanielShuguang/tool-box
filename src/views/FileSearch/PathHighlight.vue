@@ -2,10 +2,12 @@
 import { getSep } from '@/utils/system'
 import { omit } from 'radash'
 import { highlightProps } from 'naive-ui'
+import { PropType } from 'vue'
 
 const props = defineProps({
   data: { type: String, required: true },
   search: { type: String, required: true },
+  componentType: { type: String as PropType<keyof HTMLElementTagNameMap>, default: 'span' },
   ...highlightProps
 })
 
@@ -25,12 +27,12 @@ const lastLetter = computed(() => {
 </script>
 
 <template>
-  <span>
+  <component :is="componentType">
     <span v-if="lastLetter">{{ `${startLetter}${sep}` }}</span>
     <n-highlight
       :="omit($props, ['data', 'search'])"
       :text="lastLetter || data"
       :patterns="[search]"
     />
-  </span>
+  </component :is="">
 </template>
