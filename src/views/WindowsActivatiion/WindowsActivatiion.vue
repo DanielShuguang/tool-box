@@ -29,9 +29,12 @@ const { loading, handleClick } = useActivateWindows(activeState)
           <span v-else class="text-[--errorColor]">未激活</span>
         </n-text>
       </n-card>
-      <n-button class="mt-[15px]" type="primary" :loading="loading" @click="handleClick">
-        激活
-      </n-button>
+      <n-popconfirm @positive-click="handleClick">
+        <template #trigger>
+          <n-button class="mt-[15px]" type="primary" :loading="loading">激活</n-button>
+        </template>
+        此次激活非永久激活！如已有可用的激活码或已永久激活，请谨慎使用本功能。
+      </n-popconfirm>
     </template>
   </div>
 </template>
