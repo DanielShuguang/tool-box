@@ -23,7 +23,8 @@ const {
 } = useSearchFile(selectedPoint)
 
 const { containerProps, list, wrapperProps } = useVirtualList(renderItems, {
-  itemHeight: 30
+  itemHeight: 30,
+  overscan: 10
 })
 
 const { openInExplorer } = useViewFileInExplorer()
@@ -70,7 +71,7 @@ async function handleCopy(path: string) {
       <n-form-item>
         <n-button
           v-if="taskStatus === SearchStatus.Default"
-          :disabled="!selectedPoint.length"
+          :disabled="!selectedPoint.length || !searchText"
           type="primary"
           @click="handleSearch"
         >
