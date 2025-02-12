@@ -48,7 +48,7 @@ async function handleCopy(path: string) {
   <div class="flex flex-col gap-[10px]">
     <n-form label-placement="left">
       <n-form-item label="文件名">
-        <n-input v-model:value="searchText" />
+        <n-input :disabled="taskStatus === SearchStatus.Processing" v-model:value="searchText" />
       </n-form-item>
       <n-form-item label="需要搜索的磁盘">
         <n-checkbox class="mr-[10px]" v-model:checked="selectAll" label="全选"></n-checkbox>
