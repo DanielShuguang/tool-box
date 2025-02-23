@@ -4,7 +4,7 @@ import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
 import { unique } from 'radash'
 import { useDownloadConcurrent } from '../ReadFile/logic'
 import Big from 'big.js'
-import { getOS } from '@/utils/system'
+import { platform } from '@tauri-apps/plugin-os'
 import { Command } from '@tauri-apps/plugin-shell'
 
 export function useInitDisk() {
@@ -159,12 +159,12 @@ export function useViewFileInExplorer() {
   const message = useMessage()
 
   function openInExplorer(file: ResultFileModel) {
-    const os = getOS()
-    if (os === 'Windows') {
+    const os = platform()
+    if (os === 'windows') {
       return windowsOpener(file)
-    } else if (os === 'Mac') {
+    } else if (os === 'macos') {
       return macOpener(file)
-    } else if (os === 'Linux') {
+    } else if (os === 'linux') {
       return linuxOpener(file)
     }
 

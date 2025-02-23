@@ -36,6 +36,9 @@
     "fs:default",
     "fs:write-all",
     "dialog:default",
-    "dialog:allow-open"
+    "dialog:allow-open",
+    "notification:default",
+    "dialog:default",
+    "notification:default"
   ]
 }

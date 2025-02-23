@@ -1,18 +1,8 @@
-export function getOS() {
-  const { userAgent } = navigator
-  if (userAgent.includes('Mac')) {
-    return 'Mac'
-  } else if (userAgent.includes('Windows')) {
-    return 'Windows'
-  } else if (userAgent.includes('Linux')) {
-    return 'Linux'
-  }
-  return 'Unknown'
-}
+import { platform } from '@tauri-apps/plugin-os'
 
 export function getSep() {
-  const os = getOS()
-  if (os === 'Windows') {
+  const os = platform()
+  if (os === 'windows') {
     return '\\'
   }
   return '/'

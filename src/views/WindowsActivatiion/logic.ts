@@ -1,4 +1,4 @@
-import { getOS } from '@/utils/system'
+import { platform } from '@tauri-apps/plugin-os'
 import { Command } from '@tauri-apps/plugin-shell'
 import { RemovableRef } from '@vueuse/core'
 import dayjs from 'dayjs'
@@ -55,7 +55,7 @@ export function useCheckCurrentActivation(activeState: RemovableRef<number>) {
   }
 
   onMounted(() => {
-    isWindows.value = getOS() === 'Windows'
+    isWindows.value = platform() === 'windows'
     checkWindowsActiveInfo()
   })
 
