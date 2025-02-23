@@ -19,6 +19,11 @@ const routes: RouteRecordRaw[] = [
     path: '/windowsActivatiion',
     component: () => import('@/views/WindowsActivatiion/WindowsActivatiion.vue'),
     meta: { title: 'Windows激活' }
+  },
+  {
+    path: '/EyeProtection',
+    component: () => import('@/views/EyeProtection/EyeProtection.vue'),
+    meta: { title: '护眼工具' }
   }
 ]
 

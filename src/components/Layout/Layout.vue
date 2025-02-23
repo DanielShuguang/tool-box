@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { useSystemTheme, useUpdateThemeVariables } from './logic'
-import { Sunny, Moon } from '@vicons/ionicons5'
+import { useSystemTheme, useToggleSettingsView, useUpdateThemeVariables } from './logic'
+import { Sunny, Moon, SettingsOutline } from '@vicons/ionicons5'
 
 const router = useRouter()
 
@@ -34,14 +34,18 @@ function disableContextmenu(ev: MouseEvent) {
 const { isDark, isAuto, handleChangeTheme, handleChangeThemeState } = useSystemTheme()
 
 useUpdateThemeVariables(isDark)
+
+const { openSettings, toggleSettingsView } = useToggleSettingsView()
 </script>
 
 <template>
   <div
-    class="flex flex-col size-full box-border overflow-x-hidden overflow-y-auto"
+    class="flex flex-col size-full box-border overflow-x-hidden overflow-y-auto relative"
     @contextmenu="disableContextmenu"
   >
-    <header class="w-full h-[45px] p-[5px_5px_0] bg-[--bodyColor] flex items-center">
+    <header
+      class="w-full h-[50px] p-[5px_5px_0] bg-[--bodyColor] box-border flex items-center relative"
+    >
       <label class="flex items-center mr-[15px] text-[--textColorBase]">
         <span>当前页面功能：</span>
         <n-select
@@ -68,14 +72,33 @@ useUpdateThemeVariables(isDark)
       <n-button :type="isAuto ? 'success' : 'default'" @click="handleChangeThemeState">
         跟随系统
       </n-button>
+
+      <n-tooltip>
+        <template #trigger>
+          <n-icon
+            size="17"
+            class="absolute right-[20px] cursor-pointer"
+            @click="toggleSettingsView"
+          >
+            <SettingsOutline />
+          </n-icon>
+        </template>
+        打开/关闭设置
+      </n-tooltip>
     </header>
+    <transition name="fade" mode="out-in">
+      <app-settings
+        :open="openSettings"
+        class="w-full h-[calc(100%-50px)] p-[5px] box-border bg-[--actionColor] absolute top-[50px] left-0 z-10"
+      />
+    </transition>
     <router-view
-      class="w-full h-[calc(100%-45px)] p-[5px] box-border bg-[--actionColor]"
+      class="w-full h-[calc(100%-50px)] p-[5px] box-border bg-[--actionColor]"
       v-slot="{ Component }"
     >
       <transition name="fade" mode="out-in">
         <keep-alive>
-          <component :is="Component" class="size-full"></component>
+          <component v-if="!openSettings" :is="Component" class="size-full"></component>
         </keep-alive>
       </transition>
     </router-view>

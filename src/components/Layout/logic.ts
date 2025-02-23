@@ -54,3 +54,13 @@ export function useUpdateThemeVariables(isDark: ComputedRef<boolean>) {
     { immediate: true }
   )
 }
+
+export function useToggleSettingsView() {
+  const openSettings = ref(false)
+
+  function toggleSettingsView() {
+    openSettings.value = !openSettings.value
+  }
+
+  return { toggleSettingsView, openSettings }
+}
