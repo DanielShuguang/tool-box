@@ -15,7 +15,8 @@
         "title": "Tool box",
         "minWidth": 1024,
         "minHeight": 768,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "decorations": false
       }
     ],
     "security": {

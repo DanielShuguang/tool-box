@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { useSystemTheme, useToggleSettingsView, useUpdateThemeVariables } from './logic'
-import { Sunny, Moon, SettingsOutline } from '@vicons/ionicons5'
+import {
+  useAppWindowOperation,
+  useSystemTheme,
+  useToggleSettingsView,
+  useUpdateThemeVariables
+} from './logic'
+import { Sunny, Moon, SettingsOutline, Close } from '@vicons/ionicons5'
+import { MinimizeRound } from '@vicons/material'
+import { Maximize20Regular } from '@vicons/fluent'
 
 const router = useRouter()
 
@@ -36,6 +43,8 @@ const { isDark, isAuto, handleChangeTheme, handleChangeThemeState } = useSystemT
 useUpdateThemeVariables(isDark)
 
 const { openSettings, toggleSettingsView } = useToggleSettingsView()
+
+const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
 </script>
 
 <template>
@@ -43,6 +52,23 @@ const { openSettings, toggleSettingsView } = useToggleSettingsView()
     class="flex flex-col size-full box-border overflow-x-hidden overflow-y-auto relative"
     @contextmenu="disableContextmenu"
   >
+    <div class="w-full flex justify-end items-center">
+      <n-button @click="handleMinimize">
+        <n-icon size="18">
+          <MinimizeRound />
+        </n-icon>
+      </n-button>
+      <n-button @click="handleMaximize">
+        <n-icon size="18">
+          <Maximize20Regular />
+        </n-icon>
+      </n-button>
+      <n-button type="error" @click="exitApp">
+        <n-icon size="18">
+          <Close />
+        </n-icon>
+      </n-button>
+    </div>
     <header
       class="w-full h-[50px] p-[5px_5px_0] bg-[--bodyColor] box-border flex items-center relative"
     >

@@ -1,4 +1,5 @@
 import { emitter } from '@/utils/event'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useThemeVars } from 'naive-ui'
 
 export function useSystemTheme() {
@@ -63,4 +64,20 @@ export function useToggleSettingsView() {
   }
 
   return { toggleSettingsView, openSettings }
+}
+
+export function useAppWindowOperation() {
+  function handleMaximize() {
+    getCurrentWindow().toggleMaximize()
+  }
+
+  function exitApp() {
+    emitter.emit('exit-app')
+  }
+
+  function handleMinimize() {
+    getCurrentWindow().minimize()
+  }
+
+  return { handleMaximize, handleMinimize, exitApp }
 }
