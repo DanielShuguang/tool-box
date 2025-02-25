@@ -2,7 +2,7 @@ import mitt from 'mitt'
 
 export type EventMap = {
   'theme-change': boolean
-  'exit-app': void
+  'close-window': void
 }
 
 export const emitter = mitt<EventMap>()

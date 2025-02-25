@@ -72,7 +72,7 @@ export function useAppWindowOperation() {
   }
 
   function exitApp() {
-    emitter.emit('exit-app')
+    emitter.emit('close-window')
   }
 
   function handleMinimize() {

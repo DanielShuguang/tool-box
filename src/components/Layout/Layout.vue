@@ -9,10 +9,15 @@ import {
 import { Sunny, Moon, SettingsOutline, Close } from '@vicons/ionicons5'
 import { MinimizeRound } from '@vicons/material'
 import { Maximize20Regular } from '@vicons/fluent'
+import { getName } from '@tauri-apps/api/app'
 
 const router = useRouter()
-
+const appName = ref('')
 const activePath = ref('/')
+
+onMounted(async () => {
+  appName.value = await getName()
+})
 
 const options = computed(() =>
   router
@@ -52,24 +57,32 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
     class="flex flex-col size-full box-border overflow-x-hidden overflow-y-auto relative"
     @contextmenu="disableContextmenu"
   >
-    <div class="w-full flex justify-end items-center">
-      <n-button @click="handleMinimize">
-        <n-icon size="18">
-          <MinimizeRound />
-        </n-icon>
-      </n-button>
-      <n-button @click="handleMaximize">
-        <n-icon size="18">
-          <Maximize20Regular />
-        </n-icon>
-      </n-button>
-      <n-button type="error" @click="exitApp">
-        <n-icon size="18">
-          <Close />
-        </n-icon>
-      </n-button>
-    </div>
     <header
+      class="w-full flex justify-between border-b-(1px solid #eee) select-none"
+      data-tauri-drag-region
+    >
+      <div class="flex items-center justify-center px-[10px]" data-tauri-drag-region>
+        <div data-tauri-drag-region>{{ appName }}</div>
+      </div>
+      <div class="flex justify-end items-center">
+        <n-button @click="handleMinimize">
+          <n-icon size="18">
+            <MinimizeRound />
+          </n-icon>
+        </n-button>
+        <n-button @click="handleMaximize">
+          <n-icon size="18">
+            <Maximize20Regular />
+          </n-icon>
+        </n-button>
+        <n-button type="error" @click="exitApp">
+          <n-icon size="18">
+            <Close />
+          </n-icon>
+        </n-button>
+      </div>
+    </header>
+    <div
       class="w-full h-[50px] p-[5px_5px_0] bg-[--bodyColor] box-border flex items-center relative"
     >
       <label class="flex items-center mr-[15px] text-[--textColorBase]">
@@ -111,11 +124,11 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
         </template>
         打开/关闭设置
       </n-tooltip>
-    </header>
+    </div>
     <transition name="fade" mode="out-in">
       <app-settings
         :open="openSettings"
-        class="w-full h-[calc(100%-50px)] p-[5px] box-border bg-[--actionColor] absolute top-[50px] left-0 z-10"
+        class="w-full h-[calc(100%-95px)] p-[5px] box-border bg-[--actionColor] absolute top-[95px] left-0 z-10"
       />
     </transition>
     <router-view

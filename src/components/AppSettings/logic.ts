@@ -1,7 +1,8 @@
 import { TrayIcon } from '@tauri-apps/api/tray'
-import { Menu, MenuItem } from '@tauri-apps/api/menu'
+import { Menu, MenuItem, MenuItemOptions } from '@tauri-apps/api/menu'
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import { getAllWindows, getCurrentWindow } from '@tauri-apps/api/window'
+import { useEmitter } from '@/utils/event'
 
 async function handleShowMainWindow() {
   const main = getCurrentWindow()
@@ -16,20 +17,22 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
   const message = useMessage()
   const systemTray = shallowRef<TrayIcon | null>(null)
 
-  const menuItems = [
+  async function handleExitApp() {
+    if (systemTray.value) {
+      await TrayIcon.removeById(systemTray.value.id)
+    }
+    const wins = await getAllWindows()
+    wins.forEach(el => el.close())
+  }
+
+  const menuItems: MenuItemOptions[] = [
     {
       text: '显示界面',
       action: handleShowMainWindow
     },
     {
       text: '退出应用',
-      action: async () => {
-        if (systemTray.value) {
-          await TrayIcon.removeById(systemTray.value.id)
-        }
-        const wins = await getAllWindows()
-        wins.forEach(el => el.close())
-      }
+      action: handleExitApp
     }
   ]
 
@@ -72,8 +75,6 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
     await systemTray.value?.close()
     systemTray.value = null
     enableTrayIcon.value = false
-    const main = getCurrentWindow()
-    main.setClosable(false)
   }
 
   function toggleTrayIcon() {
@@ -83,6 +84,17 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
       init()
     }
   }
+
+  useEmitter('close-window', () => {
+    if (enableTrayIcon.value) {
+      // 如果启用了托盘图标，则隐藏窗口
+      const win = getCurrentWindow()
+      win.hide()
+    } else {
+      // 否则直接关闭应用
+      handleExitApp()
+    }
+  })
 
   onMounted(() => {
     if (enableTrayIcon.value) {
