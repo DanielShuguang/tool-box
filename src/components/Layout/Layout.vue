@@ -10,6 +10,7 @@ import { Sunny, Moon, SettingsOutline, Close } from '@vicons/ionicons5'
 import { MinimizeRound } from '@vicons/material'
 import { Maximize20Regular } from '@vicons/fluent'
 import { getName } from '@tauri-apps/api/app'
+import { Motion, AnimatePresence } from 'motion-v'
 
 const router = useRouter()
 const appName = ref('')
@@ -82,18 +83,25 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
         </n-button>
       </div>
     </header>
-    <div
-      class="w-full h-[50px] p-[5px_5px_0] bg-[--bodyColor] box-border flex items-center relative"
-    >
-      <label class="flex items-center mr-[15px] text-[--textColorBase]">
-        <span>当前页面功能：</span>
-        <n-select
-          class="inline-block w-[150px]"
-          :options="options"
-          v-model:value="activePath"
-          @update:value="changeSelect"
-        />
-      </label>
+    <div class="w-full h-[50px] px-[5px] bg-[--bodyColor] box-border flex items-center relative">
+      <AnimatePresence>
+        <Motion
+          as="label"
+          v-show="!openSettings"
+          class="flex items-center mr-[15px] text-[--textColorBase] overflow-hidden"
+          :transition="{ duration: 0.3 }"
+          :animate="{ width: 'auto', opacity: 1 }"
+          :exit="{ width: 0, opacity: 0 }"
+        >
+          <span class="text-nowrap">当前页面功能：</span>
+          <n-select
+            class="inline-block w-[150px]"
+            :options="options"
+            v-model:value="activePath"
+            @update:value="changeSelect"
+          />
+        </Motion>
+      </AnimatePresence>
       <n-tooltip>
         <template #trigger>
           <n-button :disabled="isAuto" @click="handleChangeTheme">
@@ -132,7 +140,7 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
       />
     </transition>
     <router-view
-      class="w-full h-[calc(100%-50px)] p-[5px] box-border bg-[--actionColor]"
+      class="w-full h-[calc(100%-95px)] p-[5px] box-border bg-[--actionColor]"
       v-slot="{ Component }"
     >
       <transition name="fade" mode="out-in">
