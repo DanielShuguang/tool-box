@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+h2 {
+  display: block;
+  font-size: 1.5em;
+  margin-block-start: 0.83em;
+  margin-block-end: 0.83em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  font-weight: bold;
+  unicode-bidi: isolate;
+}
+
+body,
+html,
+#app {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  border: 1px solid var(--borderColor); /* 添加1px边框，颜色自定 */
+  height: 100vh; /* 确保高度占满窗口 */
+  width: 100vw;
+  box-sizing: border-box; /* 边框不影响内部布局 */
+}
+
+#app {
+  height: calc(100% - 2px); /* 减去上下边框宽度 */
+}

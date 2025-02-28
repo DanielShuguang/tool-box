@@ -100,3 +100,17 @@ export function useActivateWindows(activeState: RemovableRef<number>) {
 
   return { loading, handleClick }
 }
+
+export const activationPrograms = [
+  {
+    title: 'Microsoft Activation Scripts (MAS)',
+    description:
+      '开源 Windows 和 Office 激活程序，具有 HWID、Ohook、TSforge、KMS38 和在线 KMS 激活方法，以及高级故障排除功能。',
+    link: 'https://github.com/massgravel/Microsoft-Activation-Scripts'
+  },
+  {
+    title: '云萌',
+    description: '一款使用CSharp编写的 Windows 10 和 Windows 11 数字权利激活工具。',
+    link: 'https://cmwtat.cloudmoe.com/cn.html'
+  }
+]

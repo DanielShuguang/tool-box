@@ -11,7 +11,7 @@ useEmitter('theme-change', val => {
 
 <template>
   <n-config-provider
-    class="w-[100vw] h-[100vh] m-0 p-0"
+    class="w-full h-full m-0 p-0"
     :locale="zhCN"
     :theme="isDark ? darkTheme : null"
   >
@@ -23,16 +23,3 @@ useEmitter('theme-change', val => {
     </n-message-provider>
   </n-config-provider>
 </template>
-
-<style lang="scss">
-body,
-html,
-#app {
-  margin: 0;
-  padding: 0;
-}
-
-* {
-  box-sizing: border-box;
-}
-</style>

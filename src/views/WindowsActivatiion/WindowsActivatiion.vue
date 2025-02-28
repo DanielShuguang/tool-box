@@ -1,12 +1,22 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { useActivateWindows, useActivationInfo, useCheckCurrentActivation } from './logic'
+import {
+  activationPrograms,
+  useActivateWindows,
+  useActivationInfo,
+  useCheckCurrentActivation
+} from './logic'
+import { open } from '@tauri-apps/plugin-shell'
 
 const { activeState, textColor } = useActivationInfo()
 
 const { isWindows } = useCheckCurrentActivation(activeState)
 
 const { loading, handleClick } = useActivateWindows(activeState)
+
+function gotoDownload(link: string) {
+  open(link)
+}
 </script>
 
 <template>
@@ -16,7 +26,9 @@ const { loading, handleClick } = useActivateWindows(activeState)
       <n-card>
         <n-alert class="mb-[15px]" type="info">
           <div>请确认本应用使用管理员权限打开。</div>
-          <div>本程序只能提供180天的激活（基于KMS），到期需要重新激活。</div>
+          <div>
+            本程序只能提供180天的激活（基于KMS），到期需要重新激活。永久激活可以使用“更多方案”中提供的工具
+          </div>
         </n-alert>
         <n-text>
           <span v-if="activeState > 1">
@@ -36,5 +48,17 @@ const { loading, handleClick } = useActivateWindows(activeState)
         此次激活非永久激活！如已有可用的激活码或已永久激活，请谨慎使用本功能。
       </n-popconfirm>
     </template>
+
+    <n-card class="mt-[15px]">
+      <n-collapse>
+        <n-collapse-item title="更多方案" name="more">
+          <div v-for="program in activationPrograms" :key="program.title">
+            <h2>{{ program.title }}</h2>
+            <div>{{ program.description }}</div>
+            <n-button @click="gotoDownload(program.link)">前往下载</n-button>
+          </div>
+        </n-collapse-item>
+      </n-collapse>
+    </n-card>
   </div>
 </template>

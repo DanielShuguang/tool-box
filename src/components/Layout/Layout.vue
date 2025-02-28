@@ -140,12 +140,13 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
       />
     </transition>
     <router-view
-      class="w-full h-[calc(100%-95px)] p-[5px] box-border bg-[--actionColor]"
+      v-if="!openSettings"
+      class="w-full h-[calc(100%-95px)] p-[5px] box-border bg-[--actionColor] overflow-auto"
       v-slot="{ Component }"
     >
       <transition name="fade" mode="out-in">
         <keep-alive>
-          <component v-if="!openSettings" :is="Component" class="size-full"></component>
+          <component :is="Component" class="size-full"></component>
         </keep-alive>
       </transition>
     </router-view>

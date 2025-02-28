@@ -59,6 +59,9 @@ importers:
       naive-ui:
         specifier: ^2.40.3
         version: 2.41.0(vue@3.5.13(typescript@5.7.3))
+      normalize.css:
+        specifier: ^8.0.1
+        version: 8.0.1
       radash:
         specifier: ^12.1.0
         version: 12.1.0
@@ -2095,6 +2098,9 @@ packages:
   normalize-path@3.0.0:
     resolution: {integrity: sha1-Dc1p/yOhybEf0JeDFmRKA4ghamU=}
     engines: {node: '>=0.10.0'}
+
+  normalize.css@8.0.1:
+    resolution: {integrity: sha1-m5iiCHOLnMJjTKrLxC0THJdIe/M=}
 
   npm-run-path@6.0.0:
     resolution: {integrity: sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA==}
@@ -4648,6 +4654,8 @@ snapshots:
   node-releases@2.0.19: {}
 
   normalize-path@3.0.0: {}
+
+  normalize.css@8.0.1: {}
 
   npm-run-path@6.0.0:
     dependencies:
