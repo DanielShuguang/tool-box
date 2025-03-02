@@ -3,8 +3,9 @@ import { Menu, MenuItem, MenuItemOptions } from '@tauri-apps/api/menu'
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import { getAllWindows, getCurrentWindow } from '@tauri-apps/api/window'
 import { useEmitter } from '@/utils/event'
+import { isDevelopment } from '@/utils/development'
 
-async function handleShowMainWindow() {
+export async function handleShowMainWindow() {
   const main = getCurrentWindow()
   const isVisible = await main.isVisible()
   if (!isVisible) {
@@ -97,6 +98,8 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
   })
 
   onMounted(() => {
+    if (isDevelopment) return
+
     if (enableTrayIcon.value) {
       init()
     }
