@@ -1,7 +1,6 @@
 import { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { excludeFileTypes } from '@/utils/binary-file-types'
 import { UploadFileInfo, UploadSettledFileInfo } from 'naive-ui'
-import { isString } from 'radash'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
 import { getCpuCoreCount } from '@/backend-channel/utils'
 import { downloadFile } from '@/backend-channel/download'
@@ -17,7 +16,7 @@ export function useUpdateSavingDir() {
 
   async function selectSavingDir() {
     const res = await open({ directory: true, multiple: false })
-    if (isString(res)) {
+    if (typeof res === 'string') {
       dirPath.value = res
     }
   }
