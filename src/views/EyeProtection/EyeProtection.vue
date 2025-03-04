@@ -5,12 +5,15 @@ import {
   sendNotification
 } from '@tauri-apps/plugin-notification'
 import { handleShowMainWindow } from '@/components/AppSettings/logic'
-import { sleep } from '@/utils/promise'
 import { TimeUnits } from '@/utils/time'
+import { CountdownInst } from 'naive-ui'
 
 const message = useMessage()
 const dialog = useDialog()
 
+const closeEyesRef = useTemplateRef<CountdownInst>('closeEyes')
+const restRef = useTemplateRef<CountdownInst>('rest')
+const activeCountdown = ref(false)
 const isOpen = ref(false)
 const permissionGranted = ref<NotificationPermission>('default')
 
@@ -27,27 +30,42 @@ watch(isOpen, val => {
   }
 })
 
-const closeEyesTimer = ref(0)
-const restTimer = ref(0)
-
 function shutdownTiming() {
-  clearTimeout(closeEyesTimer.value)
-  clearTimeout(restTimer.value)
+  closeEyesRef.value?.reset()
+  restRef.value?.reset()
+  activeCountdown.value = false
+}
+
+function handleRestart() {
+  shutdownTiming()
+  startTiming()
+}
+
+function closeEyesOver() {
+  activeCountdown.value = true
+  closeEyesRef.value?.reset()
+}
+
+async function closeEyesAlarm() {
+  activeCountdown.value = false
+  sendNotification({ title: '提醒', body: '请远眺一下' })
+  dialog.info({
+    title: '提醒',
+    content: '请远眺一下',
+    positiveText: '确定',
+    onPositiveClick: closeEyesOver,
+    onClose: closeEyesOver
+  })
+}
+
+async function restAlarm() {
+  showNotification()
 }
 
 function startTiming() {
-  if (!restTimer.value) {
-    restTimer.value = setTimeout(async () => {
-      sendNotification({ title: '提醒', body: '请远眺一下' })
-      await sleep(5 * TimeUnits.Minute)
-    }, (state.value.restInterval || 0) * TimeUnits.Minute)
-  }
-
-  if (!closeEyesTimer.value) {
-    closeEyesTimer.value = setTimeout(() => {
-      showNotification()
-    }, (state.value.closeEyesInterval || 0) * TimeUnits.Minute)
-  }
+  activeCountdown.value = true
+  closeEyesRef.value?.reset()
+  restRef.value?.reset()
 }
 
 async function getNotifyPermission() {
@@ -66,20 +84,21 @@ async function getNotifyPermission() {
   }
 }
 
-function rest() {
-  clearTimeout(closeEyesTimer.value)
-  closeEyesTimer.value = 0
-  startTiming()
+function restOver() {
+  activeCountdown.value = true
+  restRef.value?.reset()
 }
 
 async function showNotification() {
+  activeCountdown.value = false
   await handleShowMainWindow()
+  sendNotification({ title: '提醒', body: '请闭目休息眼睛' })
   dialog.info({
     title: '提醒',
     content: '请闭目休息眼睛',
     positiveText: '确定',
-    onPositiveClick: rest,
-    onClose: rest
+    onPositiveClick: restOver,
+    onClose: restOver
   })
 }
 
@@ -119,9 +138,30 @@ onMounted(() => {
           </n-input-number>
           <span class="ml-[15px]">每个一小段时间远眺一会儿有助眼睛的健康</span>
         </n-form-item>
+        <n-form-item>
+          <n-button type="primary" @click="handleRestart">重新开始</n-button>
+        </n-form-item>
+
+        <div class="flex gap-[20px]">
+          <n-card title="距离下次闭眼休息剩余">
+            <n-countdown
+              ref="closeEyes"
+              :active="activeCountdown"
+              :duration="(state.closeEyesInterval || 0) * TimeUnits.Minute"
+              @finish="closeEyesAlarm"
+            />
+          </n-card>
+
+          <n-card title="距离下次远眺小憩剩余">
+            <n-countdown
+              ref="rest"
+              :active="activeCountdown"
+              :duration="(state.restInterval || 0) * TimeUnits.Minute"
+              @finish="restAlarm"
+            />
+          </n-card>
+        </div>
       </template>
     </n-form>
-
-    <n-countdown :duration="(state.closeEyesInterval || 0) * TimeUnits.Minute" />
   </div>
 </template>

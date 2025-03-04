@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { isDevelopment } from '@/utils/development'
 import { useAppAutostart, useGenerateTrayIcon } from './logic'
 
 defineProps<{ open: boolean }>()
@@ -6,6 +7,15 @@ defineProps<{ open: boolean }>()
 const state = useLocalStorage('app-settings', {
   autostart: false,
   enableTrayIcon: false
+})
+
+onMounted(() => {
+  if (isDevelopment) {
+    state.value = {
+      autostart: false,
+      enableTrayIcon: false
+    }
+  }
 })
 
 const { autostart, enableTrayIcon } = toRefs(state.value)
