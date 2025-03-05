@@ -54,8 +54,8 @@ async function closeEyesAlarm() {
     title: '提醒',
     content: '请闭目休息眼睛',
     positiveText: '确定',
-    onPositiveClick: restOver,
-    onClose: restOver
+    onPositiveClick: closeEyesOver,
+    onClose: closeEyesOver
   })
 }
 
@@ -67,8 +67,8 @@ async function restAlarm() {
     title: '提醒',
     content: '请远眺一下',
     positiveText: '确定',
-    onPositiveClick: closeEyesOver,
-    onClose: closeEyesOver
+    onPositiveClick: restOver,
+    onClose: restOver
   })
 }
 
