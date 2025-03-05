@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppSettings: typeof import('./../components/AppSettings/AppSettings.vue')['default']
-    CountDown: typeof import('./../components/CountDown.vue')['default']
     Layout: typeof import('./../components/Layout/Layout.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NButton: typeof import('naive-ui')['NButton']

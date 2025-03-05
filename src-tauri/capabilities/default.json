@@ -51,6 +51,7 @@
     "notification:allow-register-listener",
     "notification:allow-register-action-types",
     "notification:allow-request-permission",
-    "notification:allow-notify"
+    "notification:allow-notify",
+    "core:app:allow-default-window-icon"
   ]
 }

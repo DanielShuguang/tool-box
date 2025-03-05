@@ -4,6 +4,7 @@ import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import { getAllWindows, getCurrentWindow } from '@tauri-apps/api/window'
 import { useEmitter } from '@/utils/event'
 import { isDevelopment } from '@/utils/development'
+import { defaultWindowIcon } from '@tauri-apps/api/app'
 
 export async function handleShowMainWindow() {
   const main = getCurrentWindow()
@@ -63,7 +64,7 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
         showMenuOnLeftClick: false,
         tooltip: 'Tool-box 挂机中',
         menu,
-        icon: 'icons/icon.png',
+        icon: (await defaultWindowIcon()) || 'icons/icon.png',
         action: event => event.type === 'DoubleClick' && handleShowMainWindow()
       })
       enableTrayIcon.value = true
