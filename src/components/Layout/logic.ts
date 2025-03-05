@@ -39,11 +39,11 @@ export function useSystemTheme() {
   return { isDark, isAuto, handleChangeTheme, handleChangeThemeState }
 }
 
-export function useUpdateThemeVariables(isDark: ComputedRef<boolean>) {
+export function useUpdateThemeVariables() {
   const vars = useThemeVars()
 
   watch(
-    isDark,
+    vars,
     async () => {
       const bodyStyle = document.body.style
 

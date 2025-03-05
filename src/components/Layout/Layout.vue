@@ -46,7 +46,7 @@ function disableContextmenu(ev: MouseEvent) {
 
 const { isDark, isAuto, handleChangeTheme, handleChangeThemeState } = useSystemTheme()
 
-useUpdateThemeVariables(isDark)
+useUpdateThemeVariables()
 
 const { openSettings, toggleSettingsView } = useToggleSettingsView()
 
