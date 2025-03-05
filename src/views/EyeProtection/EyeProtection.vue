@@ -48,6 +48,20 @@ function closeEyesOver() {
 
 async function closeEyesAlarm() {
   activeCountdown.value = false
+  await handleShowMainWindow()
+  sendNotification({ title: '提醒', body: '请闭目休息眼睛' })
+  dialog.info({
+    title: '提醒',
+    content: '请闭目休息眼睛',
+    positiveText: '确定',
+    onPositiveClick: restOver,
+    onClose: restOver
+  })
+}
+
+async function restAlarm() {
+  activeCountdown.value = false
+  await handleShowMainWindow()
   sendNotification({ title: '提醒', body: '请远眺一下' })
   dialog.info({
     title: '提醒',
@@ -56,10 +70,6 @@ async function closeEyesAlarm() {
     onPositiveClick: closeEyesOver,
     onClose: closeEyesOver
   })
-}
-
-async function restAlarm() {
-  showNotification()
 }
 
 function startTiming() {
@@ -87,19 +97,6 @@ async function getNotifyPermission() {
 function restOver() {
   activeCountdown.value = true
   restRef.value?.reset()
-}
-
-async function showNotification() {
-  activeCountdown.value = false
-  await handleShowMainWindow()
-  sendNotification({ title: '提醒', body: '请闭目休息眼睛' })
-  dialog.info({
-    title: '提醒',
-    content: '请闭目休息眼睛',
-    positiveText: '确定',
-    onPositiveClick: restOver,
-    onClose: restOver
-  })
 }
 
 onMounted(() => {
