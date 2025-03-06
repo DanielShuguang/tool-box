@@ -42,6 +42,11 @@ function handleRestart() {
 
 let isAlertShowing = false
 
+function restOver() {
+  activeCountdown.value = true
+  restRef.value?.reset()
+}
+
 function closeEyesOver() {
   isAlertShowing = false
   activeCountdown.value = true
@@ -58,8 +63,7 @@ async function closeEyesAlarm() {
     title: '提醒',
     content: '请闭目休息眼睛',
     positiveText: '确定',
-    onPositiveClick: closeEyesOver,
-    onClose: closeEyesOver
+    onAfterLeave: closeEyesOver
   })
 }
 
@@ -73,8 +77,7 @@ async function restAlarm() {
     title: '提醒',
     content: '请远眺一下',
     positiveText: '确定',
-    onPositiveClick: restOver,
-    onClose: restOver
+    onAfterLeave: restOver
   })
 }
 
@@ -96,11 +99,6 @@ async function getNotifyPermission() {
   } catch (error) {
     message.error(String(error))
   }
-}
-
-function restOver() {
-  activeCountdown.value = true
-  restRef.value?.reset()
 }
 
 onMounted(() => {
@@ -132,7 +130,7 @@ onMounted(() => {
           <span class="ml-[15px]">长时间工作后闭眼休息能放松眼球</span>
         </n-form-item>
         <n-form-item label="小憩间隔">
-          <n-input-number v-model:value="state.restInterval">
+          <n-input-number class="w-[300px]" v-model:value="state.restInterval" :show-button="false">
             <template #suffix>
               <span>分钟</span>
             </template>
@@ -147,7 +145,7 @@ onMounted(() => {
           <n-card title="距离下次闭眼休息剩余">
             <n-countdown
               ref="closeEyes"
-              :active="activeCountdown"
+              :active="activeCountdown && !!state.closeEyesInterval"
               :duration="(state.closeEyesInterval || 0) * TimeUnits.Minute"
               @finish="closeEyesAlarm"
             />
@@ -156,7 +154,7 @@ onMounted(() => {
           <n-card title="距离下次远眺小憩剩余">
             <n-countdown
               ref="rest"
-              :active="activeCountdown"
+              :active="activeCountdown && !!state.restInterval"
               :duration="(state.restInterval || 0) * TimeUnits.Minute"
               @finish="restAlarm"
             />

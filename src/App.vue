@@ -7,6 +7,13 @@ const isDark = ref(false)
 useEmitter('theme-change', val => {
   isDark.value = val
 })
+
+// 禁用 F5 和 Ctrl + R
+document.addEventListener('keydown', event => {
+  if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
+    event.preventDefault()
+  }
+})
 </script>
 
 <template>

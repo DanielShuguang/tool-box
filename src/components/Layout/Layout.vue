@@ -11,13 +11,18 @@ import { MinimizeRound } from '@vicons/material'
 import { Maximize20Regular } from '@vicons/fluent'
 import { getName } from '@tauri-apps/api/app'
 import { Motion, AnimatePresence } from 'motion-v'
+import { isDevelopment } from '@/utils/development'
 
 const router = useRouter()
 const appName = ref('')
-const activePath = ref('/')
+const activePath = useLocalStorage('current-route-path', '/')
 
 onMounted(async () => {
+  router.push(activePath.value)
   appName.value = await getName()
+  if (isDevelopment) {
+    appName.value += '（Dev）'
+  }
 })
 
 const options = computed(() =>
@@ -34,9 +39,12 @@ function changeSelect(v: string) {
   router.push(v)
 }
 
-watchEffect(() => {
-  activePath.value = router.currentRoute.value.path
-})
+watch(
+  () => router.currentRoute.value.path,
+  () => {
+    activePath.value = router.currentRoute.value.path
+  }
+)
 
 function disableContextmenu(ev: MouseEvent) {
   if (!import.meta.env.DEV) {
@@ -136,12 +144,12 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
     <transition name="fade" mode="out-in">
       <app-settings
         :open="openSettings"
-        class="w-full h-[calc(100%-95px)] p-[5px] box-border bg-[--actionColor] absolute top-[95px] left-0 z-10"
+        class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] absolute top-[85px] left-0 z-10"
       />
     </transition>
     <router-view
       v-if="!openSettings"
-      class="w-full h-[calc(100%-95px)] p-[5px] box-border bg-[--actionColor] overflow-auto"
+      class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] overflow-auto"
       v-slot="{ Component }"
     >
       <transition name="fade" mode="out-in">
