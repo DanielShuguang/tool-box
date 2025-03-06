@@ -1,4 +1,5 @@
-use std::{io::SeekFrom, path::Path, sync::Arc};
+use std::io::{ErrorKind, SeekFrom};
+use std::{path::Path, sync::Arc};
 
 use anyhow::{Error, Result as AnyResult};
 use futures::{future::join_all, lock::Mutex};
@@ -17,6 +18,23 @@ use crate::utils::{
     os,
     output::{Message, MessageSender},
 };
+
+/// 保存下载进度到文件
+async fn save_progress(progress_path: &str, progress: Vec<(u64, u64)>) -> AnyResult<()> {
+    let json = serde_json::to_string(&progress)?;
+    fs::write(progress_path, json).await?;
+    Ok(())
+}
+
+/// 读取下载进度文件
+async fn load_progress(progress_path: &str) -> AnyResult<Vec<(u64, u64)>> {
+    if !check_file_exist(progress_path).await {
+        return Ok(vec![]);
+    }
+    let content = fs::read_to_string(progress_path).await?;
+    let progress: Vec<(u64, u64)> = serde_json::from_str(&content)?;
+    Ok(progress)
+}
 
 /// 检测文件是否支持断点续传，是否是重定向链接
 async fn check_request_info(
@@ -108,6 +126,127 @@ async fn check_file_exist<P: AsRef<Path>>(path: P) -> bool {
     fs::metadata(path).await.is_ok()
 }
 
+/// 检查文件是否被占用
+async fn is_file_locked<P: AsRef<Path>>(path: P) -> bool {
+    match File::open(path).await {
+        Ok(mut file) => {
+            // 尝试对文件进行读写操作以检测是否被占用
+            if let Err(e) = file.seek(SeekFrom::Start(0)).await {
+                return e.kind() == ErrorKind::PermissionDenied;
+            }
+            false
+        }
+        Err(_) => true, // 文件无法打开，可能被占用
+    }
+}
+
+/// 检查并处理 .tmp 文件和进度文件
+async fn handle_existing_files(
+    temp_path: &str,
+    progress_path: &str,
+    range: bool,
+    file_path: &str,
+    sender: &MessageSender,
+    event_name: &str,
+) -> AnyResult<()> {
+    if check_file_exist(temp_path).await {
+        if is_file_locked(temp_path).await {
+            // 如果文件被占用，跳过下载
+            sender.send(
+                event_name,
+                format!("文件正在下载中，跳过下载：{}", file_path),
+                true,
+            );
+            return Ok(());
+        } else {
+            // 如果文件未被占用，删除 .tmp 文件和进度文件
+            if let Err(e) = remove_file(temp_path).await {
+                sender.send(
+                    event_name,
+                    format!("删除临时文件失败：{}，错误：{}", temp_path, e),
+                    true,
+                );
+                return Err(Error::msg("删除临时文件失败"));
+            }
+            // 仅在支持断点续传时删除进度文件
+            if range && check_file_exist(progress_path).await {
+                if let Err(e) = remove_file(progress_path).await {
+                    sender.send(
+                        event_name,
+                        format!("删除进度文件失败：{}，错误：{}", progress_path, e),
+                        true,
+                    );
+                    return Err(Error::msg("删除进度文件失败"));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// 加载下载进度（仅在支持断点续传时）
+async fn load_download_progress(range: bool, progress_path: &str) -> AnyResult<Vec<(u64, u64)>> {
+    if range {
+        load_progress(progress_path).await
+    } else {
+        Ok(vec![])
+    }
+}
+
+/// 执行多线程下载任务
+async fn perform_multithreaded_download(
+    url: String,
+    length: u64,
+    concurrent: u64,
+    progress: &mut Vec<(u64, u64)>,
+    progress_path: &str,
+    file: Arc<Mutex<File>>,
+) -> AnyResult<bool> {
+    let mut handles = vec![];
+    let chunk_size = length / concurrent;
+
+    for i in 0..concurrent {
+        let start = chunk_size * i;
+        let end = if i == concurrent - 1 {
+            length - 1
+        } else {
+            chunk_size * (i + 1) - 1
+        };
+
+        // 检查是否已经下载过该切片
+        if progress.iter().any(|&(s, e)| s == start && e == end) {
+            continue;
+        }
+
+        let file = Arc::clone(&file);
+        handles.push(tokio::spawn(download(
+            url.clone(),
+            (start, end),
+            true,
+            file.clone(),
+        )));
+
+        // 更新进度记录
+        progress.push((start, end));
+        save_progress(progress_path, progress.clone()).await?;
+    }
+
+    let ret = join_all(handles).await;
+    drop(file);
+    let err = ret.into_iter().flatten().any(|n| n.is_err());
+    Ok(err)
+}
+
+/// 执行单线程下载任务
+async fn perform_singlethreaded_download(
+    url: String,
+    length: u64,
+    file: Arc<Mutex<File>>,
+) -> AnyResult<bool> {
+    let err = download(url, (0, length - 1), false, file).await.is_err();
+    Ok(err)
+}
+
 /// 开始下载任务
 async fn run(
     payload: DownloadPayload,
@@ -115,12 +254,25 @@ async fn run(
     sender: MessageSender,
     event_name: String,
 ) -> AnyResult<()> {
-    let mut handles = vec![];
     let (range, url, length) =
         check_request_info(&payload.url, sender.clone(), event_name.clone()).await?;
     let temp_path = path.to_string() + ".tmp";
+    let progress_path = path.to_string() + ".progress"; // 进度记录文件
     let file_path = path.to_string();
-    if check_file_exist(&temp_path).await || check_file_exist(&path).await {
+
+    // 检查并处理 .tmp 文件和进度文件
+    handle_existing_files(
+        &temp_path,
+        &progress_path,
+        range,
+        &file_path,
+        &sender,
+        &event_name,
+    )
+    .await?;
+
+    // 如果目标文件已存在，跳过下载
+    if check_file_exist(path).await {
         sender.send(
             &event_name,
             format!("文件已存在，跳过下载：{}", file_path),
@@ -128,42 +280,44 @@ async fn run(
         );
         return Ok(());
     }
+
+    // 加载下载进度
+    let mut progress = load_download_progress(range, &progress_path).await?;
     let file = Arc::new(Mutex::new(File::create(&temp_path).await?));
+
     let is_error = if range {
         sender.send(&event_name, format!("多线程下载中：{}", file_path), true);
-        let length = length / payload.concurrent;
-        for i in 0..payload.concurrent {
-            let file = Arc::clone(&file);
-            handles.push(tokio::spawn(download(
-                url.clone(),
-                (length * i, length * (i + 1) - 1),
-                true,
-                file,
-            )));
-        }
-        let ret = join_all(handles).await;
-        drop(file);
-        let err = ret.into_iter().flatten().any(|n| n.is_err());
-        rename_file(&temp_path, path).await?;
-        err
+        perform_multithreaded_download(
+            url.clone(),
+            length,
+            payload.concurrent,
+            &mut progress,
+            &progress_path,
+            file.clone(),
+        )
+        .await?
     } else {
         sender.send(
             &event_name,
             format!("该文件不支持多线程下载，单线程下载中：{}", file_path),
             true,
         );
-        let err = download(url.clone(), (0, length - 1), false, file)
-            .await
-            .is_err();
-        rename_file(&temp_path, path).await?;
-        err
+        perform_singlethreaded_download(url.clone(), length, file.clone()).await?
     };
-    if is_error {
-        remove_file(&path).await?;
-        Err(Error::msg("下载失败"))
-    } else {
+
+    // 下载完成后重命名文件
+    rename_file(&temp_path, path).await?;
+
+    // 下载完成后删除进度记录文件（仅在支持断点续传时）
+    if !is_error {
+        if range && check_file_exist(&progress_path).await {
+            remove_file(&progress_path).await?;
+        }
         sender.send(&event_name, format!("下载完成：{}", file_path), true);
         Ok(())
+    } else {
+        remove_file(path).await?;
+        Err(Error::msg("下载失败"))
     }
 }
 
