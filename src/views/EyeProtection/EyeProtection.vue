@@ -15,7 +15,6 @@ const closeEyesRef = useTemplateRef<CountdownInst>('closeEyes')
 const restRef = useTemplateRef<CountdownInst>('rest')
 const activeCountdown = ref(false)
 const isOpen = ref(false)
-const permissionGranted = ref<NotificationPermission>('default')
 
 const state = useLocalStorage('open-eye-protection', {
   closeEyesInterval: 120 as number | null,
@@ -88,13 +87,11 @@ function startTiming() {
 async function getNotifyPermission() {
   try {
     const isGranted = await isPermissionGranted()
-    if (isGranted) {
-      permissionGranted.value = 'granted'
-    } else {
-      permissionGranted.value = await requestPermission()
-      if (permissionGranted.value !== 'granted') {
-        throw new Error('无法获取通知权限')
-      }
+    if (isGranted) return
+
+    const grantedResult = await requestPermission()
+    if (grantedResult !== 'granted') {
+      throw new Error('无法获取通知权限')
     }
   } catch (error) {
     message.error(String(error))
