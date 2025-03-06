@@ -1,7 +1,7 @@
 import { platform } from '@tauri-apps/plugin-os'
 import { Command } from '@tauri-apps/plugin-shell'
 import { RemovableRef } from '@vueuse/core'
-import dayjs from 'dayjs'
+import { differenceInDays, addDays } from 'date-fns'
 
 const terminalScript = 'powershell'
 const scriptRunner = 'cscript //nologo C:/Windows/System32/slmgr.vbs'
@@ -14,7 +14,7 @@ export function useActivationInfo() {
   const activeState = useLocalStorage('windows-activation', 0)
 
   const textColor = computed(() => {
-    const diff = dayjs.unix(activeState.value).diff(dayjs(), 'days')
+    const diff = differenceInDays(activeState.value, new Date())
     // 剩余时间小于 60 天，则显示红色，小于 120 天，则显示黄色，否则显示绿色
     if (diff < 60) {
       return colors[0]
@@ -45,7 +45,7 @@ export function useCheckCurrentActivation(activeState: RemovableRef<number>) {
       const dateReg = /\d{4}\/\d{1,2}\/\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}/
       const expireDate = dateReg.exec(stdout)
       if (expireDate?.[0]) {
-        activeState.value = dayjs(expireDate[0]).unix()
+        activeState.value = new Date(expireDate[0]).getTime()
       } else {
         activeState.value = 1
       }
@@ -70,7 +70,7 @@ export function useActivateWindows(activeState: RemovableRef<number>) {
     const isSucceed = await handleActive()
     if (!isSucceed) return
 
-    activeState.value = dayjs().add(180, 'days').unix()
+    activeState.value = addDays(new Date(), 180).getTime()
   }
 
   async function handleActive() {

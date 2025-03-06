@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
+import { format } from 'date-fns'
 import {
   activationPrograms,
   useActivateWindows,
@@ -33,7 +33,7 @@ function gotoDownload(link: string) {
         <n-text>
           <span v-if="activeState > 1">
             <span :class="textColor">
-              {{ dayjs.unix(activeState).format('YYYY-MM-DD') }}
+              {{ format(activeState, 'yyyy-MM-dd') }}
             </span>
             到期
           </span>
