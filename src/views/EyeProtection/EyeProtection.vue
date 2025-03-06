@@ -41,12 +41,17 @@ function handleRestart() {
   startTiming()
 }
 
+let isAlertShowing = false
+
 function closeEyesOver() {
+  isAlertShowing = false
   activeCountdown.value = true
   closeEyesRef.value?.reset()
+  restOver()
 }
 
 async function closeEyesAlarm() {
+  isAlertShowing = true
   activeCountdown.value = false
   await handleShowMainWindow()
   sendNotification({ title: '提醒', body: '请闭目休息眼睛' })
@@ -60,6 +65,8 @@ async function closeEyesAlarm() {
 }
 
 async function restAlarm() {
+  if (isAlertShowing) return
+
   activeCountdown.value = false
   await handleShowMainWindow()
   sendNotification({ title: '提醒', body: '请远眺一下' })
