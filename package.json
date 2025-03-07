@@ -39,6 +39,7 @@
     "@types/big.js": "^6.2.2",
     "@types/node": "^22.10.1",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vitejs/plugin-vue-jsx": "^4.1.1",
     "sass": "^1.82.0",
     "terser": "^5.37.0",
     "typescript": "^5.7.2",

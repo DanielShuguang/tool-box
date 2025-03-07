@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { zhCN, darkTheme } from 'naive-ui'
 import { useEmitter } from './utils/event'
+import { isDevelopment } from './utils/development'
 
 const isDark = ref(false)
 
@@ -9,11 +10,13 @@ useEmitter('theme-change', val => {
 })
 
 // 禁用 F5 和 Ctrl + R
-document.addEventListener('keydown', event => {
-  if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
-    event.preventDefault()
-  }
-})
+if (!isDevelopment) {
+  document.addEventListener('keydown', event => {
+    if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
+      event.preventDefault()
+    }
+  })
+}
 </script>
 
 <template>

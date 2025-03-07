@@ -7,12 +7,14 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import UnoCSS from 'unocss/vite'
 import legacy from 'vite-plugin-legacy-swc'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
   return {
     plugins: [
       vue(),
+      vueJsx(),
       AutoImport({
         dts: './src/types/auto-imports.d.ts',
         imports: [
