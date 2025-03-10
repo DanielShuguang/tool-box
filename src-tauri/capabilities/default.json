@@ -52,6 +52,7 @@
     "notification:allow-register-action-types",
     "notification:allow-request-permission",
     "notification:allow-notify",
-    "core:app:allow-default-window-icon"
+    "core:app:allow-default-window-icon",
+    "autostart:default"
   ]
 }

@@ -148,7 +148,7 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
       />
     </transition>
     <router-view
-      v-if="!openSettings"
+      v-show="!openSettings"
       class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] overflow-auto"
       v-slot="{ Component }"
     >
