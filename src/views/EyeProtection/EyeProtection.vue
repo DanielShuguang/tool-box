@@ -59,9 +59,9 @@ async function closeEyesAlarm() {
   activeCountdown.value = false
   await handleShowMainWindow()
   sendNotification({ title: '提醒', body: '请闭目休息眼睛' })
-  dialog.info({
+  dialog.warning({
     title: '提醒',
-    content: '请闭目休息眼睛',
+    content: '请闭目休息',
     positiveText: '确定',
     onAfterLeave: closeEyesOver
   })
