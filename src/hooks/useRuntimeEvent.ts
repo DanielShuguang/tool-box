@@ -1,7 +1,8 @@
+import { Nullable } from '@/types/common'
 import { Event, listen, UnlistenFn } from '@tauri-apps/api/event'
 
 export function useRuntimeEvent<T>(eventName: string, handler: (event: Event<T>) => void) {
-  let unlisten: UnlistenFn | null = null
+  let unlisten: Nullable<UnlistenFn> = null
 
   function stop() {
     unlisten?.()

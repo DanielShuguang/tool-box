@@ -8,6 +8,7 @@ import { writeTextFile } from '@tauri-apps/plugin-fs'
 import { open } from '@tauri-apps/plugin-dialog'
 import mammoth from 'mammoth'
 import XLSX from 'xlsx'
+import { Nullable } from '@/types/common'
 
 const pluginName = 'ReadFile'
 
@@ -26,7 +27,7 @@ export function useUpdateSavingDir() {
 
 export function useManageRegexSelect() {
   const regText = ref('')
-  const selectedReg = ref<string | null>(null)
+  const selectedReg = ref<Nullable<string>>(null)
 
   const regList: SelectMixedOption[] = [
     { label: '图片', value: '(https|http)://.*\\.(jpg|png|jpeg|gif)' },

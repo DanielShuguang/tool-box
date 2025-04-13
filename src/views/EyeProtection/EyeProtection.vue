@@ -7,6 +7,7 @@ import {
 import { handleShowMainWindow } from '@/components/AppSettings/logic'
 import { TimeUnits } from '@/utils/time'
 import { CountdownInst } from 'naive-ui'
+import { Nullable } from '@/types/common'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -17,8 +18,8 @@ const activeCountdown = ref(false)
 const isOpen = ref(false)
 
 const state = useLocalStorage('open-eye-protection', {
-  closeEyesInterval: 120 as number | null,
-  restInterval: 20 as number | null
+  closeEyesInterval: 120 as Nullable<number>,
+  restInterval: 20 as Nullable<number>
 })
 
 watch(isOpen, val => {

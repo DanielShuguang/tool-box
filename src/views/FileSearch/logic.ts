@@ -6,6 +6,7 @@ import { useDownloadConcurrent } from '../ReadFile/logic'
 import Big from 'big.js'
 import { platform } from '@tauri-apps/plugin-os'
 import { Command } from '@tauri-apps/plugin-shell'
+import { Nullable } from '@/types/common'
 
 export function useInitDisk() {
   const selectedPoint = ref<string[]>([])
@@ -76,7 +77,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
     })
   }
 
-  useRuntimeEvent<ResultFileModel[] | null>('search-disk-file-output', async ({ payload }) => {
+  useRuntimeEvent<Nullable<ResultFileModel[]>>('search-disk-file-output', async ({ payload }) => {
     if (!payload) {
       taskStatus.value = SearchStatus.Shutdown
       setTimeout(() => {

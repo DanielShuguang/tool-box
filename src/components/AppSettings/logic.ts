@@ -5,6 +5,7 @@ import { getAllWindows, getCurrentWindow } from '@tauri-apps/api/window'
 import { useEmitter } from '@/utils/event'
 import { isDevelopment } from '@/utils/development'
 import { defaultWindowIcon } from '@tauri-apps/api/app'
+import { Nullable } from '@/types/common'
 
 export async function handleShowMainWindow() {
   const main = getCurrentWindow()
@@ -17,7 +18,7 @@ export async function handleShowMainWindow() {
 
 export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
   const message = useMessage()
-  const systemTray = shallowRef<TrayIcon | null>(null)
+  const systemTray = shallowRef<Nullable<TrayIcon>>(null)
 
   async function handleExitApp() {
     if (systemTray.value) {
