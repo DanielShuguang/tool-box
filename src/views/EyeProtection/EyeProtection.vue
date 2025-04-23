@@ -136,7 +136,7 @@ onMounted(() => {
               <span>分钟</span>
             </template>
           </n-input-number>
-          <span class="ml-[15px]">每个一小段时间远眺一会儿有助眼睛的健康</span>
+          <span class="ml-[15px]">每隔一小段时间远眺一会儿有助眼睛的健康</span>
         </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleRestart">重新开始</n-button>
