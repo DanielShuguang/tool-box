@@ -64,6 +64,7 @@ async function closeEyesAlarm() {
     title: '提醒',
     content: '请闭目休息',
     positiveText: '确定',
+    maskClosable: false,
     onAfterLeave: closeEyesOver
   })
 }
