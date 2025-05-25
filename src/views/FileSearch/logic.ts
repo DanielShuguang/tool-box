@@ -135,9 +135,9 @@ function removeTrailingZero(numStr: string): string {
  * @param size 字节大小
  */
 export function getCorrectSize(size: string) {
-  const sizeObj = new Big(size)
-  const gbOffset = new Big(1024).pow(3)
-  const mbOffset = new Big(1024).pow(2)
+  const sizeObj = Big(size)
+  const gbOffset = Big(1024).pow(3)
+  const mbOffset = Big(1024).pow(2)
   const kbOffset = 1024
 
   if (sizeObj.gt(gbOffset)) {
