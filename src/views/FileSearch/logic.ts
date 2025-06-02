@@ -93,7 +93,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
     // 兼容 windows 路径中盘符的双斜杠
     const formatData = list.map(el => ({ ...el, path: el.path.replaceAll('\\\\', '\\') }))
     searchResult.value.push(...formatData)
-    searchResult.value = uniqBy(el => el.path, searchResult.value)
+    searchResult.value = uniqBy<ResultFileModel, string>(el => el.path)(searchResult.value)
   })
 
   const renderItems = useThrottle(searchResult, 500, true)

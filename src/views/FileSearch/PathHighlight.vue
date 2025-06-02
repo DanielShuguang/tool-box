@@ -30,7 +30,7 @@ const lastLetter = computed(() => {
   <component :is="componentType">
     <span v-if="lastLetter">{{ `${startLetter}${sep}` }}</span>
     <n-highlight
-      :="omit(['data', 'search'], $props)"
+      :="omit(['data', 'search'])($props)"
       :text="lastLetter || data"
       :patterns="[search]"
     />
