@@ -13,7 +13,8 @@ export async function handleShowMainWindow() {
   if (!isVisible) {
     await main.show() // 显示窗口
   }
-  await main.setFocus() // 聚焦窗口
+  main.center() // 居中
+  main.setFocus() // 聚焦窗口
 }
 
 export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
