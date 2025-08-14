@@ -120,7 +120,6 @@ export function useAppAutostart(autostart: Ref<boolean>) {
 
   async function checkAndUpdateAutostartStatus() {
     const status = await isAutoStartEnabled()
-    console.log(status)
     if (status.code === BackendRespCode.SUCCESS) {
       autostart.value = status.data?.enabled ?? false
     } else {
@@ -130,7 +129,6 @@ export function useAppAutostart(autostart: Ref<boolean>) {
 
   async function toggleAutostart() {
     const result = await setAutoStart(!autostart.value)
-    console.log(result)
     if (result.code === BackendRespCode.SUCCESS) {
       await checkAndUpdateAutostartStatus()
     } else {
