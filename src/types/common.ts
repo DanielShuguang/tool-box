@@ -1,5 +1,10 @@
-interface BackendResp<T> {
-  code: number
+export enum BackendRespCode {
+  SUCCESS = 200,
+  FAILURE = 500
+}
+
+export interface BackendResp<T> {
+  code: BackendRespCode
   data: T | null
   message: string
 }

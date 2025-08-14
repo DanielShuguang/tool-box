@@ -11,7 +11,7 @@ useEmitter('theme-change', val => {
 
 // 禁用 F5 和 Ctrl + R
 if (!isDevelopment) {
-  document.addEventListener('keydown', event => {
+  useEventListener('keydown', event => {
     if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
       event.preventDefault()
     }

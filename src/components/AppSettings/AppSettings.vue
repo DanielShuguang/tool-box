@@ -31,6 +31,7 @@ const { toggleAutostart } = useAppAutostart(autostart)
     <n-form label-placement="left">
       <n-form-item label="开机启动">
         <n-switch :value="autostart" @update:value="toggleAutostart" />
+        <span class="ml-[15px]">该功能暂时仅支持 Windows 系统</span>
       </n-form-item>
       <n-form-item label="托盘图标">
         <n-switch :value="enableTrayIcon" @update:value="toggleTrayIcon" />

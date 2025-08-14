@@ -1,11 +1,11 @@
 import { TrayIcon } from '@tauri-apps/api/tray'
 import { Menu, MenuItem, MenuItemOptions } from '@tauri-apps/api/menu'
-import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import { getAllWindows, getCurrentWindow } from '@tauri-apps/api/window'
 import { useEmitter } from '@/utils/event'
 import { isDevelopment } from '@/utils/development'
 import { defaultWindowIcon } from '@tauri-apps/api/app'
-import { Nullable } from '@/types/common'
+import { BackendRespCode, Nullable } from '@/types/common'
+import { isAutoStartEnabled, setAutoStart } from '@/backend-channel/autostart'
 
 export async function handleShowMainWindow() {
   const main = getCurrentWindow()
@@ -118,17 +118,28 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
 export function useAppAutostart(autostart: Ref<boolean>) {
   const message = useMessage()
 
-  async function toggleAutostart() {
-    try {
-      autostart.value ? await enable() : await disable()
-      autostart.value = await isEnabled()
-    } catch (error) {
-      message.error(error as any)
+  async function checkAndUpdateAutostartStatus() {
+    const status = await isAutoStartEnabled()
+    console.log(status)
+    if (status.code === BackendRespCode.SUCCESS) {
+      autostart.value = status.data?.enabled ?? false
+    } else {
+      message.error(status.message)
     }
   }
 
-  onMounted(async () => {
-    autostart.value = await isEnabled()
+  async function toggleAutostart() {
+    const result = await setAutoStart(!autostart.value)
+    console.log(result)
+    if (result.code === BackendRespCode.SUCCESS) {
+      await checkAndUpdateAutostartStatus()
+    } else {
+      message.error(result.message)
+    }
+  }
+
+  onMounted(() => {
+    checkAndUpdateAutostartStatus()
   })
 
   return { toggleAutostart }
