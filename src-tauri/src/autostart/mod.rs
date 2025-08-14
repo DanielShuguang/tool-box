@@ -17,7 +17,6 @@ const APP_NAME: &str = "ToolBox";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AutostartPayload {
     pub enable: bool,
-    pub plugin_name: String,
 }
 
 #[derive(Debug, Serialize)]

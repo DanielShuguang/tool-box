@@ -7,6 +7,6 @@ export function isAutoStartEnabled() {
 
 export function setAutoStart(enable: boolean) {
   return invoke<BackendResp<string>>('set_auto_start', {
-    payload: { enable, plugin_name: 'autostart' }
+    payload: { enable }
   })
 }
