@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { isDevelopment } from '@/utils/development'
 import { useAppAutostart, useGenerateTrayIcon } from './logic'
+import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 
 defineProps<{ open: boolean }>()
 
-const state = useLocalStorage('app-settings', {
+const state = usePersistentStorage('app-settings', {
   autostart: false,
   enableTrayIcon: false
 })

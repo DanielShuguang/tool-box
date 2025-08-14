@@ -17,6 +17,7 @@
     "@tauri-apps/plugin-notification": "~2.3.0",
     "@tauri-apps/plugin-os": "~2.3.0",
     "@tauri-apps/plugin-shell": "^2.3.0",
+    "@tauri-apps/plugin-store": "^2.3.0",
     "@vicons/fluent": "^0.13.0",
     "@vicons/ionicons5": "^0.13.0",
     "@vicons/material": "^0.13.0",
