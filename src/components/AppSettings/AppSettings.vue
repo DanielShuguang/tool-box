@@ -23,7 +23,9 @@ const { autostart, enableTrayIcon } = toRefs(state.value)
 
 const { toggleTrayIcon } = useGenerateTrayIcon(enableTrayIcon)
 
-const { toggleAutostart } = useAppAutostart(autostart)
+const { toggleAutostart } = useAppAutostart(autostart, () => {
+  enableTrayIcon.value = true
+})
 </script>
 <template>
   <div v-if="open">
@@ -35,7 +37,7 @@ const { toggleAutostart } = useAppAutostart(autostart)
         <span class="ml-[15px]">该功能暂时仅支持 Windows 系统</span>
       </n-form-item>
       <n-form-item label="托盘图标">
-        <n-switch :value="enableTrayIcon" @update:value="toggleTrayIcon" />
+        <n-switch :disabled="autostart" :value="enableTrayIcon" @update:value="toggleTrayIcon" />
         <span class="ml-[15px]">开启后点击关闭不会彻底退出应用</span>
       </n-form-item>
     </n-form>

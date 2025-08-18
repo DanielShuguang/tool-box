@@ -6,6 +6,7 @@ import { isDevelopment } from '@/utils/development'
 import { defaultWindowIcon } from '@tauri-apps/api/app'
 import { BackendRespCode, Nullable } from '@/types/common'
 import { isAutoStartEnabled, setAutoStart } from '@/backend-channel/autostart'
+import { getMatches } from '@tauri-apps/plugin-cli'
 
 export async function handleShowMainWindow() {
   const main = getCurrentWindow()
@@ -15,6 +16,13 @@ export async function handleShowMainWindow() {
   }
   main.center() // 居中
   main.setFocus() // 聚焦窗口
+}
+
+// 检查是否带有 --hidden 参数启动
+async function checkHiddenFlag() {
+  const matches = await getMatches()
+  const args = matches.args
+  return args?.hidden.value === true
 }
 
 export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
@@ -100,11 +108,19 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
     }
   })
 
-  onMounted(() => {
+  onMounted(async () => {
     if (isDevelopment) return
 
-    if (enableTrayIcon.value) {
-      init()
+    // 如果是通过开机自启动（带 --hidden 参数）启动，自动启用托盘图标
+    const isHidden = await checkHiddenFlag()
+    if (isHidden) {
+      enableTrayIcon.value = true
+      await init()
+      // 隐藏主窗口
+      const win = getCurrentWindow()
+      await win.hide()
+    } else if (enableTrayIcon.value) {
+      await init()
     }
   })
 
@@ -115,7 +131,7 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
   return { toggleTrayIcon }
 }
 
-export function useAppAutostart(autostart: Ref<boolean>) {
+export function useAppAutostart(autostart: Ref<boolean>, onEnable: () => void) {
   const message = useMessage()
 
   async function checkAndUpdateAutostartStatus() {
@@ -135,6 +151,12 @@ export function useAppAutostart(autostart: Ref<boolean>) {
       message.error(result.message)
     }
   }
+
+  watch(autostart, () => {
+    if (autostart.value) {
+      onEnable()
+    }
+  })
 
   onMounted(() => {
     checkAndUpdateAutostartStatus()

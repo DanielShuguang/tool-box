@@ -37,7 +37,8 @@ async fn run(payload: AutostartPayload) -> anyhow::Result<()> {
 
         if payload.enable {
             let exe_path = std::env::current_exe()?;
-            let exe_path = exe_path.to_string_lossy().to_string();
+            // 添加 --hidden 参数，使应用启动时不显示窗口
+            let exe_path = format!("\"{}\" --hidden", exe_path.to_string_lossy());
             let key_name = generate_app_key(APP_NAME);
             key.set_value(&key_name, &exe_path)?;
         } else {

@@ -8,6 +8,8 @@ import { handleShowMainWindow } from '@/components/AppSettings/logic'
 import { TimeUnits } from '@/utils/time'
 import { CountdownInst } from 'naive-ui'
 import { Nullable } from '@/types/common'
+import { usePersistentStorage } from '@/hooks/usePersistentStorage'
+import { ConfigFile } from '@/utils/storage'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -15,20 +17,28 @@ const dialog = useDialog()
 const closeEyesRef = useTemplateRef<CountdownInst>('closeEyes')
 const restRef = useTemplateRef<CountdownInst>('rest')
 const activeCountdown = ref(false)
-const isOpen = ref(false)
 
-const state = useLocalStorage('open-eye-protection', {
-  closeEyesInterval: 120 as Nullable<number>,
-  restInterval: 20 as Nullable<number>
-})
+const state = usePersistentStorage(
+  'open-eye-protection',
+  {
+    isOpen: false,
+    closeEyesInterval: 120 as Nullable<number>,
+    restInterval: 20 as Nullable<number>
+  },
+  ConfigFile.EyeProtection
+)
 
-watch(isOpen, val => {
-  if (val) {
-    startTiming()
-  } else {
-    shutdownTiming()
-  }
-})
+watch(
+  () => state.value.isOpen,
+  val => {
+    if (val) {
+      startTiming()
+    } else {
+      shutdownTiming()
+    }
+  },
+  { immediate: true }
+)
 
 function shutdownTiming() {
   closeEyesRef.value?.reset()
@@ -116,9 +126,9 @@ onMounted(() => {
 
     <n-form label-placement="left">
       <n-form-item label="开启">
-        <n-switch v-model:value="isOpen" />
+        <n-switch v-model:value="state.isOpen" />
       </n-form-item>
-      <template v-if="isOpen">
+      <template v-if="state.isOpen">
         <n-form-item label="闭眼休息间隔">
           <n-input-number
             class="w-[300px]"

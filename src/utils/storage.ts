@@ -6,7 +6,8 @@ import { Store } from '@tauri-apps/plugin-store'
  * 定义应用程序使用的配置文件名称
  */
 export enum ConfigFile {
-  Settings = '.settings.dat'
+  Settings = '.settings.dat',
+  EyeProtection = '.eye-protection.dat'
 }
 
 // 存储Store实例的Map，用于缓存已加载的Store对象
