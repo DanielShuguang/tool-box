@@ -1,5 +1,5 @@
 import { load, save, ConfigFile } from '@/utils/storage'
-import { onMounted, ref, watch } from 'vue'
+import { TimeUnits } from '@/utils/time'
 
 /**
  * 持久化存储组合式函数
@@ -27,7 +27,7 @@ export function usePersistentStorage<T>(key: string, defaultValue: T, configFile
   })
 
   // 监听数据变化，当数据变化时自动保存到持久化存储
-  watch(
+  watchDebounced(
     data,
     async newValue => {
       // 避免初始化时触发保存
@@ -39,7 +39,7 @@ export function usePersistentStorage<T>(key: string, defaultValue: T, configFile
         console.error('Failed to save settings:', error)
       }
     },
-    { flush: 'post' }
+    { flush: 'post', debounce: TimeUnits.Second }
   )
 
   return data
