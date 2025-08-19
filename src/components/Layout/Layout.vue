@@ -12,10 +12,12 @@ import { Maximize20Regular } from '@vicons/fluent'
 import { getName } from '@tauri-apps/api/app'
 import { Motion, AnimatePresence } from 'motion-v'
 import { isDevelopment } from '@/utils/development'
+import { usePersistentStorage } from '@/hooks/usePersistentStorage'
+import { ConfigFile } from '@/utils/storage'
 
 const router = useRouter()
 const appName = ref('')
-const activePath = useLocalStorage('current-route-path', '/')
+const activePath = usePersistentStorage('current-route-path', '/', ConfigFile.Router)
 
 onMounted(async () => {
   router.push(activePath.value)
