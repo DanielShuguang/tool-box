@@ -21,9 +21,14 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Windows激活' }
   },
   {
-    path: '/EyeProtection',
+    path: '/eyeProtection',
     component: () => import('@/views/EyeProtection/EyeProtection.vue'),
     meta: { title: '护眼工具' }
+  },
+  {
+    path: '/translator',
+    component: () => import('@/views/Translator/Translator.vue'),
+    meta: { title: '翻译工具' }
   }
 ]
 

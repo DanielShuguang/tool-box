@@ -54,6 +54,19 @@
     "notification:allow-request-permission",
     "notification:allow-notify",
     "core:app:allow-default-window-icon",
-    "store:default"
+    "store:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://translate.googleapis.com/translate_a/single",
+          "headers": true
+        },
+        {
+          "url": "https://dplx.xi-xu.me/deepl",
+          "headers": true
+        }
+      ]
+    }
   ]
 }

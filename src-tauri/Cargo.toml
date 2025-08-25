@@ -36,6 +36,7 @@ tauri-plugin-os = "2.3.0"
 tauri-plugin-store = "2.3.0"
 winreg = "0.50"
 md5 = "0.7.0"
+tauri-plugin-http = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-cli = "2"
