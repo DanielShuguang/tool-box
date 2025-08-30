@@ -51,7 +51,7 @@ function delay(ms: number): Promise<void> {
 /**
  * 超时控制
  */
-function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
+function timeoutPromise<T = any>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) => {
