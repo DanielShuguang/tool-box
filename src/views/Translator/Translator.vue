@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { TranslationFactory } from './logic'
 import { SwapHorizOutlined } from '@vicons/material'
+import { useMessage } from 'naive-ui'
 
 // 翻译服务类型
 const translationService = ref<'google' | 'deepl'>('google')
+
+const message = useMessage()
 
 // 源语言和目标语言
 const sourceLanguage = ref('auto')
@@ -68,7 +71,7 @@ const translate = async () => {
 
   errorMessage.value = ''
   try {
-    const service = TranslationFactory.getService(translationService.value)
+    const service = TranslationFactory.getService(translationService.value, message)
     outputText.value = await service.translate(
       inputText.value,
       sourceLanguage.value,

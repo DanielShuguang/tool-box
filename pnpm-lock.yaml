@@ -56,6 +56,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
       mammoth:
         specifier: ^1.10.0
         version: 1.10.0
@@ -71,9 +74,6 @@ importers:
       normalize.css:
         specifier: ^8.0.1
         version: 8.0.1
-      rambda:
-        specifier: ^10.3.2
-        version: 10.3.2
       ts-pattern:
         specifier: ^5.8.0
         version: 5.8.0
@@ -93,6 +93,9 @@ importers:
       '@types/big.js':
         specifier: ^6.2.2
         version: 6.2.2
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
       '@types/node':
         specifier: ^22.17.1
         version: 22.17.1
@@ -1674,9 +1677,6 @@ packages:
 
   quansync@0.2.10:
     resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
-
-  rambda@10.3.2:
-    resolution: {integrity: sha512-GCM14DK1CG9Fw3YRRoCUc111RA/SZQAGyvrBrdMCBUXIRQ2AVPb1mysON1gOpItuVJ0WQpEb/Eq5FRxU8OxNbg==}
 
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
@@ -3506,8 +3506,6 @@ snapshots:
   process-nextick-args@2.0.1: {}
 
   quansync@0.2.10: {}
-
-  rambda@10.3.2: {}
 
   readable-stream@2.3.8:
     dependencies:

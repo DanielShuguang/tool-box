@@ -1,7 +1,7 @@
 import { cancelSearchTask, searchHarddiskFile } from '@/backend-channel/file-search'
 import { getHarddiskInfo } from '@/backend-channel/utils'
 import { useRuntimeEvent } from '@/hooks/useRuntimeEvent'
-import { uniqBy } from 'rambda'
+import { uniqBy } from 'lodash-es'
 import { useDownloadConcurrent } from '../ReadFile/logic'
 import Big from 'big.js'
 import { platform } from '@tauri-apps/plugin-os'
@@ -93,7 +93,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
     // 兼容 windows 路径中盘符的双斜杠
     const formatData = list.map(el => ({ ...el, path: el.path.replaceAll('\\\\', '\\') }))
     searchResult.value.push(...formatData)
-    searchResult.value = uniqBy<ResultFileModel, string>(el => el.path)(searchResult.value)
+    searchResult.value = uniqBy(searchResult.value, el => el.path)
   })
 
   const renderItems = useThrottle(searchResult, 500, true)

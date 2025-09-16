@@ -71,7 +71,7 @@ export async function request<T = any>(
 ): Promise<T> {
   const {
     timeout = 10000,
-    retries = 3,
+    retries = 0,
     retryDelay = 1000,
     onError,
     headers = {},
@@ -108,9 +108,7 @@ export async function request<T = any>(
       lastError = error as Error
 
       // 自定义错误处理
-      if (onError) {
-        onError(lastError)
-      }
+      onError?.(lastError)
 
       // 是否还有重试机会
       if (i < retries) {

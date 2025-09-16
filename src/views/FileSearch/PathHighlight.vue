@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { getSep } from '@/utils/system'
-import { omit } from 'rambda'
+import { omit } from 'lodash-es'
 import { highlightProps } from 'naive-ui'
 import { PropType } from 'vue'
 
@@ -30,7 +30,7 @@ const lastLetter = computed(() => {
   <component :is="componentType">
     <span v-if="lastLetter">{{ `${startLetter}${sep}` }}</span>
     <n-highlight
-      :="omit(['data', 'search'])($props)"
+      :="omit($props, ['data', 'search'])"
       :text="lastLetter || data"
       :patterns="[search]"
     />

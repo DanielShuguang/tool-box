@@ -1,5 +1,5 @@
 import { get, post } from '@/utils/request'
-import { useMessage } from 'naive-ui'
+import { MessageApiInjection } from 'naive-ui/es/message/src/MessageProvider'
 
 // 翻译服务接口
 interface TranslationService {
@@ -9,7 +9,8 @@ interface TranslationService {
 // Google翻译服务
 class GoogleTranslation implements TranslationService {
   private readonly baseUrl = 'https://translate.googleapis.com/translate_a/single'
-  private message = useMessage()
+
+  constructor(private message: MessageApiInjection) {}
 
   async translate(text: string, from: string, to: string): Promise<string> {
     try {
@@ -22,9 +23,10 @@ class GoogleTranslation implements TranslationService {
 
       const result = await get(url, {
         timeout: 15000,
-        retries: 2,
         onError: error => {
-          this.message.error(error.message)
+          const msg = error.message || error.toString()
+          this.message.error(msg)
+          throw new Error(msg)
         }
       })
 
@@ -44,7 +46,8 @@ class GoogleTranslation implements TranslationService {
 // DeepL翻译服务
 class DeepLTranslation implements TranslationService {
   private readonly baseUrl = 'https://dplx.xi-xu.me/deepl'
-  private message = useMessage()
+
+  constructor(private message: MessageApiInjection) {}
 
   async translate(text: string, from: string, to: string): Promise<string> {
     try {
@@ -57,9 +60,10 @@ class DeepLTranslation implements TranslationService {
         },
         {
           timeout: 15000,
-          retries: 2,
           onError: error => {
-            this.message.error(error.message)
+            const msg = error.message || error.toString()
+            this.message.error(msg)
+            throw new Error(msg)
           }
         }
       )
@@ -77,12 +81,12 @@ class DeepLTranslation implements TranslationService {
 
 // 翻译服务工厂
 export class TranslationFactory {
-  static getService(type: 'google' | 'deepl'): TranslationService {
+  static getService(type: 'google' | 'deepl', message: MessageApiInjection): TranslationService {
     switch (type) {
       case 'google':
-        return new GoogleTranslation()
+        return new GoogleTranslation(message)
       case 'deepl':
-        return new DeepLTranslation()
+        return new DeepLTranslation(message)
       default:
         throw new Error('不支持的翻译服务')
     }
