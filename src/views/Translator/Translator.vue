@@ -65,12 +65,15 @@ const exchangeLanguages = () => {
   ;[sourceLanguage.value, targetLanguage.value] = [targetLanguage.value, sourceLanguage.value]
 }
 
+const loading = ref(false)
+
 // 翻译函数
 const translate = async () => {
   if (!inputText.value.trim()) return
 
   errorMessage.value = ''
   try {
+    loading.value = true
     const service = TranslationFactory.getService(translationService.value, message)
     outputText.value = await service.translate(
       inputText.value,
@@ -80,6 +83,8 @@ const translate = async () => {
   } catch (error) {
     console.error('翻译出错:', error)
     errorMessage.value = error instanceof Error ? error.message : '翻译服务异常，请稍后重试'
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -148,7 +153,9 @@ const translate = async () => {
 
     <div class="mt-4 flex items-center justify-between">
       <div class="text-red-500">{{ errorMessage }}</div>
-      <n-button type="primary" @click="translate" :disabled="!inputText.trim()">翻译</n-button>
+      <n-button type="primary" @click="translate" :disabled="!inputText.trim()" :loading="loading">
+        翻译
+      </n-button>
     </div>
   </div>
 </template>
