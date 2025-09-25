@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "lint": "oxlint --fix"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.7.0",
@@ -44,6 +45,8 @@
     "@types/node": "^22.17.1",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vitejs/plugin-vue-jsx": "^4.0.1",
+    "oxlint": "^1.18.0",
+    "oxlint-tsgolint": "^0.2.0",
     "sass": "^1.90.0",
     "terser": "^5.43.1",
     "typescript": "^5.9.2",
