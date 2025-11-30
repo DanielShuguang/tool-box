@@ -53,6 +53,20 @@ function handleRestart() {
 
 let isAlertShowing = false
 
+const currentRoute = useRoute()
+
+/**
+ * 确保当前在 eyeProtection 页面
+ */
+async function ensureOnEyeProtectionPage() {
+  if (currentRoute.path !== '/eyeProtection') {
+    const router = useRouter()
+    await router.push('/eyeProtection')
+    // 等待路由切换完成再继续
+    await nextTick()
+  }
+}
+
 function restOver() {
   activeCountdown.value = true
   restRef.value?.reset()
@@ -69,6 +83,9 @@ async function closeEyesAlarm() {
   isAlertShowing = true
   activeCountdown.value = false
   await handleShowMainWindow()
+  // 确保在 eyeProtection 页面
+  await ensureOnEyeProtectionPage()
+
   sendNotification({ title: '提醒', body: '请闭目休息眼睛' })
   dialog.warning({
     title: '提醒',
@@ -84,6 +101,9 @@ async function restAlarm() {
 
   activeCountdown.value = false
   await handleShowMainWindow()
+  // 确保在 eyeProtection 页面
+  await ensureOnEyeProtectionPage()
+
   sendNotification({ title: '提醒', body: '请远眺一下' })
   dialog.info({
     title: '提醒',
