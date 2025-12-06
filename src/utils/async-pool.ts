@@ -1,12 +1,15 @@
-export interface TotalPool<Resp> {
+interface BaseOptions {
+  max?: number
+  mode: 'race' | 'all'
+}
+
+export interface TotalPool<Resp> extends BaseOptions {
   total: number
   asyncFn: (index: number) => Promise<Resp>
-  max?: number
 }
-export interface ListPool<Resp, Item> {
+export interface ListPool<Resp, Item> extends BaseOptions {
   list: Item[]
   asyncFn: (el: Item, index: number) => Promise<Resp>
-  max?: number
 }
 
 function isTotalPoolOption<R>(arg: any): arg is TotalPool<R> {
@@ -22,8 +25,9 @@ export async function asyncPool<Resp>(opts: TotalPool<Resp>): Promise<Resp[]>
 export async function asyncPool<Resp, Item>(
   opts: TotalPool<Resp> | ListPool<Resp, Item>
 ): Promise<Resp[]> {
-  const { max: rawMax = 5 } = opts
-  const max = rawMax > 0 ? rawMax : 5
+  const { max: rawMax = 5, mode = 'race' } = opts
+  // 修复：当max小于等于0时应该使用默认值5
+  const max = rawMax <= 0 ? 5 : rawMax
   let length = 0
   const isTotalOpt = isTotalPoolOption(opts)
   if (isTotalOpt) {
@@ -33,25 +37,36 @@ export async function asyncPool<Resp, Item>(
     length = opts.list.length
   }
 
+  // 处理边界情况：如果length为0，则直接返回空数组
+  if (length === 0) {
+    return []
+  }
+
   const resps: Resp[] = []
-  const runningTasks: Promise<void>[] = []
+  const runningTasks = new Map<number, Promise<void>>()
 
   for (let i = 0; i < length; i += 1) {
-    if (runningTasks.length >= max) {
-      // 等待一个任务完成
-      await Promise.race(runningTasks)
+    if (runningTasks.size >= max) {
+      if (mode === 'all') {
+        // 等待所有任务完成
+        await Promise.allSettled(runningTasks.values())
+      } else {
+        // 等待一个任务完成
+        await Promise.race(runningTasks.values())
+      }
     }
 
-    const task = (async () => {
-      const res = await (isTotalOpt ? opts.asyncFn(i) : opts.asyncFn(opts.list[i], i))
-      resps.push(res)
-    })()
+    const task = (async index => {
+      const res = await (isTotalOpt ? opts.asyncFn(index) : opts.asyncFn(opts.list[index], index))
+      resps[index] = res
+      runningTasks.delete(index)
+    })(i)
 
-    runningTasks.push(task)
+    runningTasks.set(i, task)
   }
 
   // 等待所有剩余任务完成
-  await Promise.all(runningTasks)
+  await Promise.all(runningTasks.values())
 
   return resps
 }
