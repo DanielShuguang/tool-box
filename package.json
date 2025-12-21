@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "oxlint --fix src",
-    "fmt": "oxfmt src"
+    "fmt": "oxfmt src",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",
