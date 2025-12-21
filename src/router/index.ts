@@ -29,6 +29,12 @@ const routes: RouteRecordRaw[] = [
     path: '/translator',
     component: () => import('@/views/Translator/Translator.vue'),
     meta: { title: '翻译工具' }
+  },
+  {
+    path: '/todo',
+    name: 'Todo',
+    component: () => import('@/views/Todo/Todo.vue'),
+    meta: { title: '待办事项' }
   }
 ]
 

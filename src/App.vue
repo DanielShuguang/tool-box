@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { zhCN, darkTheme } from 'naive-ui'
+import { zhCN, darkTheme, dateZhCN } from 'naive-ui'
 import { useEmitter } from './utils/event'
 import { isDevelopment } from './utils/development'
 
@@ -24,6 +24,7 @@ if (!isDevelopment) {
     class="w-full h-full m-0 p-0"
     :locale="zhCN"
     :theme="isDark ? darkTheme : null"
+    :date-locale="dateZhCN"
   >
     <n-global-style />
     <n-message-provider>

@@ -4,5 +4,8 @@
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "[typescript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
   }
 }
