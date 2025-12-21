@@ -92,7 +92,9 @@ export function useAnalysisFileContent(regText: Ref<string>, dirPath: Ref<string
     const isBinary = excludeFileTypes.some(fileType =>
       fileList.value[0].file?.name.endsWith(`.${fileType}`)
     )
-    isBinary && message.warning('文件不是正常文本文件格式，可能会读取失败', { duration: 5000 })
+    if (isBinary) {
+      message.warning('文件不是正常文本文件格式，可能会读取失败', { duration: 5000 })
+    }
   }
 
   // 获取匹配内容
@@ -188,7 +190,9 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
         url,
         plugin_name: pluginName
       }).then(({ code }) => {
-        code === 200 && downloadCount.value++
+        if (code === 200) {
+          downloadCount.value++
+        }
         const i = reqs.findIndex(f => f === downFn)
         reqs.splice(i, 1)
       })
