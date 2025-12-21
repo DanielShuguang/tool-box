@@ -55,7 +55,7 @@ const getRemainingTime = (deadlineTimestamp: number) => {
 }
 
 const handleAddTodo = () => {
-  addTodo(deadline.value)
+  addTodo(deadline.value ?? undefined)
   deadline.value = null
 }
 </script>
@@ -131,7 +131,3 @@ const handleAddTodo = () => {
     </n-card>
   </div>
 </template>
-
-<style scoped>
-/* 可以添加额外的样式 */
-</style>
