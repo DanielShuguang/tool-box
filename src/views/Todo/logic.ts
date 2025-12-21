@@ -22,7 +22,7 @@ export function useTodoLogic() {
   const filter = ref<FilterType>('all')
 
   // 添加新任务
-  const addTodo = (deadline?: number) => {
+  const addTodo = (deadline?: number | null) => {
     if (newTodo.value.trim() === '') return
 
     const todo: Todo = {
