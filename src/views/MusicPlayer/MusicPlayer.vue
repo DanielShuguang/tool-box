@@ -152,6 +152,11 @@ onActivated(() => {
 onDeactivated(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
+
+const displayPlayList = computed(() => searchQuery.value ?
+  `${filteredPlaylist.value.length}/${playlist.playlist.value.length}` :
+  playlist.playlist.value.length
+)
 </script>
 
 <template>
@@ -334,14 +339,7 @@ onDeactivated(() => {
         class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]"
       >
         <div class="flex items-center gap-[8px]">
-          <span class="font-bold text-[14px]"
-            >播放列表 ({{ searchQuery ?
-            `${filteredPlaylist.length}/${playlist.playlist.value.length}` :
-            playlist.playlist.value.length
-
-
-            }})</span
-          >
+          <span class="font-bold text-[14px]">播放列表 ({{ displayPlayList }})</span>
           <n-dropdown
             :options="sortOptions"
             @select="(key: string) => coordinator.setSortOption(key as SortOption)"
