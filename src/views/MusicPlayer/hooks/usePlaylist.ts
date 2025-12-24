@@ -1,25 +1,60 @@
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
 
+/**
+ * 播放模式类型
+ * - sequence: 顺序播放
+ * - loop: 列表循环
+ * - single: 单曲循环
+ * - random: 随机播放
+ */
 export type PlayMode = 'sequence' | 'loop' | 'single' | 'random'
 
+/**
+ * 排序选项类型
+ * - default: 默认排序（保持原始顺序）
+ * - title: 按标题排序
+ * - artist: 按艺术家排序
+ * - album: 按专辑排序
+ * - name: 按文件名排序
+ */
 export type SortOption = 'default' | 'title' | 'artist' | 'album' | 'name'
 
+/**
+ * 排序状态
+ */
 export interface SortState {
   option: SortOption
   order: 'asc' | 'desc'
 }
 
+/**
+ * 音频文件信息
+ */
 export interface AudioFile {
+  /** 唯一标识符 */
   id: string
+  /** 文件名 */
   name: string
+  /** 文件路径 */
   path: string
+  /** 音频时长（秒） */
   duration?: number
+  /** 艺术家名称 */
   artist?: string
+  /** 专辑名称 */
   album?: string
+  /** 标题 */
   title?: string
 }
 
+/**
+ * 模糊匹配算法
+ * 检查文本中是否包含查询字符串的所有字符（按顺序）
+ * @param text 被搜索的文本
+ * @param query 查询字符串
+ * @returns 是否匹配
+ */
 function fuzzyMatch(text: string, query: string): boolean {
   const lowerText = text.toLowerCase()
   const lowerQuery = query.toLowerCase()

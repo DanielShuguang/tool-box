@@ -1,6 +1,10 @@
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 
+/**
+ * 音频核心控制 Hook
+ * 封装 HTML5 Audio 元素，提供音频播放、暂停、进度控制等功能
+ */
 export function useAudioCore() {
   const message = useMessage()
 
@@ -14,6 +18,10 @@ export function useAudioCore() {
   let currentBlobUrl: string | null = null
   let currentTrackPath: string | null = null
 
+  /**
+   * 初始化音频对象
+   * 创建 Audio 元素并绑定事件监听器
+   */
   function initAudio() {
     audio.value = new Audio()
 
@@ -44,12 +52,21 @@ export function useAudioCore() {
     })
   }
 
+  /**
+   * 设置音量
+   * @param vol 音量值（0-1）
+   */
   function setVolume(vol: number) {
     if (audio.value) {
       audio.value.volume = vol
     }
   }
 
+  /**
+   * 根据文件扩展名获取 MIME 类型
+   * @param filePath 文件路径
+   * @returns MIME 类型字符串
+   */
   function getMimeType(filePath: string): string {
     const ext = filePath.split('.').pop()?.toLowerCase() || ''
     const mimeTypes: Record<string, string> = {
@@ -63,6 +80,11 @@ export function useAudioCore() {
     return mimeTypes[ext] || 'audio/mpeg'
   }
 
+  /**
+   * 播放指定音轨
+   * 如果是同一音轨则继续播放，否则加载新音轨
+   * @param track 音频文件信息
+   */
   async function playTrack(track: AudioFile) {
     if (!audio.value || isLoading.value) return
 
@@ -101,6 +123,9 @@ export function useAudioCore() {
     }
   }
 
+  /**
+   * 切换播放/暂停状态
+   */
   function togglePlay() {
     if (!audio.value) return
 
@@ -113,6 +138,10 @@ export function useAudioCore() {
     }
   }
 
+  /**
+   * 跳转到指定时间
+   * @param time 目标时间（秒）
+   */
   function seekTo(time: number) {
     if (audio.value) {
       audio.value.currentTime = time
@@ -120,6 +149,10 @@ export function useAudioCore() {
     }
   }
 
+  /**
+   * 停止播放
+   * 释放资源，重置状态
+   */
   function stop() {
     if (audio.value) {
       audio.value.pause()
@@ -135,6 +168,10 @@ export function useAudioCore() {
     duration.value = 0
   }
 
+  /**
+   * 注册曲目结束回调
+   * @param callback 回调函数
+   */
   function onTrackEnded(callback: () => void) {
     onTrackEndedCallback = callback
   }

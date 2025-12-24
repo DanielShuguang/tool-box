@@ -2,6 +2,10 @@ import { open } from '@tauri-apps/plugin-dialog'
 import { scanAudioFolder } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 
+/**
+ * 文件加载 Hook
+ * 处理文件夹选择和音频文件扫描功能
+ */
 export function useFileLoader() {
   const message = useMessage()
 

@@ -1,6 +1,10 @@
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
 
+/**
+ * 播放进度 Hook
+ * 管理单个曲目的播放进度持久化
+ */
 export function usePlaybackProgress() {
   const progressState = usePersistentStorage(
     'playback-progress',
