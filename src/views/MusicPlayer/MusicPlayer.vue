@@ -11,7 +11,8 @@ import {
   FolderOutline,
   TrashOutline,
   ArrowUpOutline,
-  ArrowDownOutline
+  ArrowDownOutline,
+  SearchOutline
 } from '@vicons/ionicons5'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useVirtualList } from '@vueuse/core'
@@ -25,10 +26,12 @@ const {
   volume,
   playMode,
   playlist,
+  filteredPlaylist,
   currentTrack,
   isDragging,
   sortOption,
   sortOrder,
+  searchQuery,
   playTrack,
   togglePlay,
   playNextTrack,
@@ -115,7 +118,7 @@ function handleSortSelect(key: string) {
   setSortOption(key as SortOption)
 }
 
-const { containerProps, list, wrapperProps } = useVirtualList(playlist, {
+const { containerProps, list, wrapperProps } = useVirtualList(filteredPlaylist, {
   itemHeight: 54,
   overscan: 10
 })
@@ -250,7 +253,8 @@ const { containerProps, list, wrapperProps } = useVirtualList(playlist, {
       <div
         class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor]">
         <div class="flex items-center gap-[8px]">
-          <span class="font-bold text-[14px]">播放列表 ({{ playlist.length }})</span>
+          <span class="font-bold text-[14px]">播放列表 ({{ searchQuery ? `${filteredPlaylist.length}/${playlist.length}` :
+            playlist.length }})</span>
           <n-dropdown :options="sortOptions" @select="handleSortSelect" :trigger="'click'">
             <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
               {{ getSortLabel(sortOption) }}
@@ -261,7 +265,16 @@ const { containerProps, list, wrapperProps } = useVirtualList(playlist, {
             </n-button>
           </n-dropdown>
         </div>
-        <div class="flex gap-[8px]">
+        <div class="flex gap-[8px] items-center">
+          <div class="relative">
+            <n-input v-model:value="searchQuery" size="small" placeholder="搜索歌名、歌手、文件名" clearable class="w-[180px]">
+              <template #prefix>
+                <n-icon size="14" class="text-[--textColor3]">
+                  <SearchOutline />
+                </n-icon>
+              </template>
+            </n-input>
+          </div>
           <n-button size="small" quaternary @click="selectFolder">
             <template #icon>
               <n-icon>
@@ -287,7 +300,7 @@ const { containerProps, list, wrapperProps } = useVirtualList(playlist, {
             <div v-for="item in list" :key="item.data.id"
               class="flex items-center justify-between px-[12px] hover:bg-[--hoverColor] cursor-pointer transition-all duration-200"
               :class="{ 'bg-[--hoverColor]': item.data.id === currentTrack?.id }" :style="{ height: '54px' }"
-              @dblclick="item.data.id === currentTrack?.id && isPlaying ? undefined : playTrack(item.index)">
+              @dblclick="item.data.id === currentTrack?.id && isPlaying ? undefined : playTrack(item.data.id)">
               <div class="flex items-center gap-[10px] flex-1 min-w-0">
                 <div v-if="item.data.id === currentTrack?.id && isPlaying"
                   class="w-[20px] h-[20px] flex items-center justify-center">
@@ -310,7 +323,7 @@ const { containerProps, list, wrapperProps } = useVirtualList(playlist, {
                   </div>
                 </div>
               </div>
-              <n-button size="tiny" quaternary type="error" @click.stop="removeTrack(item.index)" class="ml-[8px]">
+              <n-button size="tiny" quaternary type="error" @click.stop="removeTrack(item.data.id)" class="ml-[8px]">
                 <template #icon>
                   <n-icon>
                     <TrashOutline />

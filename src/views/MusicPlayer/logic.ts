@@ -15,58 +15,86 @@ export function useAudioPlayer() {
   const fileLoader = useFileLoader()
   const audioDrop = useAudioDrop()
 
+  function getNextTrackId(): string | null {
+    if (playlist.playlist.value.length === 0) return null
+
+    const currentId = playlist.currentTrackId.value
+    const sortedList = playlist.sortedPlaylist.value
+
+    if (!currentId) {
+      return sortedList[0]?.id || null
+    }
+
+    const currentSortedIndex = sortedList.findIndex(t => t.id === currentId)
+    if (currentSortedIndex === -1) {
+      return sortedList[0]?.id || null
+    }
+
+    const nextSortedIndex = (currentSortedIndex + 1) % sortedList.length
+    return sortedList[nextSortedIndex]?.id || null
+  }
+
+  function getPreviousTrackId(): string | null {
+    if (playlist.playlist.value.length === 0) return null
+
+    const currentId = playlist.currentTrackId.value
+    const sortedList = playlist.sortedPlaylist.value
+
+    if (!currentId) {
+      return sortedList[sortedList.length - 1]?.id || null
+    }
+
+    const currentSortedIndex = sortedList.findIndex(t => t.id === currentId)
+    if (currentSortedIndex === -1) {
+      return sortedList[sortedList.length - 1]?.id || null
+    }
+
+    const prevSortedIndex = currentSortedIndex - 1
+    if (prevSortedIndex < 0) {
+      return sortedList[sortedList.length - 1]?.id || null
+    }
+
+    return sortedList[prevSortedIndex]?.id || null
+  }
+
   function handleTrackEnded() {
     if (playMode.playMode.value === 'loop') {
-      playTrack(playlist.currentIndex.value)
+      const currentId = playlist.currentTrackId.value
+      if (currentId) {
+        playTrack(currentId)
+      }
     } else if (playMode.playMode.value === 'random') {
-      playRandomTrack()
-    } else {
       playNextTrack()
+    } else {
+      const nextId = getNextTrackId()
+      if (nextId) {
+        playTrack(nextId)
+      }
     }
   }
 
   audioCore.onTrackEnded(handleTrackEnded)
 
-  async function playTrack(sortedIndex: number) {
-    if (sortedIndex < 0 || sortedIndex >= playlist.sortedPlaylist.value.length) return
+  async function playTrack(trackId: string) {
+    const track = playlist.playlist.value.find(t => t.id === trackId)
+    if (!track) return
 
-    const track = playlist.sortedPlaylist.value[sortedIndex]
-    const originalIndex = playlist.playlist.value.findIndex(t => t.id === track.id)
-    if (originalIndex !== -1) {
-      playlist.updateCurrentIndex(originalIndex)
-      await audioCore.playTrack(track)
-    }
-  }
-
-  function playRandomTrack() {
-    if (playlist.playlist.value.length === 0) return
-
-    let randomIndex
-    do {
-      randomIndex = Math.floor(Math.random() * playlist.playlist.value.length)
-    } while (randomIndex === playlist.currentIndex.value && playlist.playlist.value.length > 1)
-
-    playTrack(randomIndex)
+    await audioCore.playTrack(track)
+    playlist.updateCurrentTrackId(trackId)
   }
 
   function playNextTrack() {
-    if (playlist.playlist.value.length === 0) return
-
-    let nextIndex = playlist.currentIndex.value + 1
-    if (nextIndex >= playlist.playlist.value.length) {
-      nextIndex = 0
+    const nextId = getNextTrackId()
+    if (nextId) {
+      playTrack(nextId)
     }
-    playTrack(nextIndex)
   }
 
   function playPreviousTrack() {
-    if (playlist.playlist.value.length === 0) return
-
-    let prevIndex = playlist.currentIndex.value - 1
-    if (prevIndex < 0) {
-      prevIndex = playlist.playlist.value.length - 1
+    const prevId = getPreviousTrackId()
+    if (prevId) {
+      playTrack(prevId)
     }
-    playTrack(prevIndex)
   }
 
   function setVolume(vol: number) {
@@ -80,9 +108,10 @@ export function useAudioPlayer() {
       const newPlaylist = await fileLoader.loadFilesFromFolder(folderPath)
       if (newPlaylist.length > 0) {
         playlist.updatePlaylist(newPlaylist)
-        playlist.updateCurrentIndex(0)
+        const firstTrackId = newPlaylist[0].id
+        playlist.updateCurrentTrackId(firstTrackId)
         if (!audioCore.isPlaying.value) {
-          playTrack(0)
+          playTrack(firstTrackId)
         }
       }
     }
@@ -94,8 +123,6 @@ export function useAudioPlayer() {
     for (const file of files) {
       const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
 
-      // 尝试从文件名中提取艺术家和标题信息
-      // 支持格式: "艺术家 - 标题" 或 "艺术家 - 专辑 - 标题"
       let title = fileNameWithoutExt
       let artist: string | undefined
 
@@ -119,27 +146,26 @@ export function useAudioPlayer() {
     playlist.addToPlaylist(audioFiles)
 
     if (!playlist.currentTrack.value && audioFiles.length > 0) {
-      playTrack(0)
+      playTrack(audioFiles[0].id)
     }
   }
 
-  function removeTrack(sortedIndex: number) {
-    if (sortedIndex < 0 || sortedIndex >= playlist.sortedPlaylist.value.length) return
-
-    const track = playlist.sortedPlaylist.value[sortedIndex]
-    const originalIndex = playlist.playlist.value.findIndex(t => t.id === track.id)
+  function removeTrack(trackId: string) {
+    const originalIndex = playlist.playlist.value.findIndex(t => t.id === trackId)
     if (originalIndex === -1) return
 
     playlist.removeFromPlaylist(originalIndex)
 
+    const currentId = playlist.currentTrackId.value
+
     if (playlist.playlist.value.length === 0) {
       audioCore.stop()
-      playlist.updateCurrentIndex(0)
-    } else if (originalIndex === playlist.currentIndex.value) {
-      const newIndex = Math.min(originalIndex, playlist.playlist.value.length - 1)
-      playTrack(newIndex)
-    } else if (originalIndex < playlist.currentIndex.value) {
-      playlist.updateCurrentIndex(playlist.currentIndex.value - 1)
+      playlist.updateCurrentTrackId(null)
+    } else if (currentId === trackId) {
+      const remainingTrack = playlist.playlist.value[0]
+      if (remainingTrack) {
+        playTrack(remainingTrack.id)
+      }
     }
   }
 
@@ -159,13 +185,15 @@ export function useAudioPlayer() {
     duration: audioCore.duration,
     volume: volume.volume,
     playMode: playMode.playMode,
-    currentIndex: playlist.currentIndex,
+    currentTrackId: playlist.currentTrackId,
     playlist: playlist.sortedPlaylist,
+    filteredPlaylist: playlist.filteredPlaylist,
     originalPlaylist: playlist.playlist,
     currentTrack: playlist.currentTrack,
     isDragging: audioDrop.isDragging,
     sortOption: playlist.sortOption,
     sortOrder: playlist.sortOrder,
+    searchQuery: playlist.searchQuery,
     playTrack,
     togglePlay: audioCore.togglePlay,
     playNextTrack,
@@ -178,6 +206,7 @@ export function useAudioPlayer() {
     removeTrack,
     clearPlaylist,
     setSortOption: playlist.setSortOption,
+    setSearchQuery: playlist.setSearchQuery,
     formatTime: audioCore.formatTime
   }
 }

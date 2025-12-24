@@ -21,25 +21,67 @@ export interface AudioFile {
   title?: string
 }
 
+function fuzzyMatch(text: string, query: string): boolean {
+  const lowerText = text.toLowerCase()
+  const lowerQuery = query.toLowerCase()
+  let textIndex = 0
+  for (const char of lowerQuery) {
+    const foundIndex = lowerText.indexOf(char, textIndex)
+    if (foundIndex === -1) return false
+    textIndex = foundIndex + 1
+  }
+  return true
+}
+
+function matchAudioFile(file: AudioFile, query: string): boolean {
+  if (!query.trim()) return true
+
+  const searchFields = [file.name, file.title || '', file.artist || '', file.album || '']
+    .filter(Boolean)
+    .join(' ')
+
+  return fuzzyMatch(searchFields, query)
+}
+
 export function usePlaylist() {
   const playerState = usePersistentStorage(
     'player-state',
     {
       volume: 0.8,
       playMode: 'sequence' as PlayMode,
-      currentIndex: 0,
+      currentTrackId: null as string | null,
       playlist: [] as AudioFile[],
       sortOption: 'default' as SortOption,
-      sortOrder: 'asc' as 'asc' | 'desc'
+      sortOrder: 'asc' as 'asc' | 'desc',
+      searchQuery: ''
     },
     ConfigFile.MusicPlayer
   )
 
   const playlist = computed(() => playerState.value.playlist)
-  const currentIndex = computed(() => playerState.value.currentIndex)
-  const currentTrack = computed(() => playlist.value[currentIndex.value] || null)
+  const currentTrackId = computed(() => playerState.value.currentTrackId)
+  const currentTrack = computed(() => {
+    const id = playerState.value.currentTrackId
+    return playlist.value.find(t => t.id === id) || null
+  })
   const sortOption = computed(() => playerState.value.sortOption)
   const sortOrder = computed(() => playerState.value.sortOrder)
+  const searchQuery = computed({
+    get: () => playerState.value.searchQuery,
+    set: (value: string) => {
+      playerState.value.searchQuery = value
+    }
+  })
+
+  const filteredPlaylist = computed(() => {
+    const query = playerState.value.searchQuery.trim().toLowerCase()
+
+    if (!query) {
+      return sortedPlaylist.value
+    }
+
+    return sortedPlaylist.value.filter(item => matchAudioFile(item, query))
+  })
 
   const sortedPlaylist = computed(() => {
     const originalPlaylist = playerState.value.playlist
@@ -90,8 +132,8 @@ export function usePlaylist() {
     playerState.value.playlist = newPlaylist
   }
 
-  function updateCurrentIndex(index: number) {
-    playerState.value.currentIndex = index
+  function updateCurrentTrackId(trackId: string | null) {
+    playerState.value.currentTrackId = trackId
   }
 
   function setSortOption(option: SortOption) {
@@ -115,19 +157,24 @@ export function usePlaylist() {
 
   function clearPlaylist() {
     updatePlaylist([])
-    updateCurrentIndex(0)
+    updateCurrentTrackId(null)
   }
 
   return {
     playlist,
     sortedPlaylist,
-    currentIndex,
+    filteredPlaylist,
     currentTrack,
+    currentTrackId,
     sortOption,
     sortOrder,
+    searchQuery,
     updatePlaylist,
-    updateCurrentIndex,
+    updateCurrentTrackId,
     setSortOption,
+    setSearchQuery: (value: string) => {
+      searchQuery.value = value
+    },
     addToPlaylist,
     removeFromPlaylist,
     clearPlaylist

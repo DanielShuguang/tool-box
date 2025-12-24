@@ -12,7 +12,7 @@ export function usePlayMode() {
     {
       volume: 0.8,
       playMode: 'sequence' as PlayMode,
-      currentIndex: 0,
+      currentTrackId: null as string | null,
       playlist: []
     },
     ConfigFile.MusicPlayer

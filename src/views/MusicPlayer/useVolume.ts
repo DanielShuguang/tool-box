@@ -8,7 +8,7 @@ export function useVolume() {
     {
       volume: 0.8,
       playMode: 'sequence',
-      currentIndex: 0,
+      currentTrackId: null as string | null,
       playlist: []
     },
     ConfigFile.MusicPlayer
