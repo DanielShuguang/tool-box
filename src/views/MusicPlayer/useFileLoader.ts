@@ -1,5 +1,5 @@
-import { open } from '@tauri-apps/plugin-dialog'
 import { useMessage } from 'naive-ui'
+import { open } from '@tauri-apps/plugin-dialog'
 import { scanAudioFolder } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 

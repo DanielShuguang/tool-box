@@ -1,5 +1,3 @@
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useMessage } from 'naive-ui'
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 

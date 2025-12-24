@@ -1,4 +1,3 @@
-import { computed, ref } from 'vue'
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
 
