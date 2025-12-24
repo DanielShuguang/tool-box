@@ -65,10 +65,13 @@ const handleAddTodo = () => {
     <!-- 添加新任务 -->
     <div class="flex flex-col sm:flex-row gap-2 mb-6">
       <n-input v-model:value="newTodo" placeholder="添加新任务..." @keyup.enter="handleAddTodo" />
-      <n-date-picker v-model:value="deadline" type="date" placeholder="可选截止日期" class="sm:w-40" />
-      <n-button type="primary" @click="handleAddTodo">
-        添加
-      </n-button>
+      <n-date-picker
+        v-model:value="deadline"
+        type="date"
+        placeholder="可选截止日期"
+        class="sm:w-40"
+      />
+      <n-button type="primary" @click="handleAddTodo"> 添加 </n-button>
     </div>
 
     <!-- 任务列表 -->
@@ -81,22 +84,23 @@ const handleAddTodo = () => {
               <div :class="{ 'line-through text-gray-400': todo.completed }">
                 {{ todo.text }}
               </div>
-              <div v-if="todo.deadline" class="text-xs mt-1"
-                :class="isDeadlineApproaching(todo.deadline, todo.completed) ? 'text-red-500 font-bold' : 'text-gray-500'">
+              <div
+                v-if="todo.deadline"
+                class="text-xs mt-1"
+                :class="isDeadlineApproaching(todo.deadline, todo.completed) ? 'text-red-500 font-bold' : 'text-gray-500'"
+              >
                 截止日期: {{ new Date(todo.deadline).toLocaleDateString('zh-CN') }}
                 <span v-if="!todo.completed"> (剩余: {{ getRemainingTime(todo.deadline) }})</span>
-                <span v-if="isDeadlineApproaching(todo.deadline, todo.completed)"> ⚠️ 临近截止</span>
+                <span v-if="isDeadlineApproaching(todo.deadline, todo.completed)">
+                  ⚠️ 临近截止</span
+                >
               </div>
             </div>
-            <n-button type="error" quaternary @click="removeTodo(todo.id)">
-              删除
-            </n-button>
+            <n-button type="error" quaternary @click="removeTodo(todo.id)"> 删除 </n-button>
           </div>
         </n-list-item>
         <n-list-item v-if="todos.length === 0">
-          <div class="text-center text-gray-500 w-full">
-            暂无待办事项
-          </div>
+          <div class="text-center text-gray-500 w-full">暂无待办事项</div>
         </n-list-item>
       </n-list>
 
@@ -104,26 +108,43 @@ const handleAddTodo = () => {
       <template #footer>
         <div class="flex flex-col sm:flex-row justify-between items-center mt-4">
           <div class="mb-2 sm:mb-0">
-            <span class="text-gray-600">
-              剩余 {{ remainingCount }} 项未完成
-            </span>
+            <span class="text-gray-600"> 剩余 {{ remainingCount }} 项未完成 </span>
           </div>
 
           <div class="flex space-x-2 mb-2 sm:mb-0">
-            <n-button @click="setFilter('all')" :type="filter === 'all' ? 'primary' : 'default'" secondary size="small">
+            <n-button
+              @click="setFilter('all')"
+              :type="filter === 'all' ? 'primary' : 'default'"
+              secondary
+              size="small"
+            >
               全部
             </n-button>
-            <n-button @click="setFilter('active')" :type="filter === 'active' ? 'primary' : 'default'" secondary
-              size="small">
+            <n-button
+              @click="setFilter('active')"
+              :type="filter === 'active' ? 'primary' : 'default'"
+              secondary
+              size="small"
+            >
               未完成
             </n-button>
-            <n-button @click="setFilter('completed')" :type="filter === 'completed' ? 'primary' : 'default'" secondary
-              size="small">
+            <n-button
+              @click="setFilter('completed')"
+              :type="filter === 'completed' ? 'primary' : 'default'"
+              secondary
+              size="small"
+            >
               已完成
             </n-button>
           </div>
 
-          <n-button @click="clearCompleted" v-if="todos.some(t => t.completed)" type="error" secondary size="small">
+          <n-button
+            @click="clearCompleted"
+            v-if="todos.some(t => t.completed)"
+            type="error"
+            secondary
+            size="small"
+          >
             清除已完成
           </n-button>
         </div>

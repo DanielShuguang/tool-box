@@ -35,6 +35,11 @@ const routes: RouteRecordRaw[] = [
     name: 'Todo',
     component: () => import('@/views/Todo/Todo.vue'),
     meta: { title: '待办事项' }
+  },
+  {
+    path: '/musicPlayer',
+    component: () => import('@/views/MusicPlayer/MusicPlayer.vue'),
+    meta: { title: '音乐播放器' }
   }
 ]
 
