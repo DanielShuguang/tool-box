@@ -9,7 +9,7 @@
     "check": "vue-tsc --noEmit",
     "preview": "vite preview",
     "tauri": "tauri",
-    "lint": "oxlint --fix src",
+    "lint": "oxlint --fix --vue-plugin src",
     "fmt": "oxfmt src",
     "prepare": "husky"
   },
