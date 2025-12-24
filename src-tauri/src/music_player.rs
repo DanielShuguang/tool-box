@@ -14,10 +14,10 @@ pub struct AudioFile {
     pub album: Option<String>,
 }
 
-fn read_audio_metadata(file_path: &Path) -> (Option<String>, Option<String>) {
+fn read_audio_metadata(file_path: &Path) -> (Option<String>, Option<String>, Option<String>) {
     let file = match fs::File::open(file_path) {
         Ok(f) => f,
-        Err(_) => return (None, None),
+        Err(_) => return (None, None, None),
     };
 
     let mss = symphonia::core::io::MediaSourceStream::new(Box::new(file), Default::default());
@@ -30,7 +30,7 @@ fn read_audio_metadata(file_path: &Path) -> (Option<String>, Option<String>) {
         &Default::default(),
     ) {
         Ok(p) => p,
-        Err(_) => return (None, None),
+        Err(_) => return (None, None, None),
     };
 
     let mut format = probed.format;
@@ -40,9 +40,10 @@ fn read_audio_metadata(file_path: &Path) -> (Option<String>, Option<String>) {
         .find(|t| t.codec_params.codec != symphonia::core::codecs::CODEC_TYPE_NULL)
     {
         Some(t) => t,
-        None => return (None, None),
+        None => return (None, None, None),
     };
 
+    let mut title = None;
     let mut artist = None;
     let mut album = None;
 
@@ -50,6 +51,7 @@ fn read_audio_metadata(file_path: &Path) -> (Option<String>, Option<String>) {
     if let Some(metadata) = metadata.current() {
         for tag in metadata.tags() {
             match tag.key.as_str() {
+                "TITLE" | "TIT2" => title = Some(tag.value.to_string()),
                 "ARTIST" | "TPE1" => artist = Some(tag.value.to_string()),
                 "ALBUM" | "TALB" => album = Some(tag.value.to_string()),
                 _ => {}
@@ -57,7 +59,7 @@ fn read_audio_metadata(file_path: &Path) -> (Option<String>, Option<String>) {
         }
     }
 
-    (artist, album)
+    (title, artist, album)
 }
 
 #[tauri::command]
@@ -88,9 +90,10 @@ pub async fn scan_audio_folder(folder_path: String) -> Result<Vec<AudioFile>, St
         }
         let file_name = entry.file_name().to_string_lossy().to_string();
         let full_path = file_path.to_string_lossy().to_string();
-        let title = file_name.trim_end_matches(&format!(".{}", ext)).to_string();
+        let default_title = file_name.trim_end_matches(&format!(".{}", ext)).to_string();
 
-        let (artist, album) = read_audio_metadata(&file_path);
+        let (metadata_title, artist, album) = read_audio_metadata(&file_path);
+        let title = metadata_title.unwrap_or(default_title);
 
         audio_files.push(AudioFile {
             id: format!(

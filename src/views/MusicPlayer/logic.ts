@@ -27,12 +27,15 @@ export function useAudioPlayer() {
 
   audioCore.onTrackEnded(handleTrackEnded)
 
-  async function playTrack(index: number) {
-    if (index < 0 || index >= playlist.playlist.value.length) return
+  async function playTrack(sortedIndex: number) {
+    if (sortedIndex < 0 || sortedIndex >= playlist.sortedPlaylist.value.length) return
 
-    playlist.updateCurrentIndex(index)
-    const track = playlist.playlist.value[index]
-    await audioCore.playTrack(track)
+    const track = playlist.sortedPlaylist.value[sortedIndex]
+    const originalIndex = playlist.playlist.value.findIndex(t => t.id === track.id)
+    if (originalIndex !== -1) {
+      playlist.updateCurrentIndex(originalIndex)
+      await audioCore.playTrack(track)
+    }
   }
 
   function playRandomTrack() {
@@ -89,11 +92,25 @@ export function useAudioPlayer() {
     const audioFiles: AudioFile[] = []
 
     for (const file of files) {
+      const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
+
+      // 尝试从文件名中提取艺术家和标题信息
+      // 支持格式: "艺术家 - 标题" 或 "艺术家 - 专辑 - 标题"
+      let title = fileNameWithoutExt
+      let artist: string | undefined
+
+      const hyphenIndex = fileNameWithoutExt.indexOf(' - ')
+      if (hyphenIndex !== -1) {
+        artist = fileNameWithoutExt.substring(0, hyphenIndex).trim()
+        title = fileNameWithoutExt.substring(hyphenIndex + 3).trim()
+      }
+
       audioFiles.push({
         id: `${Date.now()}-${Math.random()}`,
         name: file.name,
         path: (file as any).path || file.name,
-        title: file.name.replace(/\.[^/.]+$/, '')
+        title,
+        artist
       })
     }
 
@@ -106,18 +123,22 @@ export function useAudioPlayer() {
     }
   }
 
-  function removeTrack(index: number) {
-    if (index < 0 || index >= playlist.playlist.value.length) return
+  function removeTrack(sortedIndex: number) {
+    if (sortedIndex < 0 || sortedIndex >= playlist.sortedPlaylist.value.length) return
 
-    playlist.removeFromPlaylist(index)
+    const track = playlist.sortedPlaylist.value[sortedIndex]
+    const originalIndex = playlist.playlist.value.findIndex(t => t.id === track.id)
+    if (originalIndex === -1) return
+
+    playlist.removeFromPlaylist(originalIndex)
 
     if (playlist.playlist.value.length === 0) {
       audioCore.stop()
       playlist.updateCurrentIndex(0)
-    } else if (index === playlist.currentIndex.value) {
-      const newIndex = Math.min(index, playlist.playlist.value.length - 1)
+    } else if (originalIndex === playlist.currentIndex.value) {
+      const newIndex = Math.min(originalIndex, playlist.playlist.value.length - 1)
       playTrack(newIndex)
-    } else if (index < playlist.currentIndex.value) {
+    } else if (originalIndex < playlist.currentIndex.value) {
       playlist.updateCurrentIndex(playlist.currentIndex.value - 1)
     }
   }
@@ -139,9 +160,12 @@ export function useAudioPlayer() {
     volume: volume.volume,
     playMode: playMode.playMode,
     currentIndex: playlist.currentIndex,
-    playlist: playlist.playlist,
+    playlist: playlist.sortedPlaylist,
+    originalPlaylist: playlist.playlist,
     currentTrack: playlist.currentTrack,
     isDragging: audioDrop.isDragging,
+    sortOption: playlist.sortOption,
+    sortOrder: playlist.sortOrder,
     playTrack,
     togglePlay: audioCore.togglePlay,
     playNextTrack,
@@ -153,6 +177,7 @@ export function useAudioPlayer() {
     handleFileDrop,
     removeTrack,
     clearPlaylist,
+    setSortOption: playlist.setSortOption,
     formatTime: audioCore.formatTime
   }
 }
