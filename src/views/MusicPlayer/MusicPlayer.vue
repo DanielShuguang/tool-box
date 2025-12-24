@@ -21,8 +21,9 @@ import { usePlaylist } from './hooks/usePlaylist'
 import { usePlayMode } from './hooks/usePlayMode'
 import { useVolume } from './hooks/useVolume'
 import { useFileLoader } from './hooks/useFileLoader'
-import { useAudioDrop } from './hooks/useAudioDrop'
 import { usePlaybackProgress } from './hooks/usePlaybackProgress'
+import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
+import { useDragDrop } from './hooks/useDragDrop'
 import type { SortOption } from './hooks/usePlaylist'
 
 const audioCore = useAudioCore()
@@ -30,7 +31,6 @@ const playlist = usePlaylist()
 const playMode = usePlayMode()
 const volume = useVolume()
 const fileLoader = useFileLoader()
-const audioDrop = useAudioDrop()
 const progress = usePlaybackProgress()
 
 const isPlaying = audioCore.isPlaying
@@ -38,162 +38,25 @@ const isLoading = audioCore.isLoading
 const currentTime = audioCore.currentTime
 const duration = audioCore.duration
 const currentTrack = playlist.currentTrack
-const isDragging = audioDrop.isDragging
 const searchQuery = playlist.searchQuery
 const sortOption = playlist.sortOption
 const sortOrder = playlist.sortOrder
 const filteredPlaylist = playlist.filteredPlaylist
 
-function getNextTrackId(): string | null {
-  if (playlist.playlist.value.length === 0) return null
-  const currentId = playlist.currentTrackId.value
-  const sortedList = playlist.sortedPlaylist.value
-  if (!currentId) return sortedList[0]?.id || null
-  const currentSortedIndex = sortedList.findIndex(t => t.id === currentId)
-  if (currentSortedIndex === -1) return sortedList[0]?.id || null
-  const nextSortedIndex = (currentSortedIndex + 1) % sortedList.length
-  return sortedList[nextSortedIndex]?.id || null
-}
-
-function getPreviousTrackId(): string | null {
-  if (playlist.playlist.value.length === 0) return null
-  const currentId = playlist.currentTrackId.value
-  const sortedList = playlist.sortedPlaylist.value
-  if (!currentId) return sortedList[sortedList.length - 1]?.id || null
-  const currentSortedIndex = sortedList.findIndex(t => t.id === currentId)
-  if (currentSortedIndex === -1) return sortedList[sortedList.length - 1]?.id || null
-  const prevSortedIndex = currentSortedIndex - 1
-  if (prevSortedIndex < 0) return sortedList[sortedList.length - 1]?.id || null
-  return sortedList[prevSortedIndex]?.id || null
-}
-
-function handleTrackEnded() {
-  if (playMode.playMode.value === 'single') {
-    const currentId = playlist.currentTrackId.value
-    if (currentId) {
-      audioCore.seekTo(0)
-      playTrack(currentId)
-    }
-  } else if (playMode.playMode.value === 'loop') {
-    const currentId = playlist.currentTrackId.value
-    if (currentId) {
-      playTrack(currentId)
-    }
-  } else if (playMode.playMode.value === 'random') {
-    playNextTrack()
-  } else {
-    const nextId = getNextTrackId()
-    if (nextId) playTrack(nextId)
-  }
-}
-
-audioCore.onTrackEnded(handleTrackEnded)
-
-async function playTrack(trackId: string) {
-  const track = playlist.playlist.value.find(t => t.id === trackId)
-  if (!track) return
-  progress.setCurrentTrack(trackId)
-  const savedProgress = progress.getProgress(trackId)
-  await audioCore.playTrack(track)
-  playlist.updateCurrentTrackId(trackId)
-  if (savedProgress > 0 && savedProgress < (duration.value || 0) - 5) {
-    audioCore.seekTo(savedProgress)
-  }
-}
-
-function playNextTrack() {
-  const nextId = getNextTrackId()
-  if (nextId) playTrack(nextId)
-}
-
-function playPreviousTrack() {
-  const prevId = getPreviousTrackId()
-  if (prevId) playTrack(prevId)
-}
-
-function setVolume(vol: number) {
-  volume.setVolume(vol)
-  audioCore.setVolume(vol)
-}
-
-async function selectFolder() {
-  const folderPath = await fileLoader.selectFolder()
-  if (folderPath) {
-    const newPlaylist = await fileLoader.loadFilesFromFolder(folderPath)
-    if (newPlaylist.length > 0) {
-      playlist.updatePlaylist(newPlaylist)
-      const firstTrackId = newPlaylist[0].id
-      playlist.updateCurrentTrackId(firstTrackId)
-      if (!isPlaying.value) {
-        playTrack(firstTrackId)
-      }
-    }
-  }
-}
-
-function handleFileDrop(files: File[]) {
-  const audioFiles = files
-    .filter(file => {
-      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
-      return ['.mp3', '.wav', '.flac', '.m4a', '.ogg', '.aac'].includes(ext)
-    })
-    .map(file => {
-      const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
-      let title = fileNameWithoutExt
-      let artist: string | undefined
-      const hyphenIndex = fileNameWithoutExt.indexOf(' - ')
-      if (hyphenIndex !== -1) {
-        artist = fileNameWithoutExt.substring(0, hyphenIndex).trim()
-        title = fileNameWithoutExt.substring(hyphenIndex + 3).trim()
-      }
-      return {
-        id: `${Date.now()}-${Math.random()}`,
-        name: file.name,
-        path: (file as any).path || file.name,
-        title,
-        artist
-      }
-    })
-  if (audioFiles.length === 0) return
-  playlist.addToPlaylist(audioFiles)
-  if (!currentTrack.value && audioFiles.length > 0) {
-    playTrack(audioFiles[0].id)
-  }
-}
-
-function removeTrack(trackId: string) {
-  const originalIndex = playlist.playlist.value.findIndex(t => t.id === trackId)
-  if (originalIndex === -1) return
-  playlist.removeFromPlaylist(originalIndex)
-  const currentId = playlist.currentTrackId.value
-  if (playlist.playlist.value.length === 0) {
-    audioCore.stop()
-    playlist.updateCurrentTrackId(null)
-  } else if (currentId === trackId) {
-    const remainingTrack = playlist.playlist.value[0]
-    if (remainingTrack) playTrack(remainingTrack.id)
-  }
-}
-
-function clearPlaylist() {
-  playlist.clearPlaylist()
-  audioCore.stop()
-}
-
-function setSortOption(option: SortOption) {
-  playlist.setSortOption(option)
-}
-
-onMounted(() => {
-  audioCore.setVolume(volume.volume.value)
+const coordinator = usePlayerCoordinator({
+  playlist,
+  audioCore,
+  playMode,
+  volume,
+  fileLoader,
+  progress,
+  isPlaying,
+  currentTrack
 })
 
-watch(currentTime, time => {
-  const trackId = playlist.currentTrackId.value
-  if (trackId && time > 0) {
-    progress.saveProgress(trackId, time)
-  }
-})
+const dragDrop = useDragDrop({ coordinator })
+
+const isDragging = dragDrop.isDragging
 
 const playModeIcons = {
   sequence: RepeatOutline,
@@ -217,30 +80,13 @@ const progressPercent = computed(() => {
   return (currentTime.value / duration.value) * 100
 })
 
-function handleDrop(e: DragEvent) {
-  e.preventDefault()
-  isDragging.value = false
-  const files = Array.from(e.dataTransfer?.files || [])
-  handleFileDrop(files)
-}
-
-function handleDragOver(e: DragEvent) {
-  e.preventDefault()
-  isDragging.value = true
-}
-
-function handleDragLeave(e: DragEvent) {
-  e.preventDefault()
-  isDragging.value = false
-}
-
 function handleProgressChange(value: number) {
   const time = (value / 100) * duration.value
   audioCore.seekTo(time)
 }
 
 function handleVolumeChange(value: number) {
-  setVolume(value / 100)
+  coordinator.setVolume(value / 100)
 }
 
 const sortOptions: Array<{ label: string; key: SortOption }> = [
@@ -271,9 +117,9 @@ const actionOptions = [
 
 function handleActionSelect(key: string) {
   if (key === 'addFolder') {
-    selectFolder()
+    coordinator.selectFolder()
   } else if (key === 'clear') {
-    clearPlaylist()
+    coordinator.clearPlaylist()
   }
 }
 
@@ -291,6 +137,14 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+onMounted(() => {
+  audioCore.setVolume(volume.volume.value)
+})
+
+watch(currentTime, time => {
+  coordinator.saveProgress(time)
+})
+
 onActivated(() => {
   window.addEventListener('keydown', handleKeydown)
 })
@@ -304,8 +158,8 @@ onDeactivated(() => {
   <div class="flex flex-col md:flex-row h-full">
     <div
       class="w-full md:w-[400px] flex flex-col items-center justify-center p-[15px] border-(1px solid) border-[--borderColor] overflow-hidden relative flex-shrink-0"
-      :class="{ 'bg-[--hoverColor]': isDragging }" @drop="handleDrop" @dragover="handleDragOver"
-      @dragleave="handleDragLeave">
+      :class="{ 'bg-[--hoverColor]': isDragging }" @drop="dragDrop.handleDrop" @dragover="dragDrop.handleDragOver"
+      @dragleave="dragDrop.handleDragLeave">
       <div v-if="!currentTrack" class="text-center text-[--textColor3]">
         <div
           class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md">
@@ -317,7 +171,7 @@ onDeactivated(() => {
         <p class="text-[13px] mb-[15px] text-[--textColor3]">
           支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式
         </p>
-        <n-button type="primary" size="medium" @click="selectFolder" class="shadow-lg">
+        <n-button type="primary" size="medium" @click="coordinator.selectFolder()" class="shadow-lg">
           <template #icon>
             <n-icon>
               <FolderOutline />
@@ -370,7 +224,7 @@ onDeactivated(() => {
         </div>
 
         <div class="flex justify-center items-center gap-[20px] mb-[18px]">
-          <n-button circle size="medium" quaternary @click="playPreviousTrack"
+          <n-button circle size="medium" quaternary @click="coordinator.playPreviousTrack()"
             class="transition-transform hover:scale-110">
             <template #icon>
               <n-icon size="24">
@@ -389,7 +243,8 @@ onDeactivated(() => {
             </template>
           </n-button>
 
-          <n-button circle size="medium" quaternary @click="playNextTrack" class="transition-transform hover:scale-110">
+          <n-button circle size="medium" quaternary @click="coordinator.playNextTrack()"
+            class="transition-transform hover:scale-110">
             <template #icon>
               <n-icon size="24">
                 <PlaySkipForwardOutline />
@@ -421,15 +276,15 @@ onDeactivated(() => {
     </div>
 
     <div class="flex-1 border-(1px solid) border-[--borderColor] flex flex-col min-h-0 relative min-w-0"
-      :class="{ 'bg-[--hoverColor]': isDragging }" @drop="handleDrop" @dragover="handleDragOver"
-      @dragleave="handleDragLeave">
+      :class="{ 'bg-[--hoverColor]': isDragging }" @drop="dragDrop.handleDrop" @dragover="dragDrop.handleDragOver"
+      @dragleave="dragDrop.handleDragLeave">
       <div
         class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
         <div class="flex items-center gap-[8px]">
           <span class="font-bold text-[14px]">播放列表 ({{ searchQuery ?
             `${filteredPlaylist.length}/${playlist.playlist.value.length}` :
             playlist.playlist.value.length }})</span>
-          <n-dropdown :options="sortOptions" @select="(key: string) => setSortOption(key as SortOption)"
+          <n-dropdown :options="sortOptions" @select="(key: string) => coordinator.setSortOption(key as SortOption)"
             :trigger="'click'">
             <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
               {{ getSortLabel(sortOption) }}
@@ -465,7 +320,7 @@ onDeactivated(() => {
           <div v-for="item in list" :key="item.data.id" class="flex items-center px-[12px] border-b-(1px solid)
             border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer"
             :class="{ 'bg-[--activeColor]': playlist.currentTrackId.value === item.data.id }"
-            @dblclick="playTrack(item.data.id)">
+            @dblclick="coordinator.playTrack(item.data.id)">
             <div class="flex-1 min-w-0 py-[8px] pr-[8px]">
               <p class="text-[14px] truncate"
                 :class="{ 'font-medium text-[--primaryColor]': playlist.currentTrackId.value === item.data.id }">
@@ -476,7 +331,7 @@ onDeactivated(() => {
               </p>
             </div>
             <div class="flex items-center gap-[8px]">
-              <n-button size="tiny" quaternary circle @click.stop="removeTrack(item.data.id)">
+              <n-button size="tiny" quaternary circle @click.stop="coordinator.removeTrack(item.data.id)">
                 <template #icon>
                   <n-icon size="14">
                     <TrashOutline />
