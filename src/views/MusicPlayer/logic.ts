@@ -181,6 +181,7 @@ export function useAudioPlayer() {
   return {
     audio: audioCore.audio,
     isPlaying: audioCore.isPlaying,
+    isLoading: audioCore.isLoading,
     currentTime: audioCore.currentTime,
     duration: audioCore.duration,
     volume: volume.volume,

@@ -1,4 +1,3 @@
-use base64::Engine;
 use std::fs;
 use std::path::Path;
 
@@ -113,21 +112,19 @@ pub async fn scan_audio_folder(folder_path: String) -> Result<Vec<AudioFile>, St
 }
 
 #[tauri::command]
-pub async fn read_audio_file(file_path: String) -> Result<String, String> {
+pub async fn read_audio_file(file_path: String) -> Result<Vec<u8>, String> {
     let path = Path::new(&file_path);
     if !path.exists() {
         return Err("文件不存在".to_string());
     }
 
-    let content = match fs::read(path) {
-        Ok(c) => c,
+    match fs::read(path) {
+        Ok(content) => Ok(content),
         Err(e) => {
             if e.kind() == std::io::ErrorKind::PermissionDenied {
                 return Err("没有权限读取该文件".to_string());
             }
-            return Err("读取文件失败".to_string());
+            Err("读取文件失败".to_string())
         }
-    };
-    let base64 = base64::engine::general_purpose::STANDARD.encode(content);
-    Ok(base64)
+    }
 }

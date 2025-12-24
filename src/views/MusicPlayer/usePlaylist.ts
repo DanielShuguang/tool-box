@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
 
@@ -52,8 +52,7 @@ export function usePlaylist() {
       currentTrackId: null as string | null,
       playlist: [] as AudioFile[],
       sortOption: 'default' as SortOption,
-      sortOrder: 'asc' as 'asc' | 'desc',
-      searchQuery: ''
+      sortOrder: 'asc' as 'asc' | 'desc'
     },
     ConfigFile.MusicPlayer
   )
@@ -66,15 +65,10 @@ export function usePlaylist() {
   })
   const sortOption = computed(() => playerState.value.sortOption)
   const sortOrder = computed(() => playerState.value.sortOrder)
-  const searchQuery = computed({
-    get: () => playerState.value.searchQuery,
-    set: (value: string) => {
-      playerState.value.searchQuery = value
-    }
-  })
+  const searchQuery = ref('')
 
   const filteredPlaylist = computed(() => {
-    const query = playerState.value.searchQuery.trim().toLowerCase()
+    const query = searchQuery.value.trim().toLowerCase()
 
     if (!query) {
       return sortedPlaylist.value

@@ -10,8 +10,11 @@ export function useAudioCore() {
   const isPlaying = ref(false)
   const currentTime = ref(0)
   const duration = ref(0)
+  const isLoading = ref(false)
 
   let onTrackEndedCallback: (() => void) | null = null
+  let currentBlobUrl: string | null = null
+  let currentTrackPath: string | null = null
 
   function initAudio() {
     audio.value = new Audio()
@@ -63,26 +66,40 @@ export function useAudioCore() {
   }
 
   async function playTrack(track: AudioFile) {
-    if (!audio.value) return
+    if (!audio.value || isLoading.value) return
+
+    if (currentTrackPath === track.path) {
+      if (!isPlaying.value) {
+        await audio.value.play()
+        isPlaying.value = true
+      }
+      return
+    }
+
+    isLoading.value = true
+    currentTrackPath = track.path
 
     try {
-      const base64 = await readAudioFile({ filePath: track.path })
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl)
+        currentBlobUrl = null
+      }
+
+      const audioData = await readAudioFile({ filePath: track.path })
 
       const mimeType = getMimeType(track.path)
-      const byteCharacters = atob(base64)
-      const byteNumbers = Array.from({ length: byteCharacters.length }, (_, i) =>
-        byteCharacters.charCodeAt(i)
-      )
-      const byteArray = new Uint8Array(byteNumbers)
-      const blob = new Blob([byteArray], { type: mimeType })
-      const blobUrl = URL.createObjectURL(blob)
+      const blob = new Blob([audioData], { type: mimeType })
+      currentBlobUrl = URL.createObjectURL(blob)
 
-      audio.value.src = blobUrl
+      audio.value.src = currentBlobUrl
       await audio.value.play()
       isPlaying.value = true
     } catch (err) {
       message.error('音频加载失败')
       console.error('Audio load error:', err)
+      currentTrackPath = null
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -110,6 +127,11 @@ export function useAudioCore() {
       audio.value.pause()
       audio.value.src = ''
     }
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl)
+      currentBlobUrl = null
+    }
+    currentTrackPath = null
     isPlaying.value = false
     currentTime.value = 0
     duration.value = 0
@@ -140,6 +162,7 @@ export function useAudioCore() {
     isPlaying,
     currentTime,
     duration,
+    isLoading,
     setVolume,
     playTrack,
     togglePlay,

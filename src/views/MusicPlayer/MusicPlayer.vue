@@ -21,6 +21,7 @@ import type { SortOption } from './usePlaylist'
 
 const {
   isPlaying,
+  isLoading,
   currentTime,
   duration,
   volume,
@@ -188,12 +189,15 @@ const { containerProps, list, wrapperProps } = useVirtualList(filteredPlaylist, 
           </p>
         </div>
 
-        <div class="mb-[18px] px-[8px]">
+        <div class="mb-[20px] px-[8px] relative">
           <n-slider :value="progress" :format-tooltip="() => formatTime(currentTime)" color="--primaryColor"
-            @update:value="handleProgressChange" />
+            @update:value="handleProgressChange" :disabled="isLoading" />
           <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
             <span>{{ formatTime(currentTime) }}</span>
             <span>{{ formatTime(duration) }}</span>
+          </div>
+          <div v-if="isLoading" class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg">
+            <n-spin size="small" :radius="12" />
           </div>
         </div>
 

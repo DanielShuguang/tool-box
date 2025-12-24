@@ -5,9 +5,10 @@ import {
   BackendAudioFile
 } from './models/music-player'
 
-/** 读取音频文件 */
-export function readAudioFile(payload: ReadAudioFilePayload) {
-  return invoke<string>('read_audio_file', { ...payload })
+export type AudioData = ArrayBuffer
+
+export function readAudioFile(payload: ReadAudioFilePayload): Promise<AudioData> {
+  return invoke<number[]>('read_audio_file', { ...payload }).then(arr => new Uint8Array(arr).buffer)
 }
 
 /** 扫描音频文件夹 */
