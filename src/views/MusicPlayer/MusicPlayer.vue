@@ -158,11 +158,15 @@ onDeactivated(() => {
   <div class="flex flex-col md:flex-row h-full">
     <div
       class="w-full md:w-[400px] flex flex-col items-center justify-center p-[15px] border-(1px solid) border-[--borderColor] overflow-hidden relative flex-shrink-0"
-      :class="{ 'bg-[--hoverColor]': isDragging }" @drop="dragDrop.handleDrop" @dragover="dragDrop.handleDragOver"
-      @dragleave="dragDrop.handleDragLeave">
+      :class="{ 'bg-[--hoverColor]': isDragging }"
+      @drop="dragDrop.handleDrop"
+      @dragover="dragDrop.handleDragOver"
+      @dragleave="dragDrop.handleDragLeave"
+    >
       <div v-if="!currentTrack" class="text-center text-[--textColor3]">
         <div
-          class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md">
+          class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md"
+        >
           <n-icon size="60" :depth="3">
             <FolderOutline />
           </n-icon>
@@ -171,7 +175,12 @@ onDeactivated(() => {
         <p class="text-[13px] mb-[15px] text-[--textColor3]">
           支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式
         </p>
-        <n-button type="primary" size="medium" @click="coordinator.selectFolder()" class="shadow-lg">
+        <n-button
+          type="primary"
+          size="medium"
+          @click="coordinator.selectFolder()"
+          class="shadow-lg"
+        >
           <template #icon>
             <n-icon>
               <FolderOutline />
@@ -184,17 +193,24 @@ onDeactivated(() => {
       <div v-else class="w-full max-w-[360px]">
         <div class="flex flex-col items-center mb-[20px]">
           <div
-            class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-2xl bg-gradient-to-br from-[--primaryColor] to-[--primaryColorHover] flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105">
+            class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-2xl bg-gradient-to-br from-[--primaryColor] to-[--primaryColorHover] flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105"
+          >
             <n-icon size="64" :depth="3" class="text-white">
               <PlayOutline v-if="!isPlaying" />
               <PauseOutline v-else />
             </n-icon>
           </div>
           <h2
-            class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full">
+            class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full"
+          >
             <AnimatePresence>
-              <Motion v-if="(currentTrack.title || currentTrack.name).length > 15" tag="span" class="inline-block"
-                :animate="{ x: '-50%' }" :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }">
+              <Motion
+                v-if="(currentTrack.title || currentTrack.name).length > 15"
+                tag="span"
+                class="inline-block"
+                :animate="{ x: '-50%' }"
+                :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }"
+              >
                 {{ currentTrack.title || currentTrack.name }}
                 　　{{ currentTrack.title || currentTrack.name }}
               </Motion>
@@ -212,20 +228,33 @@ onDeactivated(() => {
         </div>
 
         <div class="mb-[20px] px-[8px] relative">
-          <n-slider :value="progressPercent" :format-tooltip="() => audioCore.formatTime(currentTime)"
-            color="--primaryColor" @update:value="handleProgressChange" :disabled="isLoading" />
+          <n-slider
+            :value="progressPercent"
+            :format-tooltip="() => audioCore.formatTime(currentTime)"
+            color="--primaryColor"
+            @update:value="handleProgressChange"
+            :disabled="isLoading"
+          />
           <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
             <span>{{ audioCore.formatTime(currentTime) }}</span>
             <span>{{ audioCore.formatTime(duration) }}</span>
           </div>
-          <div v-if="isLoading" class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg">
+          <div
+            v-if="isLoading"
+            class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg"
+          >
             <n-spin size="small" :radius="12" />
           </div>
         </div>
 
         <div class="flex justify-center items-center gap-[20px] mb-[18px]">
-          <n-button circle size="medium" quaternary @click="coordinator.playPreviousTrack()"
-            class="transition-transform hover:scale-110">
+          <n-button
+            circle
+            size="medium"
+            quaternary
+            @click="coordinator.playPreviousTrack()"
+            class="transition-transform hover:scale-110"
+          >
             <template #icon>
               <n-icon size="24">
                 <PlaySkipBackOutline />
@@ -233,8 +262,13 @@ onDeactivated(() => {
             </template>
           </n-button>
 
-          <n-button circle size="medium" type="primary" @click="audioCore.togglePlay()"
-            class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110">
+          <n-button
+            circle
+            size="medium"
+            type="primary"
+            @click="audioCore.togglePlay()"
+            class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110"
+          >
             <template #icon>
               <n-icon size="32">
                 <PauseOutline v-if="isPlaying" />
@@ -243,8 +277,13 @@ onDeactivated(() => {
             </template>
           </n-button>
 
-          <n-button circle size="medium" quaternary @click="coordinator.playNextTrack()"
-            class="transition-transform hover:scale-110">
+          <n-button
+            circle
+            size="medium"
+            quaternary
+            @click="coordinator.playNextTrack()"
+            class="transition-transform hover:scale-110"
+          >
             <template #icon>
               <n-icon size="24">
                 <PlaySkipForwardOutline />
@@ -258,12 +297,21 @@ onDeactivated(() => {
             <VolumeHighOutline v-if="volume.volume.value > 0" />
             <VolumeMuteOutline v-else />
           </n-icon>
-          <n-slider :value="volume.volume.value * 100" class="flex-1" color="--primaryColor"
-            @update:value="handleVolumeChange" />
+          <n-slider
+            :value="volume.volume.value * 100"
+            class="flex-1"
+            color="--primaryColor"
+            @update:value="handleVolumeChange"
+          />
         </div>
 
         <div class="flex justify-center gap-[8px]">
-          <n-button quaternary @click="playMode.togglePlayMode" size="small" class="transition-colors">
+          <n-button
+            quaternary
+            @click="playMode.togglePlayMode"
+            size="small"
+            class="transition-colors"
+          >
             <template #icon>
               <n-icon size="16">
                 <component :is="currentPlayModeIcon" />
@@ -275,17 +323,30 @@ onDeactivated(() => {
       </div>
     </div>
 
-    <div class="flex-1 border-(1px solid) border-[--borderColor] flex flex-col min-h-0 relative min-w-0"
-      :class="{ 'bg-[--hoverColor]': isDragging }" @drop="dragDrop.handleDrop" @dragover="dragDrop.handleDragOver"
-      @dragleave="dragDrop.handleDragLeave">
+    <div
+      class="flex-1 border-(1px solid) border-[--borderColor] flex flex-col min-h-0 relative min-w-0"
+      :class="{ 'bg-[--hoverColor]': isDragging }"
+      @drop="dragDrop.handleDrop"
+      @dragover="dragDrop.handleDragOver"
+      @dragleave="dragDrop.handleDragLeave"
+    >
       <div
-        class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
+        class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]"
+      >
         <div class="flex items-center gap-[8px]">
-          <span class="font-bold text-[14px]">播放列表 ({{ searchQuery ?
+          <span class="font-bold text-[14px]"
+            >播放列表 ({{ searchQuery ?
             `${filteredPlaylist.length}/${playlist.playlist.value.length}` :
-            playlist.playlist.value.length }})</span>
-          <n-dropdown :options="sortOptions" @select="(key: string) => coordinator.setSortOption(key as SortOption)"
-            :trigger="'click'">
+            playlist.playlist.value.length
+
+
+            }})</span
+          >
+          <n-dropdown
+            :options="sortOptions"
+            @select="(key: string) => coordinator.setSortOption(key as SortOption)"
+            :trigger="'click'"
+          >
             <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
               {{ getSortLabel(sortOption) }}
               <n-icon size="12">
@@ -295,8 +356,15 @@ onDeactivated(() => {
             </n-button>
           </n-dropdown>
         </div>
-        <n-input v-model:value="searchQuery" :bordered="false" placeholder="搜索歌曲..." clearable size="small"
-          class="flex-1!" @clear="playlist.setSearchQuery('')">
+        <n-input
+          v-model:value="searchQuery"
+          :bordered="false"
+          placeholder="搜索歌曲..."
+          clearable
+          size="small"
+          class="flex-1!"
+          @clear="playlist.setSearchQuery('')"
+        >
           <template #prefix>
             <n-icon size="14">
               <SearchOutline />
@@ -317,13 +385,19 @@ onDeactivated(() => {
 
       <div v-bind="containerProps" class="flex-1 overflow-auto">
         <div v-bind="wrapperProps">
-          <div v-for="item in list" :key="item.data.id" class="flex items-center px-[12px] border-b-(1px solid)
+          <div
+            v-for="item in list"
+            :key="item.data.id"
+            class="flex items-center px-[12px] border-b-(1px solid)
             border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer"
             :class="{ 'bg-[--activeColor]': playlist.currentTrackId.value === item.data.id }"
-            @dblclick="coordinator.playTrack(item.data.id)">
+            @dblclick="coordinator.playTrack(item.data.id)"
+          >
             <div class="flex-1 min-w-0 py-[8px] pr-[8px]">
-              <p class="text-[14px] truncate"
-                :class="{ 'font-medium text-[--primaryColor]': playlist.currentTrackId.value === item.data.id }">
+              <p
+                class="text-[14px] truncate"
+                :class="{ 'font-medium text-[--primaryColor]': playlist.currentTrackId.value === item.data.id }"
+              >
                 {{ item.data.title || item.data.name }}
               </p>
               <p class="text-[12px] text-[--textColor3] truncate">
@@ -331,7 +405,12 @@ onDeactivated(() => {
               </p>
             </div>
             <div class="flex items-center gap-[8px]">
-              <n-button size="tiny" quaternary circle @click.stop="coordinator.removeTrack(item.data.id)">
+              <n-button
+                size="tiny"
+                quaternary
+                circle
+                @click.stop="coordinator.removeTrack(item.data.id)"
+              >
                 <template #icon>
                   <n-icon size="14">
                     <TrashOutline />
