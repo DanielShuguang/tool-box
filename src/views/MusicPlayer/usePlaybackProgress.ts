@@ -1,6 +1,5 @@
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
-import { ref } from 'vue'
 
 export function usePlaybackProgress() {
   const progressState = usePersistentStorage(

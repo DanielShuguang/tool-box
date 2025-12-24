@@ -15,7 +15,6 @@ import {
   SearchOutline
 } from '@vicons/ionicons5'
 import { Motion, AnimatePresence } from 'motion-v'
-import { useVirtualList } from '@vueuse/core'
 import { useAudioPlayer } from './logic'
 import type { SortOption } from './usePlaylist'
 
@@ -124,6 +123,23 @@ function handleSortSelect(key: string) {
 const { containerProps, list, wrapperProps } = useVirtualList(filteredPlaylist, {
   itemHeight: 54,
   overscan: 10
+})
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.code === 'Space') {
+    e.preventDefault()
+    if (currentTrack.value) {
+      togglePlay()
+    }
+  }
+}
+
+onActivated(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onDeactivated(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 

@@ -1,5 +1,3 @@
-import { ref } from 'vue'
-import { useMessage } from 'naive-ui'
 import type { AudioFile } from './usePlaylist'
 
 export function useAudioDrop() {
