@@ -1,10 +1,11 @@
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useAudioCore } from './useAudioCore'
 import { usePlaylist } from './usePlaylist'
 import { usePlayMode } from './usePlayMode'
 import { useVolume } from './useVolume'
 import { useFileLoader } from './useFileLoader'
 import { useAudioDrop } from './useAudioDrop'
+import { usePlaybackProgress } from './usePlaybackProgress'
 import type { AudioFile } from './usePlaylist'
 
 export function useAudioPlayer() {
@@ -14,6 +15,7 @@ export function useAudioPlayer() {
   const volume = useVolume()
   const fileLoader = useFileLoader()
   const audioDrop = useAudioDrop()
+  const progress = usePlaybackProgress()
 
   function getNextTrackId(): string | null {
     if (playlist.playlist.value.length === 0) return null
@@ -58,7 +60,13 @@ export function useAudioPlayer() {
   }
 
   function handleTrackEnded() {
-    if (playMode.playMode.value === 'loop') {
+    if (playMode.playMode.value === 'single') {
+      const currentId = playlist.currentTrackId.value
+      if (currentId) {
+        audioCore.seekTo(0)
+        playTrack(currentId)
+      }
+    } else if (playMode.playMode.value === 'loop') {
       const currentId = playlist.currentTrackId.value
       if (currentId) {
         playTrack(currentId)
@@ -79,8 +87,15 @@ export function useAudioPlayer() {
     const track = playlist.playlist.value.find(t => t.id === trackId)
     if (!track) return
 
+    progress.setCurrentTrack(trackId)
+    const savedProgress = progress.getProgress(trackId)
+
     await audioCore.playTrack(track)
     playlist.updateCurrentTrackId(trackId)
+
+    if (savedProgress > 0 && savedProgress < (audioCore.duration.value || 0) - 5) {
+      audioCore.seekTo(savedProgress)
+    }
   }
 
   function playNextTrack() {
@@ -177,6 +192,16 @@ export function useAudioPlayer() {
   onMounted(() => {
     audioCore.setVolume(volume.volume.value)
   })
+
+  watch(
+    () => audioCore.currentTime.value,
+    time => {
+      const trackId = playlist.currentTrackId.value
+      if (trackId && time > 0) {
+        progress.saveProgress(trackId, time)
+      }
+    }
+  )
 
   return {
     audio: audioCore.audio,

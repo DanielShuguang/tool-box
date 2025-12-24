@@ -1,7 +1,7 @@
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
 
-export type PlayMode = 'sequence' | 'loop' | 'random'
+export type PlayMode = 'sequence' | 'loop' | 'single' | 'random'
 
 export type SortOption = 'default' | 'title' | 'artist' | 'album' | 'name'
 

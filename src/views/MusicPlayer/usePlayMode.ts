@@ -25,12 +25,17 @@ export function usePlayMode() {
   }
 
   function togglePlayMode() {
-    const modes: PlayMode[] = ['sequence', 'loop', 'random']
+    const modes: PlayMode[] = ['sequence', 'loop', 'single', 'random']
     const currentModeIndex = modes.indexOf(playMode.value)
     const newMode = modes[(currentModeIndex + 1) % modes.length]
     updatePlayMode(newMode)
 
-    const modeNames = { sequence: '顺序播放', loop: '循环播放', random: '随机播放' }
+    const modeNames = {
+      sequence: '顺序播放',
+      loop: '列表循环',
+      single: '单曲循环',
+      random: '随机播放'
+    }
     message.success(`切换到${modeNames[newMode]}`)
   }
 

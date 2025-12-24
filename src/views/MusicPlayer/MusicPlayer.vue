@@ -51,12 +51,14 @@ const {
 const playModeIcons = {
   sequence: RepeatOutline,
   loop: RepeatOutline,
+  single: RepeatOutline,
   random: ShuffleOutline
 }
 
 const playModeLabels = {
   sequence: '顺序播放',
-  loop: '循环播放',
+  loop: '列表循环',
+  single: '单曲循环',
   random: '随机播放'
 }
 
