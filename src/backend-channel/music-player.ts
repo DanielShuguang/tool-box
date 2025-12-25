@@ -7,8 +7,9 @@ import {
 
 export type AudioData = ArrayBuffer
 
-export function readAudioFile(payload: ReadAudioFilePayload): Promise<AudioData> {
-  return invoke<number[]>('read_audio_file', { ...payload }).then(arr => new Uint8Array(arr).buffer)
+export async function readAudioFile(payload: ReadAudioFilePayload): Promise<AudioData> {
+  const arr = await invoke<number[]>('read_audio_file', { ...payload })
+  return new Uint8Array(arr).buffer
 }
 
 /** 扫描音频文件夹 */
