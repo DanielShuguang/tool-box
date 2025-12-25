@@ -6,10 +6,7 @@ import {
   PlaySkipForwardOutline,
   VolumeHighOutline,
   VolumeMuteOutline,
-  RepeatOutline,
-  ShuffleOutline,
   FolderOutline,
-  TrashOutline,
   ArrowUpOutline,
   ArrowDownOutline,
   SearchOutline
@@ -25,6 +22,7 @@ import { usePlaybackProgress } from './hooks/usePlaybackProgress'
 import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
 import { useDragDrop } from './hooks/useDragDrop'
 import { useContextMenu } from './hooks/useContextMenu'
+import { useTopActions } from './hooks/useTopActions'
 import type { SortOption } from './hooks/usePlaylist'
 
 const audioCore = useAudioCore()
@@ -59,80 +57,15 @@ const dragDrop = useDragDrop({ coordinator })
 
 const contextMenu = useContextMenu()
 
-const isDragging = dragDrop.isDragging
-
-const playModeIcons = {
-  sequence: RepeatOutline,
-  loop: RepeatOutline,
-  single: RepeatOutline,
-  random: ShuffleOutline
-}
-
-const playModeLabels = {
-  sequence: '顺序播放',
-  loop: '列表循环',
-  single: '单曲循环',
-  random: '随机播放'
-}
-
-const currentPlayModeIcon = computed(() => playModeIcons[playMode.playMode.value])
-const currentPlayModeLabel = computed(() => playModeLabels[playMode.playMode.value])
-
-const progressPercent = computed(() => {
-  if (duration.value === 0) return 0
-  return (currentTime.value / duration.value) * 100
+const topActions = useTopActions({
+  playMode,
+  volume,
+  audioCore,
+  playlist,
+  coordinator
 })
 
-function handleProgressChange(value: number) {
-  const time = (value / 100) * duration.value
-  audioCore.seekTo(time)
-}
-
-function handleVolumeChange(value: number) {
-  coordinator.setVolume(value / 100)
-}
-
-const sortOptions: Array<{ label: string; key: SortOption }> = [
-  { label: '默认排序', key: 'default' },
-  { label: '按歌名', key: 'title' },
-  { label: '按歌手', key: 'artist' },
-  { label: '按专辑', key: 'album' },
-  { label: '按文件名', key: 'name' }
-]
-
-const sortLabels: Record<SortOption, string> = {
-  default: '默认',
-  title: '歌名',
-  artist: '歌手',
-  album: '专辑',
-  name: '文件名'
-}
-
-function getSortLabel(option: SortOption) {
-  return sortLabels[option] || '默认'
-}
-
-const actionOptions = [
-  {
-    label: '添加文件夹',
-    key: 'addFolder',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(FolderOutline) })
-  },
-  { type: 'divider', key: 'd1' },
-  {
-    label: '清空播放列表',
-    key: 'clear',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
-  }
-]
-
-function handleActionSelect(key: string) {
-  if (key === 'addFolder') {
-    coordinator.selectFolder()
-  } else if (key === 'clear') {
-    coordinator.clearPlaylist()
-  }
-}
+const isDragging = dragDrop.isDragging
 
 const { containerProps, list, wrapperProps } = useVirtualList(filteredPlaylist, {
   itemHeight: 58,
@@ -163,12 +96,6 @@ onActivated(() => {
 onDeactivated(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
-
-const displayPlayList = computed(() =>
-  searchQuery.value
-    ? `${filteredPlaylist.value.length}/${playlist.playlist.value.length}`
-    : playlist.playlist.value.length
-)
 
 const infoModalProps = reactive({
   show: false,
@@ -275,10 +202,10 @@ function handlePlaylistMenuSelect(key: string) {
 
         <div class="mb-[20px] px-[8px] relative">
           <n-slider
-            :value="progressPercent"
+            :value="topActions.progressPercent.value"
             :format-tooltip="() => audioCore.formatTime(currentTime)"
             color="--primaryColor"
-            @update:value="handleProgressChange"
+            @update:value="topActions.handleProgressChange"
             :disabled="isLoading" />
           <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
             <span>{{ audioCore.formatTime(currentTime) }}</span>
@@ -342,7 +269,7 @@ function handlePlaylistMenuSelect(key: string) {
             :value="volume.volume.value * 100"
             class="flex-1"
             color="--primaryColor"
-            @update:value="handleVolumeChange" />
+            @update:value="topActions.handleVolumeChange" />
         </div>
 
         <div class="flex justify-center gap-[8px]">
@@ -353,10 +280,10 @@ function handlePlaylistMenuSelect(key: string) {
             class="transition-colors">
             <template #icon>
               <n-icon size="16">
-                <component :is="currentPlayModeIcon" />
+                <component :is="topActions.currentPlayModeIcon.value" />
               </n-icon>
             </template>
-            {{ currentPlayModeLabel }}
+            {{ topActions.currentPlayModeLabel.value }}
           </n-button>
         </div>
       </div>
@@ -371,13 +298,15 @@ function handlePlaylistMenuSelect(key: string) {
       <div
         class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
         <div class="flex items-center gap-[8px]">
-          <span class="font-bold text-[14px]">播放列表 ({{ displayPlayList }})</span>
+          <span class="font-bold text-[14px]">
+            播放列表 ({{ topActions.displayPlayList.value }})
+          </span>
           <n-dropdown
-            :options="sortOptions"
+            :options="topActions.sortOptions"
             @select="(key: string) => coordinator.setSortOption(key as SortOption)"
             :trigger="'click'">
             <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
-              {{ getSortLabel(sortOption) }}
+              {{ topActions.getSortLabel(sortOption) }}
               <n-icon size="12">
                 <ArrowDownOutline v-if="sortOrder === 'asc'" />
                 <ArrowUpOutline v-else />
@@ -399,7 +328,10 @@ function handlePlaylistMenuSelect(key: string) {
             </n-icon>
           </template>
         </n-input>
-        <n-dropdown :options="actionOptions" @select="handleActionSelect" :trigger="'click'">
+        <n-dropdown
+          :options="topActions.actionOptions.value"
+          @select="topActions.handleActionSelect"
+          :trigger="'click'">
           <n-button size="tiny" quaternary class="cursor-pointer">
             <template #icon>
               <n-icon size="14">
