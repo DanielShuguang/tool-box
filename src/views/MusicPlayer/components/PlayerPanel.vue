@@ -1,0 +1,185 @@
+<script setup lang="ts">
+import { Motion, AnimatePresence } from 'motion-v'
+import { NIcon, NSpin, NSlider } from 'naive-ui'
+import {
+  PlayOutline,
+  PauseOutline,
+  PlaySkipBackOutline,
+  PlaySkipForwardOutline,
+  VolumeHighOutline,
+  VolumeMuteOutline,
+  FolderOutline
+} from '@vicons/ionicons5'
+
+interface Props {
+  isPlaying: boolean
+  isLoading: boolean
+  currentTrack: {
+    id: string
+    title?: string
+    name?: string
+    artist?: string
+    album?: string
+  } | null
+  currentTime: number
+  duration: number
+  volumeValue: number
+  playModeIcon: any
+  playModeLabel: string
+  progressPercent: number
+  formatTime: (time: number) => string
+  togglePlay: () => void
+  handleProgressChange: (value: number) => void
+  handleVolumeChange: (value: number) => void
+  togglePlayMode: () => void
+  playPrevious: () => void
+  playNext: () => void
+  selectFolder: () => void
+}
+
+defineProps<Props>()
+</script>
+
+<template>
+  <div
+    class="w-full md:w-[400px] flex flex-col items-center justify-center p-[15px] border-(1px solid) border-[--borderColor] overflow-hidden relative flex-shrink-0">
+    <div v-if="!currentTrack" class="text-center text-[--textColor3]">
+      <div
+        class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md">
+        <n-icon size="60" :depth="3">
+          <FolderOutline />
+        </n-icon>
+      </div>
+      <p class="text-[13px] md:text-[16px] mb-[8px] font-medium">拖拽音频文件到此处</p>
+      <p class="text-[13px] mb-[15px] text-[--textColor3]">
+        支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式
+      </p>
+      <n-button type="primary" size="medium" @click="selectFolder" class="shadow-lg">
+        <template #icon>
+          <n-icon>
+            <FolderOutline />
+          </n-icon>
+        </template>
+        选择文件夹
+      </n-button>
+    </div>
+
+    <div v-else class="w-full max-w-[360px]">
+      <div class="flex flex-col items-center mb-[20px]">
+        <div
+          class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-2xl bg-gradient-to-br from-[--primaryColor] to-[--primaryColorHover] flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105">
+          <n-icon size="64" :depth="3" class="text-white">
+            <PlayOutline v-if="!isPlaying" />
+            <PauseOutline v-else />
+          </n-icon>
+        </div>
+        <h2
+          class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full">
+          <AnimatePresence>
+            <Motion
+              v-if="((currentTrack.title || currentTrack.name)?.length || 0) > 15"
+              tag="span"
+              class="inline-block"
+              :animate="{ x: '-50%' }"
+              :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }">
+              {{ currentTrack.title || currentTrack.name }}
+              　　{{ currentTrack.title || currentTrack.name }}
+            </Motion>
+            <span v-else>
+              {{ currentTrack.title || currentTrack.name }}
+            </span>
+          </AnimatePresence>
+        </h2>
+        <p class="text-[--textColor3] text-[14px] mb-[3px] line-clamp-1">
+          {{ currentTrack.artist || '未知艺术家' }}
+        </p>
+        <p v-if="currentTrack.album" class="text-[--textColor3] text-[12px] line-clamp-1">
+          {{ currentTrack.album }}
+        </p>
+      </div>
+
+      <div class="mb-[20px] px-[8px] relative">
+        <n-slider
+          :value="progressPercent"
+          :format-tooltip="() => formatTime(currentTime)"
+          color="--primaryColor"
+          @update:value="handleProgressChange"
+          :disabled="isLoading" />
+        <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
+          <span>{{ formatTime(currentTime) }}</span>
+          <span>{{ formatTime(duration) }}</span>
+        </div>
+        <div
+          v-if="isLoading"
+          class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg">
+          <n-spin size="small" :radius="12" />
+        </div>
+      </div>
+
+      <div class="flex justify-center items-center gap-[20px] mb-[18px]">
+        <n-button
+          circle
+          size="medium"
+          quaternary
+          @click="playPrevious"
+          class="transition-transform hover:scale-110">
+          <template #icon>
+            <n-icon size="24">
+              <PlaySkipBackOutline />
+            </n-icon>
+          </template>
+        </n-button>
+
+        <n-button
+          circle
+          size="medium"
+          type="primary"
+          @click="togglePlay"
+          class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110">
+          <template #icon>
+            <n-icon size="32">
+              <PauseOutline v-if="isPlaying" />
+              <PlayOutline v-else />
+            </n-icon>
+          </template>
+        </n-button>
+
+        <n-button
+          circle
+          size="medium"
+          quaternary
+          @click="playNext"
+          class="transition-transform hover:scale-110">
+          <template #icon>
+            <n-icon size="24">
+              <PlaySkipForwardOutline />
+            </n-icon>
+          </template>
+        </n-button>
+      </div>
+
+      <div class="flex items-center gap-[8px] mb-[15px] px-[15px]">
+        <n-icon size="18" class="text-[--textColor3]">
+          <VolumeHighOutline v-if="volumeValue > 0" />
+          <VolumeMuteOutline v-else />
+        </n-icon>
+        <n-slider
+          :value="volumeValue * 100"
+          class="flex-1"
+          color="--primaryColor"
+          @update:value="handleVolumeChange" />
+      </div>
+
+      <div class="flex justify-center gap-[8px]">
+        <n-button quaternary @click="togglePlayMode" size="small" class="transition-colors">
+          <template #icon>
+            <n-icon size="16">
+              <component :is="playModeIcon" />
+            </n-icon>
+          </template>
+          {{ playModeLabel }}
+        </n-button>
+      </div>
+    </div>
+  </div>
+</template>
