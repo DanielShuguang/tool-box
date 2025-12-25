@@ -24,6 +24,9 @@ export interface PlayerContext {
   handleProgressChange: (value: number) => void
   togglePlayMode: () => void
   selectFolder: () => void
+  removeTrack: (trackId: string) => void
+  clearPlaylist: () => void
+  stop: () => void
 }
 
 export const MusicPlayerContextKey: InjectionKey<PlayerContext> = Symbol('MusicPlayerContext')
@@ -50,7 +53,10 @@ export function createMusicPlayerContextDefaults(): PlayerContext {
     playPreviousTrack: noop,
     handleProgressChange: noop,
     togglePlayMode: noop,
-    selectFolder: noop
+    selectFolder: noop,
+    removeTrack: noop,
+    clearPlaylist: noop,
+    stop: noop
   }
 }
 

@@ -17,7 +17,14 @@ import { eventBus } from '../utils/eventBus'
 
 const context = useMusicPlayerContext()
 
-const { filteredPlaylist: playlist, currentTrackId, sortOption, sortOrder } = context
+const {
+  filteredPlaylist: playlist,
+  currentTrackId,
+  sortOption,
+  sortOrder,
+  removeTrack,
+  clearPlaylist
+} = context
 
 const sortOptions = [
   { label: '文件名', key: 'name' },
@@ -81,6 +88,7 @@ function handleActionSelect(key: string) {
       context.selectFolder()
       break
     case 'clear':
+      clearPlaylist()
       break
   }
 }
@@ -106,6 +114,7 @@ function handleContextMenuSelect(key: string) {
       infoModalShow.value = true
       break
     case 'remove':
+      removeTrack(track.id)
       break
   }
   handleContextMenuHide()
@@ -143,7 +152,7 @@ function handleClearSearch() {
     <div
       class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
       <div class="flex items-center gap-[8px]">
-        <span class="font-bold text-[14px]">播放列表 ({{ list.length }})</span>
+        <span class="font-bold text-[14px]">播放列表 ({{ playlist.length }})</span>
         <n-dropdown :options="sortOptions" @select="handleSortSelect" trigger="click">
           <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
             {{ sortLabel }}
@@ -185,7 +194,7 @@ function handleClearSearch() {
         <div
           v-for="item in list"
           :key="item.data.id"
-          class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px]"
+          class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px] select-none"
           :style="{
             backgroundColor:
               currentTrackId === item.data.id

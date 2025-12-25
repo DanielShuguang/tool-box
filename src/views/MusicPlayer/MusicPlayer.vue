@@ -18,7 +18,8 @@ const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
 const playModeObj = usePlayMode()
 
-const { isPlaying, isLoading, currentTime, duration, togglePlay, volume, setVolume } = audioCoreObj
+const { isPlaying, isLoading, currentTime, duration, togglePlay, volume, setVolume, stop } =
+  audioCoreObj
 
 const {
   currentTrack,
@@ -36,6 +37,23 @@ const { togglePlayMode } = playModeObj
 const progressObj = usePlaybackProgress()
 
 const { selectFolder, loadFilesFromFolder } = useFileLoader()
+
+function removeTrack(trackId: string) {
+  // 如果删除的是当前正在播放的曲目，则停止播放
+  if (trackId === currentTrackId.value) {
+    stop()
+  }
+  const index = playlistObj.playlist.value.findIndex(track => track.id === trackId)
+  if (index !== -1) {
+    playlistObj.removeFromPlaylist(index)
+  }
+}
+
+function clearPlaylist() {
+  // 清空列表时停止播放
+  stop()
+  playlistObj.clearPlaylist()
+}
 
 const coordinator = usePlayerCoordinator({
   playlist: playlistObj,
@@ -79,7 +97,10 @@ const playerContext: PlayerContext = {
   playPreviousTrack: coordinator.playPreviousTrack,
   handleProgressChange: topActions.handleProgressChange,
   togglePlayMode,
-  selectFolder: coordinator.selectFolder
+  selectFolder: coordinator.selectFolder,
+  removeTrack,
+  clearPlaylist,
+  stop
 }
 
 provide(MusicPlayerContextKey, playerContext)

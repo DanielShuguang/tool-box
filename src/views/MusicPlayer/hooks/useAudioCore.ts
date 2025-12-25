@@ -26,7 +26,7 @@ export function useAudioCore() {
 
   let onTrackEndedCallback: (() => void) | null = null
   let onNearEndCallback: (() => void) | null = null
-  const NEAR_END_THRESHOLD = 5 // 距离结尾5秒时触发预加载
+  const NEAR_END_THRESHOLD = 10 // 距离结尾10秒时触发预加载
 
   let currentBlobUrl: string | null = null
   let currentTrackPath: string | null = null
