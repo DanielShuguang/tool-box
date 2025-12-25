@@ -65,23 +65,20 @@ async function handleCopy(path: string) {
       <n-form-item label="搜索文件夹">
         <n-switch
           :disabled="taskStatus === SearchStatus.Processing"
-          v-model:value="supportFolder"
-        />
+          v-model:value="supportFolder" />
       </n-form-item>
       <n-form-item>
         <n-button
           v-if="taskStatus === SearchStatus.Default"
           :disabled="!selectedPoint.length || !searchText"
           type="primary"
-          @click="handleSearch"
-        >
+          @click="handleSearch">
           搜索
         </n-button>
         <n-button
           v-else
           :loading="taskStatus === SearchStatus.Shutdown"
-          @click="handleStopSearchTask"
-        >
+          @click="handleStopSearchTask">
           取消
         </n-button>
         <n-button v-if="list.length" class="ml-[10px]" @click="clearResult">清空</n-button>
@@ -95,18 +92,15 @@ async function handleCopy(path: string) {
       <n-spin
         v-if="taskStatus === SearchStatus.Processing"
         class="position-(absolute top-[10px] right-[10px])"
-        size="small"
-      />
+        size="small" />
       <div
         class="bg-[--avatarColor] size-full border-(1px solid) border-[--borderColor] p-[10px] box-border"
-        :="containerProps"
-      >
+        :="containerProps">
         <div :="wrapperProps">
           <div
             v-for="item in list"
             :key="item.data.path"
-            class="flex items-center px-[10px] h-[30px] gap-[15px]"
-          >
+            class="flex items-center px-[10px] h-[30px] gap-[15px]">
             <div>{{ item.index + 1 }}.</div>
             <n-tooltip>
               <template #trigger>
@@ -125,14 +119,12 @@ async function handleCopy(path: string) {
                   :data="item.data.path"
                   :search="searchText"
                   component-type="a"
-                  @click="openInExplorer(item.data)"
-                />
+                  @click="openInExplorer(item.data)" />
               </template>
               <PathHighlight
                 :data="item.data.path"
                 highlight-class="text-[--errorColor] underline bg-[transparent]"
-                :search="searchText"
-              />
+                :search="searchText" />
             </n-tooltip>
             <span v-if="!item.data.is_dir" class="text-[--infoColor] text-nowrap">
               {{ getCorrectSize(item.data.size) }}

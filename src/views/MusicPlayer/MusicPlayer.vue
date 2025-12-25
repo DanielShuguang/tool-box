@@ -12,10 +12,11 @@ import {
   TrashOutline,
   ArrowUpOutline,
   ArrowDownOutline,
-  SearchOutline
+  SearchOutline,
+  InformationCircleOutline
 } from '@vicons/ionicons5'
 import { Motion, AnimatePresence } from 'motion-v'
-import { NIcon } from 'naive-ui'
+import { NIcon, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { useAudioCore } from './hooks/useAudioCore'
 import { usePlaylist } from './hooks/usePlaylist'
 import { usePlayMode } from './hooks/usePlayMode'
@@ -25,6 +26,7 @@ import { usePlaybackProgress } from './hooks/usePlaybackProgress'
 import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
 import { useDragDrop } from './hooks/useDragDrop'
 import type { SortOption } from './hooks/usePlaylist'
+import type { AudioFile } from './hooks/usePlaylist'
 
 const audioCore = useAudioCore()
 const playlist = usePlaylist()
@@ -110,9 +112,17 @@ function getSortLabel(option: SortOption) {
 }
 
 const actionOptions = [
-  { label: '添加文件夹', key: 'addFolder', icon: () => h(NIcon, { size: 14 }, { default: () => h(FolderOutline) }) },
+  {
+    label: '添加文件夹',
+    key: 'addFolder',
+    icon: () => h(NIcon, { size: 14 }, { default: () => h(FolderOutline) })
+  },
   { type: 'divider', key: 'd1' },
-  { label: '清空播放列表', key: 'clear', icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) }) }
+  {
+    label: '清空播放列表',
+    key: 'clear',
+    icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
+  }
 ]
 
 function handleActionSelect(key: string) {
@@ -124,7 +134,7 @@ function handleActionSelect(key: string) {
 }
 
 const { containerProps, list, wrapperProps } = useVirtualList(filteredPlaylist, {
-  itemHeight: 54,
+  itemHeight: 58,
   overscan: 10
 })
 
@@ -153,10 +163,87 @@ onDeactivated(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
 
-const displayPlayList = computed(() => searchQuery.value ?
-  `${filteredPlaylist.value.length}/${playlist.playlist.value.length}` :
-  playlist.playlist.value.length
+const displayPlayList = computed(() =>
+  searchQuery.value
+    ? `${filteredPlaylist.value.length}/${playlist.playlist.value.length}`
+    : playlist.playlist.value.length
 )
+
+const menuProps = reactive({
+  show: false,
+  x: 0,
+  y: 0,
+  track: null as AudioFile | null
+})
+
+const infoModalProps = reactive({
+  show: false,
+  title: '',
+  data: null as Record<string, string> | null
+})
+
+const playlistItemOptions = computed(() => [
+  {
+    label: '播放',
+    key: 'play',
+    icon: () => h(NIcon, { size: 14 }, { default: () => h(PlayOutline) })
+  },
+  { type: 'divider', key: 'd1' },
+  {
+    label: '查看详情',
+    key: 'info',
+    icon: () => h(NIcon, { size: 14 }, { default: () => h(InformationCircleOutline) })
+  },
+  { type: 'divider', key: 'd2' },
+  {
+    label: '从列表中删除',
+    key: 'remove',
+    icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
+  }
+])
+
+function handlePlaylistRightClick(e: MouseEvent, track: AudioFile) {
+  e.preventDefault()
+  menuProps.show = true
+  menuProps.x = e.clientX
+  menuProps.y = e.clientY
+  menuProps.track = track
+}
+
+function handlePlaylistMenuSelect(key: string) {
+  const track = menuProps.track
+  if (!track) return
+
+  switch (key) {
+    case 'play':
+      coordinator.playTrack(track.id)
+      break
+    case 'info': {
+      const info = coordinator.showTrackInfo(track)
+      infoModalProps.title = info.title
+      infoModalProps.data = {
+        文件名: info.name,
+        路径: info.path,
+        标题: info.title,
+        艺术家: info.artist,
+        专辑: info.album,
+        时长: info.duration
+      }
+      infoModalProps.show = true
+      break
+    }
+    case 'remove':
+      coordinator.removeTrack(track.id)
+      break
+  }
+  menuProps.show = false
+  menuProps.track = null
+}
+
+function handleClickOutside() {
+  menuProps.show = false
+  menuProps.track = null
+}
 </script>
 
 <template>
@@ -166,12 +253,10 @@ const displayPlayList = computed(() => searchQuery.value ?
       :class="{ 'bg-[--hoverColor]': isDragging }"
       @drop="dragDrop.handleDrop"
       @dragover="dragDrop.handleDragOver"
-      @dragleave="dragDrop.handleDragLeave"
-    >
+      @dragleave="dragDrop.handleDragLeave">
       <div v-if="!currentTrack" class="text-center text-[--textColor3]">
         <div
-          class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md"
-        >
+          class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md">
           <n-icon size="60" :depth="3">
             <FolderOutline />
           </n-icon>
@@ -184,8 +269,7 @@ const displayPlayList = computed(() => searchQuery.value ?
           type="primary"
           size="medium"
           @click="coordinator.selectFolder()"
-          class="shadow-lg"
-        >
+          class="shadow-lg">
           <template #icon>
             <n-icon>
               <FolderOutline />
@@ -198,24 +282,21 @@ const displayPlayList = computed(() => searchQuery.value ?
       <div v-else class="w-full max-w-[360px]">
         <div class="flex flex-col items-center mb-[20px]">
           <div
-            class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-2xl bg-gradient-to-br from-[--primaryColor] to-[--primaryColorHover] flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105"
-          >
+            class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-2xl bg-gradient-to-br from-[--primaryColor] to-[--primaryColorHover] flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105">
             <n-icon size="64" :depth="3" class="text-white">
               <PlayOutline v-if="!isPlaying" />
               <PauseOutline v-else />
             </n-icon>
           </div>
           <h2
-            class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full"
-          >
+            class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full">
             <AnimatePresence>
               <Motion
                 v-if="(currentTrack.title || currentTrack.name).length > 15"
                 tag="span"
                 class="inline-block"
                 :animate="{ x: '-50%' }"
-                :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }"
-              >
+                :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }">
                 {{ currentTrack.title || currentTrack.name }}
                 　　{{ currentTrack.title || currentTrack.name }}
               </Motion>
@@ -238,16 +319,14 @@ const displayPlayList = computed(() => searchQuery.value ?
             :format-tooltip="() => audioCore.formatTime(currentTime)"
             color="--primaryColor"
             @update:value="handleProgressChange"
-            :disabled="isLoading"
-          />
+            :disabled="isLoading" />
           <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
             <span>{{ audioCore.formatTime(currentTime) }}</span>
             <span>{{ audioCore.formatTime(duration) }}</span>
           </div>
           <div
             v-if="isLoading"
-            class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg"
-          >
+            class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg">
             <n-spin size="small" :radius="12" />
           </div>
         </div>
@@ -258,8 +337,7 @@ const displayPlayList = computed(() => searchQuery.value ?
             size="medium"
             quaternary
             @click="coordinator.playPreviousTrack()"
-            class="transition-transform hover:scale-110"
-          >
+            class="transition-transform hover:scale-110">
             <template #icon>
               <n-icon size="24">
                 <PlaySkipBackOutline />
@@ -272,8 +350,7 @@ const displayPlayList = computed(() => searchQuery.value ?
             size="medium"
             type="primary"
             @click="audioCore.togglePlay()"
-            class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110"
-          >
+            class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110">
             <template #icon>
               <n-icon size="32">
                 <PauseOutline v-if="isPlaying" />
@@ -287,8 +364,7 @@ const displayPlayList = computed(() => searchQuery.value ?
             size="medium"
             quaternary
             @click="coordinator.playNextTrack()"
-            class="transition-transform hover:scale-110"
-          >
+            class="transition-transform hover:scale-110">
             <template #icon>
               <n-icon size="24">
                 <PlaySkipForwardOutline />
@@ -306,8 +382,7 @@ const displayPlayList = computed(() => searchQuery.value ?
             :value="volume.volume.value * 100"
             class="flex-1"
             color="--primaryColor"
-            @update:value="handleVolumeChange"
-          />
+            @update:value="handleVolumeChange" />
         </div>
 
         <div class="flex justify-center gap-[8px]">
@@ -315,8 +390,7 @@ const displayPlayList = computed(() => searchQuery.value ?
             quaternary
             @click="playMode.togglePlayMode"
             size="small"
-            class="transition-colors"
-          >
+            class="transition-colors">
             <template #icon>
               <n-icon size="16">
                 <component :is="currentPlayModeIcon" />
@@ -333,18 +407,15 @@ const displayPlayList = computed(() => searchQuery.value ?
       :class="{ 'bg-[--hoverColor]': isDragging }"
       @drop="dragDrop.handleDrop"
       @dragover="dragDrop.handleDragOver"
-      @dragleave="dragDrop.handleDragLeave"
-    >
+      @dragleave="dragDrop.handleDragLeave">
       <div
-        class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]"
-      >
+        class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
         <div class="flex items-center gap-[8px]">
           <span class="font-bold text-[14px]">播放列表 ({{ displayPlayList }})</span>
           <n-dropdown
             :options="sortOptions"
             @select="(key: string) => coordinator.setSortOption(key as SortOption)"
-            :trigger="'click'"
-          >
+            :trigger="'click'">
             <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
               {{ getSortLabel(sortOption) }}
               <n-icon size="12">
@@ -361,8 +432,7 @@ const displayPlayList = computed(() => searchQuery.value ?
           clearable
           size="small"
           class="flex-1!"
-          @clear="playlist.setSearchQuery('')"
-        >
+          @clear="playlist.setSearchQuery('')">
           <template #prefix>
             <n-icon size="14">
               <SearchOutline />
@@ -381,44 +451,49 @@ const displayPlayList = computed(() => searchQuery.value ?
         </n-dropdown>
       </div>
 
-      <div v-bind="containerProps" class="flex-1 overflow-auto">
+      <div v-bind="containerProps" class="flex-1 overflow-auto" @click="handleClickOutside">
         <div v-bind="wrapperProps">
           <div
             v-for="item in list"
             :key="item.data.id"
-            class="flex items-center px-[12px] border-b-(1px solid)
-            border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer"
+            class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px] box-border"
             :class="{ 'bg-[--activeColor]': playlist.currentTrackId.value === item.data.id }"
             @dblclick="coordinator.playTrack(item.data.id)"
-          >
-            <div class="flex-1 min-w-0 py-[8px] pr-[8px]">
+            @contextmenu="handlePlaylistRightClick($event, item.data)">
+            <div class="flex-1 min-w-0 flex flex-col justify-around h-full box-border">
               <p
                 class="text-[14px] truncate"
-                :class="{ 'font-medium text-[--primaryColor]': playlist.currentTrackId.value === item.data.id }"
-              >
+                :class="{
+                  'font-medium text-[--primaryColor]':
+                    playlist.currentTrackId.value === item.data.id
+                }">
                 {{ item.data.title || item.data.name }}
               </p>
               <p class="text-[12px] text-[--textColor3] truncate">
                 {{ item.data.artist || '未知艺术家' }}
               </p>
             </div>
-            <div class="flex items-center gap-[8px]">
-              <n-button
-                size="tiny"
-                quaternary
-                circle
-                @click.stop="coordinator.removeTrack(item.data.id)"
-              >
-                <template #icon>
-                  <n-icon size="14">
-                    <TrashOutline />
-                  </n-icon>
-                </template>
-              </n-button>
-            </div>
           </div>
         </div>
       </div>
+      <n-dropdown
+        :show="menuProps.show"
+        :x="menuProps.x"
+        :y="menuProps.y"
+        :options="playlistItemOptions"
+        @select="handlePlaylistMenuSelect"
+        @clickoutside="handleClickOutside" />
+      <n-modal
+        v-model:show="infoModalProps.show"
+        preset="card"
+        :title="infoModalProps.title"
+        style="width: 400px">
+        <n-descriptions :column="1" label-placement="left" v-if="infoModalProps.data">
+          <n-descriptions-item v-for="(value, key) in infoModalProps.data" :key="key" :label="key">
+            {{ value }}
+          </n-descriptions-item>
+        </n-descriptions>
+      </n-modal>
     </div>
   </div>
 </template>

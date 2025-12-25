@@ -69,8 +69,7 @@ const handleAddTodo = () => {
         v-model:value="deadline"
         type="date"
         placeholder="可选截止日期"
-        class="sm:w-40"
-      />
+        class="sm:w-40" />
       <n-button type="primary" @click="handleAddTodo"> 添加 </n-button>
     </div>
 
@@ -87,8 +86,7 @@ const handleAddTodo = () => {
               <div
                 v-if="todo.deadline"
                 class="text-xs mt-1"
-                :class="isDeadlineApproaching(todo.deadline, todo.completed) ? 'text-red-500 font-bold' : 'text-gray-500'"
-              >
+                :class="isDeadlineApproaching(todo.deadline, todo.completed) ? 'text-red-500 font-bold' : 'text-gray-500'">
                 截止日期: {{ new Date(todo.deadline).toLocaleDateString('zh-CN') }}
                 <span v-if="!todo.completed"> (剩余: {{ getRemainingTime(todo.deadline) }})</span>
                 <span v-if="isDeadlineApproaching(todo.deadline, todo.completed)">
@@ -116,24 +114,21 @@ const handleAddTodo = () => {
               @click="setFilter('all')"
               :type="filter === 'all' ? 'primary' : 'default'"
               secondary
-              size="small"
-            >
+              size="small">
               全部
             </n-button>
             <n-button
               @click="setFilter('active')"
               :type="filter === 'active' ? 'primary' : 'default'"
               secondary
-              size="small"
-            >
+              size="small">
               未完成
             </n-button>
             <n-button
               @click="setFilter('completed')"
               :type="filter === 'completed' ? 'primary' : 'default'"
               secondary
-              size="small"
-            >
+              size="small">
               已完成
             </n-button>
           </div>
@@ -143,8 +138,7 @@ const handleAddTodo = () => {
             v-if="todos.some(t => t.completed)"
             type="error"
             secondary
-            size="small"
-          >
+            size="small">
             清除已完成
           </n-button>
         </div>

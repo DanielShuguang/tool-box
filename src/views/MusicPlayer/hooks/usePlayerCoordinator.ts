@@ -190,6 +190,17 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     audioCore.stop()
   }
 
+  function showTrackInfo(track: AudioFile) {
+    return {
+      name: track.name,
+      path: track.path,
+      title: track.title || '未知',
+      artist: track.artist || '未知艺术家',
+      album: track.album || '未知专辑',
+      duration: audioCore.formatTime(track.duration || 0)
+    }
+  }
+
   function setSortOption(option: SortOption) {
     playlist.setSortOption(option)
   }
@@ -215,6 +226,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     removeTrack,
     clearPlaylist,
     setSortOption,
-    saveProgress
+    saveProgress,
+    showTrackInfo
   }
 }

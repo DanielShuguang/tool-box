@@ -49,8 +49,7 @@ const {
           :value="selectedReg"
           class="w-[200px]"
           :options="regList"
-          @update:value="handleSelect"
-        />
+          @update:value="handleSelect" />
       </n-form-item>
 
       <n-form-item required label="保存目录">
@@ -59,22 +58,19 @@ const {
           placeholder="请选择文件夹路径"
           :input-props="{ class: 'cursor-pointer' }"
           readonly
-          @click="selectSavingDir"
-        />
+          @click="selectSavingDir" />
       </n-form-item>
       <n-form-item label="同时下载任务数">
         <n-input-number
           v-model:value="maxDownloadCount"
           :min="1"
-          :disabled="downloadStatus === DownloadStatus.Processing"
-        />
+          :disabled="downloadStatus === DownloadStatus.Processing" />
       </n-form-item>
       <n-form-item label="单个任务的下载线程数">
         <n-input-number
           v-model:value="concurrentCount"
           :min="1"
-          :disabled="downloadStatus === DownloadStatus.Processing"
-        />
+          :disabled="downloadStatus === DownloadStatus.Processing" />
         <span class="ml-[15px]">下载线程越多，理论下载速度越快，请根据电脑配置合理设置</span>
       </n-form-item>
     </n-form>
@@ -85,8 +81,7 @@ const {
           class="mr-[10px]"
           type="primary"
           :disabled="!regText || !fileList.length"
-          @click="analysisContent"
-        >
+          @click="analysisContent">
           读取匹配内容
         </n-button>
         <n-button
@@ -94,8 +89,7 @@ const {
           class="mr-[10px]"
           :disabled="!dirPath"
           type="primary"
-          @click="saveToFile"
-        >
+          @click="saveToFile">
           导出到文件
         </n-button>
         <template v-if="isUrl && searched.length">
@@ -103,8 +97,7 @@ const {
             v-if="![DownloadStatus.Processing, DownloadStatus.Shutdown].includes(downloadStatus)"
             class="mr-[10px]"
             type="primary"
-            @click="handleDownload"
-          >
+            @click="handleDownload">
             开始下载
           </n-button>
           <n-button
@@ -112,8 +105,7 @@ const {
             :loading="downloadStatus === DownloadStatus.Shutdown"
             class="mr-[10px]"
             type="primary"
-            @click="stopDownload"
-          >
+            @click="stopDownload">
             停止下载
           </n-button>
         </template>
@@ -124,15 +116,13 @@ const {
 
     <div
       ref="outputRef"
-      class="relative flex-1 box-border bg-[--avatarColor] border-(1px solid) border-[--borderColor] p-[10px] overflow-auto"
-    >
+      class="relative flex-1 box-border bg-[--avatarColor] border-(1px solid) border-[--borderColor] p-[10px] overflow-auto">
       <n-button
         v-show="outputs.length"
         class="sticky float-right left-[100%] top-0"
         size="small"
         type="primary"
-        @click="clearOutputs"
-      >
+        @click="clearOutputs">
         清空
       </n-button>
       <p v-for="(m, i) of outputs" :key="i" class="my-[2px] w-[calc(100%-55px)] break-words">

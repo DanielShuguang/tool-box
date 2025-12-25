@@ -32,7 +32,6 @@ const lastLetter = computed(() => {
     <n-highlight
       :="omit($props, ['data', 'search'])"
       :text="lastLetter || data"
-      :patterns="[search]"
-    />
+      :patterns="[search]" />
   </component>
 </template>

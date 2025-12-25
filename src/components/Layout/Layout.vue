@@ -66,12 +66,10 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
 <template>
   <div
     class="flex flex-col size-full box-border overflow-x-hidden overflow-y-auto relative"
-    @contextmenu="disableContextmenu"
-  >
+    @contextmenu="disableContextmenu">
     <header
       class="w-full flex justify-between border-b-(1px solid #eee) select-none"
-      data-tauri-drag-region
-    >
+      data-tauri-drag-region>
       <div class="flex items-center justify-center px-[10px]" data-tauri-drag-region>
         <div data-tauri-drag-region>{{ appName }}</div>
       </div>
@@ -101,15 +99,13 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
           class="flex items-center mr-[15px] text-[--textColorBase] overflow-hidden"
           :transition="{ duration: 0.3 }"
           :animate="{ width: 'auto', opacity: 1 }"
-          :exit="{ width: 0, opacity: 0 }"
-        >
+          :exit="{ width: 0, opacity: 0 }">
           <span class="text-nowrap">当前页面功能：</span>
           <n-select
             class="inline-block w-[150px]"
             :options="options"
             v-model:value="activePath"
-            @update:value="changeSelect"
-          />
+            @update:value="changeSelect" />
         </Motion>
       </AnimatePresence>
       <n-tooltip>
@@ -135,8 +131,7 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
           <n-icon
             size="17"
             class="absolute right-[20px] cursor-pointer"
-            @click="toggleSettingsView"
-          >
+            @click="toggleSettingsView">
             <SettingsOutline />
           </n-icon>
         </template>
@@ -146,14 +141,12 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
     <transition name="fade" mode="out-in">
       <app-settings
         :open="openSettings"
-        class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] absolute top-[85px] left-0 z-10"
-      />
+        class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] absolute top-[85px] left-0 z-10" />
     </transition>
     <router-view
       v-show="!openSettings"
       class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] overflow-auto"
-      v-slot="{ Component }"
-    >
+      v-slot="{ Component }">
       <transition name="fade" mode="out-in">
         <keep-alive>
           <component :is="Component" class="size-full"></component>

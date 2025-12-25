@@ -31,3 +31,7 @@ body {
 #app {
   height: calc(100% - 2px); /* 减去上下边框宽度 */
 }
+
+p {
+  margin: 0;
+}

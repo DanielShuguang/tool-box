@@ -24,8 +24,7 @@ if (!isDevelopment) {
     class="w-full h-full m-0 p-0"
     :locale="zhCN"
     :theme="isDark ? darkTheme : null"
-    :date-locale="dateZhCN"
-  >
+    :date-locale="dateZhCN">
     <n-global-style />
     <n-message-provider>
       <n-dialog-provider>

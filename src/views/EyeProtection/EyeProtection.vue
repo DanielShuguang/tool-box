@@ -153,8 +153,7 @@ onMounted(() => {
           <n-input-number
             class="w-[300px]"
             v-model:value="state.closeEyesInterval"
-            :show-button="false"
-          >
+            :show-button="false">
             <template #suffix>
               <span>分钟</span>
             </template>
@@ -179,8 +178,7 @@ onMounted(() => {
               ref="closeEyes"
               :active="activeCountdown && !!state.closeEyesInterval"
               :duration="(state.closeEyesInterval || 0) * TimeUnits.Minute"
-              @finish="closeEyesAlarm"
-            />
+              @finish="closeEyesAlarm" />
           </n-card>
 
           <n-card title="距离下次远眺小憩剩余">
@@ -188,8 +186,7 @@ onMounted(() => {
               ref="rest"
               :active="activeCountdown && !!state.restInterval"
               :duration="(state.restInterval || 0) * TimeUnits.Minute"
-              @finish="restAlarm"
-            />
+              @finish="restAlarm" />
           </n-card>
         </div>
       </template>

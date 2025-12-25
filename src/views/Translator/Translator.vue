@@ -99,8 +99,7 @@ const translate = async () => {
           :options="supportedLanguages"
           label-field="name"
           value-field="code"
-          size="small"
-        />
+          size="small" />
         <div class="flex items-center">
           <n-button text @click="exchangeLanguages">
             <template #icon>
@@ -114,8 +113,7 @@ const translate = async () => {
           :options="targetLanguages"
           label-field="name"
           value-field="code"
-          size="small"
-        />
+          size="small" />
       </div>
 
       <div class="translation-service">
@@ -133,8 +131,7 @@ const translate = async () => {
             v-model:value="inputText"
             type="textarea"
             placeholder="请输入要翻译的文本"
-            :autosize="{ minRows: 10, maxRows: 15 }"
-          />
+            :autosize="{ minRows: 10, maxRows: 15 }" />
         </n-input-group>
       </div>
 
@@ -145,8 +142,7 @@ const translate = async () => {
             type="textarea"
             placeholder="翻译结果"
             readonly
-            :autosize="{ minRows: 10, maxRows: 15 }"
-          />
+            :autosize="{ minRows: 10, maxRows: 15 }" />
         </n-input-group>
       </div>
     </div>
