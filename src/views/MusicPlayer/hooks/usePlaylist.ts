@@ -56,15 +56,7 @@ export interface AudioFile {
  * @returns 是否匹配
  */
 function fuzzyMatch(text: string, query: string): boolean {
-  const lowerText = text.toLowerCase()
-  const lowerQuery = query.toLowerCase()
-  let textIndex = 0
-  for (const char of lowerQuery) {
-    const foundIndex = lowerText.indexOf(char, textIndex)
-    if (foundIndex === -1) return false
-    textIndex = foundIndex + 1
-  }
-  return true
+  return text.toLowerCase().includes(query.toLowerCase())
 }
 
 function matchAudioFile(file: AudioFile, query: string): boolean {
@@ -97,9 +89,9 @@ export function usePlaylist() {
     return playlist.value.find(t => t.id === id) || null
   })
   const searchQuery = ref('')
-
+  const searchQueryDbs = refDebounced(searchQuery, 500)
   const filteredPlaylist = computed(() => {
-    const query = searchQuery.value.trim().toLowerCase()
+    const query = searchQueryDbs.value.trim().toLowerCase()
 
     if (!query) {
       return sortedPlaylist.value
