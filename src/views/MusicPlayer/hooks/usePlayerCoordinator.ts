@@ -22,6 +22,25 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
   const { playlist, audioCore, playMode, volume, fileLoader, progress, isPlaying, currentTrack } =
     options
 
+  const recentPlayedIds = ref<string[]>([])
+
+  function getMaxRecentCount(): number {
+    const total = playlist.playlist.value.length
+    const count = Math.ceil(total / 3)
+    return Math.min(Math.max(count, 30), total)
+  }
+
+  watch(
+    () => playMode.playMode.value,
+    (mode, prevMode) => {
+      if (mode === 'random') {
+        recentPlayedIds.value = []
+      } else if (prevMode === 'random') {
+        recentPlayedIds.value = []
+      }
+    }
+  )
+
   /**
    * 获取下一首曲目 ID
    * 根据当前播放位置和排序规则计算下一首曲目
@@ -87,6 +106,12 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
   async function playTrack(trackId: string) {
     const track = playlist.playlist.value.find(t => t.id === trackId)
     if (!track) return
+
+    recentPlayedIds.value = [trackId, ...recentPlayedIds.value.filter(id => id !== trackId)].slice(
+      0,
+      getMaxRecentCount()
+    )
+
     progress.setCurrentTrack(trackId)
     const savedProgress = progress.getProgress(trackId)
     await audioCore.playTrack(track)
@@ -100,7 +125,20 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
    * 播放下一首曲目
    */
   function playNextTrack() {
-    const nextId = getNextTrackId()
+    let nextId: string | null = null
+
+    if (playMode.playMode.value === 'random') {
+      const list = playlist.playlist.value
+      if (list.length === 0) return
+
+      const availableTracks = list.filter(t => !recentPlayedIds.value.includes(t.id))
+      const pool = availableTracks.length > 0 ? availableTracks : list
+      const randomIndex = Math.floor(Math.random() * pool.length)
+      nextId = pool[randomIndex].id
+    } else {
+      nextId = getNextTrackId()
+    }
+
     if (nextId) playTrack(nextId)
   }
 
