@@ -12,8 +12,7 @@ import {
   TrashOutline,
   ArrowUpOutline,
   ArrowDownOutline,
-  SearchOutline,
-  InformationCircleOutline
+  SearchOutline
 } from '@vicons/ionicons5'
 import { Motion, AnimatePresence } from 'motion-v'
 import { NIcon, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
@@ -25,8 +24,8 @@ import { useFileLoader } from './hooks/useFileLoader'
 import { usePlaybackProgress } from './hooks/usePlaybackProgress'
 import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
 import { useDragDrop } from './hooks/useDragDrop'
+import { useContextMenu } from './hooks/useContextMenu'
 import type { SortOption } from './hooks/usePlaylist'
-import type { AudioFile } from './hooks/usePlaylist'
 
 const audioCore = useAudioCore()
 const playlist = usePlaylist()
@@ -57,6 +56,8 @@ const coordinator = usePlayerCoordinator({
 })
 
 const dragDrop = useDragDrop({ coordinator })
+
+const contextMenu = useContextMenu()
 
 const isDragging = dragDrop.isDragging
 
@@ -169,49 +170,14 @@ const displayPlayList = computed(() =>
     : playlist.playlist.value.length
 )
 
-const menuProps = reactive({
-  show: false,
-  x: 0,
-  y: 0,
-  track: null as AudioFile | null
-})
-
 const infoModalProps = reactive({
   show: false,
   title: '',
   data: null as Record<string, string> | null
 })
 
-const playlistItemOptions = computed(() => [
-  {
-    label: '播放',
-    key: 'play',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(PlayOutline) })
-  },
-  { type: 'divider', key: 'd1' },
-  {
-    label: '查看详情',
-    key: 'info',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(InformationCircleOutline) })
-  },
-  { type: 'divider', key: 'd2' },
-  {
-    label: '从列表中删除',
-    key: 'remove',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
-  }
-])
-
-function handlePlaylistRightClick(e: MouseEvent, track: AudioFile) {
-  e.preventDefault()
-  menuProps.show = true
-  menuProps.x = e.clientX
-  menuProps.y = e.clientY
-  menuProps.track = track
-}
-
 function handlePlaylistMenuSelect(key: string) {
-  const track = menuProps.track
+  const track = contextMenu.menuProps.track
   if (!track) return
 
   switch (key) {
@@ -236,13 +202,7 @@ function handlePlaylistMenuSelect(key: string) {
       coordinator.removeTrack(track.id)
       break
   }
-  menuProps.show = false
-  menuProps.track = null
-}
-
-function handleClickOutside() {
-  menuProps.show = false
-  menuProps.track = null
+  contextMenu.hide()
 }
 </script>
 
@@ -451,7 +411,7 @@ function handleClickOutside() {
         </n-dropdown>
       </div>
 
-      <div v-bind="containerProps" class="flex-1 overflow-auto" @click="handleClickOutside">
+      <div v-bind="containerProps" class="flex-1 overflow-auto" @click="contextMenu.hide()">
         <div v-bind="wrapperProps">
           <div
             v-for="item in list"
@@ -459,7 +419,7 @@ function handleClickOutside() {
             class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px] box-border"
             :class="{ 'bg-[--activeColor]': playlist.currentTrackId.value === item.data.id }"
             @dblclick="coordinator.playTrack(item.data.id)"
-            @contextmenu="handlePlaylistRightClick($event, item.data)">
+            @contextmenu="contextMenu.show($event, item.data)">
             <div class="flex-1 min-w-0 flex flex-col justify-around h-full box-border">
               <p
                 class="text-[14px] truncate"
@@ -477,12 +437,12 @@ function handleClickOutside() {
         </div>
       </div>
       <n-dropdown
-        :show="menuProps.show"
-        :x="menuProps.x"
-        :y="menuProps.y"
-        :options="playlistItemOptions"
+        :show="contextMenu.menuProps.show"
+        :x="contextMenu.menuProps.x"
+        :y="contextMenu.menuProps.y"
+        :options="contextMenu.options.value"
         @select="handlePlaylistMenuSelect"
-        @clickoutside="handleClickOutside" />
+        @clickoutside="contextMenu.hide()" />
       <n-modal
         v-model:show="infoModalProps.show"
         preset="card"
