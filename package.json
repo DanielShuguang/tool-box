@@ -11,7 +11,10 @@
     "tauri": "tauri",
     "lint": "oxlint --fix --vue-plugin src",
     "fmt": "oxfmt src",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",
@@ -43,12 +46,16 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.9.4",
+    "@testing-library/jest-dom": "^6.9.1",
     "@types/big.js": "^6.2.2",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.2",
     "@vitejs/plugin-vue-jsx": "^5.1.2",
+    "@vitest/ui": "^4.0.16",
+    "@vue/test-utils": "^2.4.6",
     "husky": "^9.1.7",
+    "jsdom": "^27.3.0",
     "oxfmt": "^0.19.0",
     "oxlint": "^1.35.0",
     "oxlint-tsgolint": "^0.10.0",
@@ -61,6 +68,7 @@
     "vite": "^7.2.4",
     "vite-plugin-legacy-swc": "^2.0.1",
     "vite-plugin-vue-devtools": "^8.0.5",
+    "vitest": "^4.0.16",
     "vue-tsc": "^3.1.4"
   },
   "volta": {
