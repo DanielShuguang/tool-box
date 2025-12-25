@@ -75,7 +75,7 @@ function getTrackArtist(track: AudioFile): string {
       class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
       <div class="flex items-center gap-[8px]">
         <span class="font-bold text-[14px]">播放列表 ({{ list.length }})</span>
-        <n-dropdown :options="sortOptions" @select="handleSortSelect" :trigger="'click'">
+        <n-dropdown :options="sortOptions" @select="handleSortSelect" trigger="click">
           <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
             {{ sortLabel }}
             <n-icon size="12">
@@ -116,7 +116,7 @@ function getTrackArtist(track: AudioFile): string {
         <div
           v-for="item in list"
           :key="item.data.id"
-          class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px] box-border"
+          class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px]"
           :style="{
             backgroundColor:
               currentTrackId === item.data.id
@@ -125,7 +125,7 @@ function getTrackArtist(track: AudioFile): string {
           }"
           @dblclick="emit('dblClick', item.data.id)"
           @contextmenu="emit('contextMenu', $event, item.data)">
-          <div class="flex-1 min-w-0 flex flex-col justify-around h-full box-border">
+          <div class="flex-1 min-w-0 flex flex-col justify-around h-full">
             <p
               class="text-[14px] truncate"
               :class="{ 'font-medium text-[--primaryColor]': currentTrackId === item.data.id }">

@@ -21,7 +21,12 @@ export function usePlayMode() {
     ConfigFile.MusicPlayer
   )
 
-  const { playMode } = toRefs(playerState.value)
+  const playMode = computed({
+    get: () => playerState.value.playMode,
+    set: (mode: PlayMode) => {
+      playerState.value.playMode = mode
+    }
+  })
 
   function updatePlayMode(mode: PlayMode) {
     playMode.value = mode

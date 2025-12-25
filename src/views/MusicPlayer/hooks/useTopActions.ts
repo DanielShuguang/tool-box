@@ -49,7 +49,7 @@ export function useTopActions(options: UseTopActionsOptions) {
     coordinator.setVolume(value / 100)
   }
 
-  const sortOptions: Array<{ label: string; key: SortOption }> = [
+  const sortOptions: Array<{ label: string; key: SortOption } & DropdownMixedOption> = [
     { label: '默认排序', key: 'default' },
     { label: '按歌名', key: 'title' },
     { label: '按歌手', key: 'artist' },

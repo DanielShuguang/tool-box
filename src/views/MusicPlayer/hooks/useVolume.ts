@@ -17,7 +17,12 @@ export function useVolume() {
     ConfigFile.MusicPlayer
   )
 
-  const { volume } = toRefs(playerState.value)
+  const volume = computed({
+    get: () => playerState.value.volume,
+    set: (vol: number) => {
+      playerState.value.volume = vol
+    }
+  })
 
   function setVolume(vol: number) {
     volume.value = vol

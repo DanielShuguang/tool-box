@@ -163,7 +163,7 @@ function handleDragLeave(event: DragEvent) {
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row h-full">
+  <div class="flex flex-col md:flex-row">
     <PlayerPanel
       :is-playing="isPlaying"
       :is-loading="isLoading"
