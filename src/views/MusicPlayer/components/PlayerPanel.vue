@@ -23,15 +23,17 @@ import { formatTime, getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 
 const context = useMusicPlayerContext()
 
-const isPlaying = context.isPlaying
-const isLoading = context.isLoading
-const currentTrack = context.currentTrack
-const currentTime = context.currentTime
-const duration = context.duration
-const volume = context.volume
-const togglePlayMode = context.togglePlayMode
-const handleProgressChange = context.handleProgressChange
-const selectFolder = context.selectFolder
+const {
+  isPlaying,
+  isLoading,
+  currentTrack,
+  currentTime,
+  duration,
+  volume,
+  togglePlayMode,
+  handleProgressChange,
+  selectFolder
+} = context
 
 const playModeLabel = computed(() => {
   if (currentTrack.value) {

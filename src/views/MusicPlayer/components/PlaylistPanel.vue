@@ -17,10 +17,7 @@ import { eventBus } from '../utils/eventBus'
 
 const context = useMusicPlayerContext()
 
-const playlist = context.filteredPlaylist
-const currentTrackId = context.currentTrackId
-const sortOption = context.sortOption
-const sortOrder = context.sortOrder
+const { filteredPlaylist: playlist, currentTrackId, sortOption, sortOrder } = context
 
 const sortOptions = [
   { label: '文件名', key: 'name' },

@@ -18,8 +18,7 @@ export interface UsePlayerCoordinatorOptions {
  * 协调各模块功能，处理播放逻辑、进度保存、文件操作等核心业务流程
  */
 export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
-  const { playlist, audioCore, playMode,  fileLoader, progress, isPlaying, currentTrack } =
-    options
+  const { playlist, audioCore, playMode, fileLoader, progress, isPlaying, currentTrack } = options
 
   const recentPlayedIds = ref<string[]>([])
   const nextTrackIdRef = ref<string | null>(null)
