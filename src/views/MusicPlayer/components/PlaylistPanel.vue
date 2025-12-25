@@ -5,51 +5,46 @@ import { useVirtualList } from '@vueuse/core'
 import type { SortOption } from '../hooks/usePlaylist'
 import type { AudioFile } from '../hooks/usePlaylist'
 import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
-import { computed } from 'vue'
+import { toRef } from 'vue'
 
 interface Props {
   playlist: AudioFile[]
   currentTrackId: string | null
-  searchQuery: string
   sortOption: SortOption
   sortOrder: 'asc' | 'desc'
   sortOptions: Array<{ label: string; key: SortOption }>
   sortLabel: string
   actionOptions: DropdownMixedOption[]
-  contextMenuShow: boolean
   contextMenuX: number
   contextMenuY: number
   contextMenuOptions: DropdownMixedOption[]
   contextMenuTrack: AudioFile | null
-  infoModalShow: boolean
   infoModalTitle: string
   infoModalData: Record<string, string> | null
 }
 
 const props = defineProps<Props>()
 
-const { list, containerProps, wrapperProps } = useVirtualList(
-  computed(() => props.playlist),
-  {
-    itemHeight: 50,
-    overscan: 10
-  }
-)
+const searchQuery = defineModel<string>('searchQuery', { default: '' })
+const sortOption = defineModel<SortOption>('sortOption')
+const contextMenuShow = defineModel<boolean>('contextMenuShow')
+const infoModalShow = defineModel<boolean>('infoModalShow')
+
+const { list, containerProps, wrapperProps } = useVirtualList(toRef(props, 'playlist'), {
+  itemHeight: 50,
+  overscan: 10
+})
 
 const emit = defineEmits<{
-  (e: 'update:searchQuery', value: string): void
-  (e: 'update:sortOption', value: SortOption): void
   (e: 'clearSearch'): void
   (e: 'selectAction', key: string): void
-  (e: 'contextMenuShowChange', value: boolean): void
   (e: 'contextMenuSelect', key: string): void
   (e: 'dblClick', id: string): void
   (e: 'contextMenu', event: MouseEvent, track: AudioFile): void
-  (e: 'infoModalShowChange', value: boolean): void
 }>()
 
 function handleSortSelect(key: string) {
-  emit('update:sortOption', key as SortOption)
+  sortOption.value = key as SortOption
 }
 
 function handleActionSelect(key: string) {
@@ -61,11 +56,7 @@ function handleContextMenuSelect(key: string) {
 }
 
 function handleContextMenuHide() {
-  emit('contextMenuShowChange', false)
-}
-
-function handleInfoModalShowChange(value: boolean) {
-  emit('infoModalShowChange', value)
+  contextMenuShow.value = false
 }
 
 function getTrackTitle(track: AudioFile): string {
@@ -95,13 +86,12 @@ function getTrackArtist(track: AudioFile): string {
         </n-dropdown>
       </div>
       <n-input
-        :value="searchQuery"
+        v-model:value="searchQuery"
         :bordered="false"
         placeholder="搜索歌曲..."
         clearable
         size="small"
         class="flex-1!"
-        @update:value="emit('update:searchQuery', $event)"
         @clear="emit('clearSearch')">
         <template #prefix>
           <n-icon size="14">
@@ -121,10 +111,7 @@ function getTrackArtist(track: AudioFile): string {
       </n-dropdown>
     </div>
 
-    <div
-      class="flex-1 overflow-auto"
-      v-bind="containerProps"
-      @click="emit('contextMenuShowChange', false)">
+    <div class="flex-1 overflow-auto" v-bind="containerProps" @click="contextMenuShow = false">
       <div v-bind="wrapperProps">
         <div
           v-for="item in list"
@@ -154,11 +141,10 @@ function getTrackArtist(track: AudioFile): string {
       @select="handleContextMenuSelect"
       @clickoutside="handleContextMenuHide" />
     <n-modal
-      :show="infoModalShow"
+      v-model:show="infoModalShow"
       preset="card"
       :title="infoModalTitle"
-      style="width: 400px"
-      @update:show="handleInfoModalShowChange">
+      style="width: 400px">
       <n-descriptions :column="1" label-placement="left" v-if="infoModalData">
         <n-descriptions-item v-for="(value, key) in infoModalData" :key="key" :label="key">
           {{ value }}

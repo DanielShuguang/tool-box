@@ -12,7 +12,6 @@ import { useContextMenu } from './hooks/useContextMenu'
 import { useTopActions } from './hooks/useTopActions'
 import PlayerPanel from './components/PlayerPanel.vue'
 import PlaylistPanel from './components/PlaylistPanel.vue'
-import type { SortOption } from './hooks/usePlaylist'
 
 const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
@@ -148,19 +147,6 @@ function handleDragOver(event: DragEvent) {
 function handleDragLeave(event: DragEvent) {
   dragDrop.handleDragLeave(event)
 }
-
-function handleContextMenuShowChange(value: boolean) {
-  if (!value) {
-    hideContextMenu()
-  }
-}
-
-function handleInfoModalShowChange(value: boolean) {
-  infoModalProps.show = value
-  if (!value) {
-    infoModalProps.data = null
-  }
-}
 </script>
 
 <template>
@@ -189,34 +175,30 @@ function handleInfoModalShowChange(value: boolean) {
       @dragleave="handleDragLeave" />
 
     <PlaylistPanel
+      v-model:search-query="searchQuery"
+      v-model:sort-option="sortOption"
+      v-model:context-menu-show="contextMenuMenuProps.show"
+      v-model:info-modal-show="infoModalProps.show"
       :playlist="filteredPlaylist"
       :current-track-id="currentTrackId"
-      :search-query="searchQuery"
-      :sort-option="sortOption"
       :sort-order="sortOrder"
       :sort-options="topActions.sortOptions"
       :sort-label="topActions.getSortLabel(sortOption)"
       :action-options="topActions.actionOptions.value"
-      :context-menu-show="contextMenuMenuProps.show"
       :context-menu-x="contextMenuMenuProps.x"
       :context-menu-y="contextMenuMenuProps.y"
       :context-menu-options="contextMenuOptions"
       :context-menu-track="contextMenuMenuProps.track"
-      :info-modal-show="infoModalProps.show"
       :info-modal-title="infoModalProps.title"
       :info-modal-data="infoModalProps.data"
       :class="{ 'bg-[--hoverColor]': isDragging }"
       @drop="handleDragDrop"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave"
-      @update:search-query="setSearchQuery"
-      @update:sort-option="(value) => coordinator.setSortOption(value as SortOption)"
       @clear-search="setSearchQuery('')"
       @select-action="topActions.handleActionSelect"
-      @context-menu-show-change="handleContextMenuShowChange"
       @context-menu-select="handlePlaylistMenuSelect"
       @dbl-click="coordinator.playTrack"
-      @context-menu="showContextMenu"
-      @info-modal-show-change="handleInfoModalShowChange" />
+      @context-menu="showContextMenu" />
   </div>
 </template>
