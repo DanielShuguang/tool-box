@@ -1,5 +1,6 @@
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
+import { throttle } from 'lodash-es'
 
 interface PreloadedTrack {
   track: AudioFile
@@ -21,6 +22,9 @@ export function useAudioCore() {
   const isPreloading = ref(false)
 
   let onTrackEndedCallback: (() => void) | null = null
+  let onNearEndCallback: (() => void) | null = null
+  const NEAR_END_THRESHOLD = 5 // 距离结尾5秒时触发预加载
+
   let currentBlobUrl: string | null = null
   let currentTrackPath: string | null = null
   let preloadedTrack: PreloadedTrack | null = null
@@ -32,11 +36,19 @@ export function useAudioCore() {
   function initAudio() {
     audio.value = new Audio()
 
-    audio.value.addEventListener('timeupdate', () => {
-      if (audio.value) {
-        currentTime.value = audio.value.currentTime
-      }
-    })
+    audio.value.addEventListener(
+      'timeupdate',
+      throttle(() => {
+        if (audio.value) {
+          currentTime.value = audio.value.currentTime
+          const remainingTime = (audio.value.duration || 0) - currentTime.value
+          if (remainingTime > 0 && remainingTime <= NEAR_END_THRESHOLD && onNearEndCallback) {
+            onNearEndCallback()
+            onNearEndCallback = null
+          }
+        }
+      }, 1000)
+    )
 
     audio.value.addEventListener('loadedmetadata', () => {
       if (audio.value) {
@@ -236,6 +248,10 @@ export function useAudioCore() {
     onTrackEndedCallback = callback
   }
 
+  function onNearEnd(callback: () => void) {
+    onNearEndCallback = callback
+  }
+
   function formatTime(seconds: number): string {
     if (!isFinite(seconds) || seconds < 0) return '00:00'
 
@@ -267,6 +283,7 @@ export function useAudioCore() {
     seekTo,
     stop,
     onTrackEnded,
+    onNearEnd,
     formatTime
   }
 }

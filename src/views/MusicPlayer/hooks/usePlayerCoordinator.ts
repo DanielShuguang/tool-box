@@ -126,6 +126,10 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     triggerPreload()
   }
 
+  async function handleNearEnd() {
+    await triggerPreload()
+  }
+
   /**
    * 播放下一首曲目
    */
@@ -256,6 +260,15 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
   }
 
   audioCore.onTrackEnded(handleTrackEnded)
+  audioCore.onNearEnd(handleNearEnd)
+
+  function checkAndPreload() {
+    const duration = audioCore.duration.value
+    const currentTime = audioCore.currentTime.value
+    if (duration && currentTime && duration - currentTime <= 10) {
+      triggerPreload()
+    }
+  }
 
   return {
     getNextTrackId,
@@ -270,6 +283,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     clearPlaylist,
     setSortOption,
     saveProgress,
-    showTrackInfo
+    showTrackInfo,
+    checkAndPreload
   }
 }

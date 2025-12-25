@@ -97,9 +97,14 @@ onMounted(() => {
   setAudioVolume(volume.value)
 })
 
-watch(currentTime, time => {
-  coordinator.saveProgress(time)
-})
+watchThrottled(
+  currentTime,
+  time => {
+    coordinator.saveProgress(time)
+    coordinator.checkAndPreload()
+  },
+  { throttle: 1000 }
+)
 
 onActivated(() => {
   window.addEventListener('keydown', handleKeydown)
