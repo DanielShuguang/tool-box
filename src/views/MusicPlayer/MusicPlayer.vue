@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { SortOption } from './hooks/usePlaylist'
-import { watch, onMounted, onActivated, onDeactivated, reactive } from 'vue'
+import { onMounted, onActivated, onDeactivated, provide } from 'vue'
 import { useAudioCore } from './hooks/useAudioCore'
 import { usePlaylist } from './hooks/usePlaylist'
 import { usePlayMode } from './hooks/usePlayMode'
@@ -9,10 +8,12 @@ import { useFileLoader } from './hooks/useFileLoader'
 import { usePlaybackProgress } from './hooks/usePlaybackProgress'
 import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
 import { useDragDrop } from './hooks/useDragDrop'
-import { useContextMenu } from './hooks/useContextMenu'
 import { useTopActions } from './hooks/useTopActions'
 import PlayerPanel from './components/PlayerPanel.vue'
 import PlaylistPanel from './components/PlaylistPanel.vue'
+import { MusicPlayerContextKey, type PlayerContext } from './contexts/PlayerContext'
+import { eventBus } from './utils/eventBus'
+import { useEmitter } from '../../utils/event'
 
 const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
@@ -24,7 +25,6 @@ const {
   isLoading,
   currentTime,
   duration,
-  formatTime,
   togglePlay,
   setVolume: setAudioVolume
 } = audioCoreObj
@@ -40,12 +40,6 @@ const {
   setSortOption
 } = playlistObj
 
-function handleSortOptionChange(option: SortOption | undefined) {
-  if (option) {
-    setSortOption(option)
-  }
-}
-
 const { togglePlayMode } = playModeObj
 
 const { volume } = volumeObj
@@ -53,13 +47,6 @@ const { volume } = volumeObj
 const progressObj = usePlaybackProgress()
 
 const { selectFolder, loadFilesFromFolder } = useFileLoader()
-
-const {
-  options: contextMenuOptions,
-  menuProps: contextMenuMenuProps,
-  show: showContextMenu,
-  hide: hideContextMenu
-} = useContextMenu()
 
 const coordinator = usePlayerCoordinator({
   playlist: playlistObj,
@@ -83,6 +70,58 @@ const topActions = useTopActions({
 })
 
 const isDragging = dragDrop.isDragging
+
+const playerContext: PlayerContext = {
+  isPlaying,
+  isLoading,
+  currentTime,
+  duration,
+  volume,
+  currentTrack,
+  currentTrackId,
+  searchQuery,
+  sortOption,
+  sortOrder,
+  filteredPlaylist,
+  togglePlay,
+  setVolume: setAudioVolume,
+  setSearchQuery,
+  setSortOption,
+  playTrack: coordinator.playTrack,
+  playNextTrack: coordinator.playNextTrack,
+  playPreviousTrack: coordinator.playPreviousTrack,
+  handleProgressChange: topActions.handleProgressChange,
+  togglePlayMode,
+  selectFolder: coordinator.selectFolder
+}
+
+provide(MusicPlayerContextKey, playerContext)
+
+useEmitter(
+  'toggle-play',
+  () => {
+    if (currentTrack.value) {
+      togglePlay()
+    }
+  },
+  { instance: eventBus }
+)
+
+useEmitter('play-track', coordinator.playTrack, { instance: eventBus })
+
+useEmitter('play-next', coordinator.playNextTrack, { instance: eventBus })
+
+useEmitter('play-previous', coordinator.playPreviousTrack, { instance: eventBus })
+
+useEmitter('seek', coordinator.seek, { instance: eventBus })
+
+useEmitter('set-volume', setAudioVolume, { instance: eventBus })
+
+useEmitter('toggle-play-mode', togglePlayMode, { instance: eventBus })
+
+useEmitter('select-folder', coordinator.selectFolder, { instance: eventBus })
+
+useEmitter('clear-search', () => setSearchQuery(''), { instance: eventBus })
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.code === 'Space') {
@@ -114,41 +153,6 @@ onDeactivated(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
 
-const infoModalProps = reactive({
-  show: false,
-  title: '',
-  data: null as Record<string, string> | null
-})
-
-function handlePlaylistMenuSelect(key: string) {
-  const track = contextMenuMenuProps.track
-  if (!track) return
-
-  switch (key) {
-    case 'play':
-      coordinator.playTrack(track.id)
-      break
-    case 'info': {
-      const info = coordinator.showTrackInfo(track)
-      infoModalProps.title = info.title
-      infoModalProps.data = {
-        文件名: info.name,
-        路径: info.path,
-        标题: info.title,
-        艺术家: info.artist,
-        专辑: info.album,
-        时长: info.duration
-      }
-      infoModalProps.show = true
-      break
-    }
-    case 'remove':
-      coordinator.removeTrack(track.id)
-      break
-  }
-  hideContextMenu()
-}
-
 function handleDragDrop(event: DragEvent) {
   dragDrop.handleDrop(event)
 }
@@ -165,54 +169,15 @@ function handleDragLeave(event: DragEvent) {
 <template>
   <div class="flex flex-col md:flex-row">
     <PlayerPanel
-      :is-playing="isPlaying"
-      :is-loading="isLoading"
-      :current-track="currentTrack"
-      :current-time="currentTime"
-      :duration="duration"
-      :volume-value="volume"
-      :play-mode-icon="topActions.currentPlayModeIcon.value"
-      :play-mode-label="topActions.currentPlayModeLabel.value"
-      :progress-percent="topActions.progressPercent.value"
-      :format-time="formatTime"
-      :toggle-play="togglePlay"
-      :handle-progress-change="topActions.handleProgressChange"
-      :handle-volume-change="topActions.handleVolumeChange"
-      :toggle-play-mode="togglePlayMode"
-      :play-previous="coordinator.playPreviousTrack"
-      :play-next="coordinator.playNextTrack"
-      :select-folder="coordinator.selectFolder"
       :class="{ 'bg-[--hoverColor]': isDragging }"
       @drop="handleDragDrop"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave" />
 
     <PlaylistPanel
-      v-model:search-query="searchQuery"
-      v-model:context-menu-show="contextMenuMenuProps.show"
-      v-model:info-modal-show="infoModalProps.show"
-      :sort-option="sortOption"
-      :playlist="filteredPlaylist"
-      :current-track-id="currentTrackId"
-      :sort-order="sortOrder"
-      :sort-options="topActions.sortOptions"
-      :sort-label="topActions.getSortLabel(sortOption)"
-      :action-options="topActions.actionOptions.value"
-      :context-menu-x="contextMenuMenuProps.x"
-      :context-menu-y="contextMenuMenuProps.y"
-      :context-menu-options="contextMenuOptions"
-      :context-menu-track="contextMenuMenuProps.track"
-      :info-modal-title="infoModalProps.title"
-      :info-modal-data="infoModalProps.data"
       :class="{ 'bg-[--hoverColor]': isDragging }"
       @drop="handleDragDrop"
       @dragover="handleDragOver"
-      @dragleave="handleDragLeave"
-      @clear-search="setSearchQuery('')"
-      @select-action="topActions.handleActionSelect"
-      @context-menu-select="handlePlaylistMenuSelect"
-      @dbl-click="coordinator.playTrack"
-      @context-menu="showContextMenu"
-      @update:sort-option="handleSortOptionChange" />
+      @dragleave="handleDragLeave" />
   </div>
 </template>

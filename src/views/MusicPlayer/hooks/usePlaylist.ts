@@ -187,7 +187,7 @@ export function usePlaylist() {
   }
 
   function addToPlaylist(files: AudioFile[]) {
-    playerState.value.playlist = [...playlist.value, ...files]
+    playerState.value.playlist = [...playerState.value.playlist, ...files]
   }
 
   function removeFromPlaylist(index: number) {

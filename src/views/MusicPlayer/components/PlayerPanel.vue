@@ -1,4 +1,11 @@
 <script setup lang="ts">
+const emit = defineEmits<{
+  drop: [event: DragEvent]
+  dragover: [event: DragEvent]
+  dragleave: [event: DragEvent]
+}>()
+
+import { computed } from 'vue'
 import { Motion, AnimatePresence } from 'motion-v'
 import { NIcon, NSpin, NSlider } from 'naive-ui'
 import {
@@ -10,39 +17,52 @@ import {
   VolumeMuteOutline,
   FolderOutline
 } from '@vicons/ionicons5'
+import { useMusicPlayerContext } from '../contexts/PlayerContext'
+import { eventBus } from '../utils/eventBus'
+import { formatTime, getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 
-interface Props {
-  isPlaying: boolean
-  isLoading: boolean
-  currentTrack: {
-    id: string
-    title?: string
-    name?: string
-    artist?: string
-    album?: string
-  } | null
-  currentTime: number
-  duration: number
-  volumeValue: number
-  playModeIcon: any
-  playModeLabel: string
-  progressPercent: number
-  formatTime: (time: number) => string
-  togglePlay: () => void
-  handleProgressChange: (value: number) => void
-  handleVolumeChange: (value: number) => void
-  togglePlayMode: () => void
-  playPrevious: () => void
-  playNext: () => void
-  selectFolder: () => void
+const context = useMusicPlayerContext()
+
+const isPlaying = context.isPlaying
+const isLoading = context.isLoading
+const currentTrack = context.currentTrack
+const currentTime = context.currentTime
+const duration = context.duration
+const volume = context.volume
+const togglePlayMode = context.togglePlayMode
+const handleProgressChange = context.handleProgressChange
+const selectFolder = context.selectFolder
+
+const playModeLabel = computed(() => {
+  if (currentTrack.value) {
+    return '播放模式'
+  }
+  return ''
+})
+
+function handleTogglePlay() {
+  eventBus.emit('toggle-play')
 }
 
-defineProps<Props>()
+function handleVolumeChange(value: number) {
+  eventBus.emit('set-volume', value / 100)
+}
+
+function handlePlayPrevious() {
+  eventBus.emit('play-previous')
+}
+
+function handlePlayNext() {
+  eventBus.emit('play-next')
+}
 </script>
 
 <template>
   <div
-    class="w-full md:w-[400px] flex flex-col items-center justify-center p-[15px] border-(1px solid) border-[--borderColor] overflow-hidden relative flex-shrink-0">
+    class="w-full md:w-[400px] flex flex-col items-center justify-center p-[15px] border-(1px solid) border-[--borderColor] overflow-hidden relative flex-shrink-0"
+    @drop="emit('drop', $event)"
+    @dragover="emit('dragover', $event)"
+    @dragleave="emit('dragleave', $event)">
     <div v-if="!currentTrack" class="text-center text-[--textColor3]">
       <div
         class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md">
@@ -77,21 +97,21 @@ defineProps<Props>()
           class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full">
           <AnimatePresence>
             <Motion
-              v-if="((currentTrack.title || currentTrack.name)?.length || 0) > 15"
+              v-if="getTrackTitle(currentTrack).length > 15"
               tag="span"
               class="inline-block"
               :animate="{ x: '-50%' }"
               :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }">
-              {{ currentTrack.title || currentTrack.name }}
-              　　{{ currentTrack.title || currentTrack.name }}
+              {{ getTrackTitle(currentTrack) }}
+              　　{{ getTrackTitle(currentTrack) }}
             </Motion>
             <span v-else>
-              {{ currentTrack.title || currentTrack.name }}
+              {{ getTrackTitle(currentTrack) }}
             </span>
           </AnimatePresence>
         </h2>
         <p class="text-[--textColor3] text-[14px] mb-[3px] line-clamp-1">
-          {{ currentTrack.artist || '未知艺术家' }}
+          {{ getTrackArtist(currentTrack) }}
         </p>
         <p v-if="currentTrack.album" class="text-[--textColor3] text-[12px] line-clamp-1">
           {{ currentTrack.album }}
@@ -100,7 +120,7 @@ defineProps<Props>()
 
       <div class="mb-[20px] px-[8px] relative">
         <n-slider
-          :value="progressPercent"
+          :value="duration > 0 ? (currentTime / duration) * 100 : 0"
           :format-tooltip="() => formatTime(currentTime)"
           color="--primaryColor"
           @update:value="handleProgressChange"
@@ -121,7 +141,7 @@ defineProps<Props>()
           circle
           size="medium"
           quaternary
-          @click="playPrevious"
+          @click="handlePlayPrevious"
           class="transition-transform hover:scale-110">
           <template #icon>
             <n-icon size="24">
@@ -134,7 +154,7 @@ defineProps<Props>()
           circle
           size="medium"
           type="primary"
-          @click="togglePlay"
+          @click="handleTogglePlay"
           class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110">
           <template #icon>
             <n-icon size="32">
@@ -148,7 +168,7 @@ defineProps<Props>()
           circle
           size="medium"
           quaternary
-          @click="playNext"
+          @click="handlePlayNext"
           class="transition-transform hover:scale-110">
           <template #icon>
             <n-icon size="24">
@@ -160,11 +180,11 @@ defineProps<Props>()
 
       <div class="flex items-center gap-[8px] mb-[15px] px-[15px]">
         <n-icon size="18" class="text-[--textColor3]">
-          <VolumeHighOutline v-if="volumeValue > 0" />
+          <VolumeHighOutline v-if="volume > 0" />
           <VolumeMuteOutline v-else />
         </n-icon>
         <n-slider
-          :value="volumeValue * 100"
+          :value="volume * 100"
           class="flex-1"
           color="--primaryColor"
           @update:value="handleVolumeChange" />
@@ -174,7 +194,7 @@ defineProps<Props>()
         <n-button quaternary @click="togglePlayMode" size="small" class="transition-colors">
           <template #icon>
             <n-icon size="16">
-              <component :is="playModeIcon" />
+              <FolderOutline />
             </n-icon>
           </template>
           {{ playModeLabel }}

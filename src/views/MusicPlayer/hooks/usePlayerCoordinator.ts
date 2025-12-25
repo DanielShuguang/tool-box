@@ -252,6 +252,10 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     playlist.setSortOption(option)
   }
 
+  function seek(time: number) {
+    audioCore.seekTo(time)
+  }
+
   function saveProgress(time: number) {
     const trackId = playlist.currentTrackId.value
     if (trackId && time > 0) {
@@ -284,6 +288,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     setSortOption,
     saveProgress,
     showTrackInfo,
-    checkAndPreload
+    checkAndPreload,
+    seek
   }
 }

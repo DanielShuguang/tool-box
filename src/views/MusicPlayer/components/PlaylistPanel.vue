@@ -1,76 +1,148 @@
 <script setup lang="ts">
+const emit = defineEmits<{
+  drop: [event: DragEvent]
+  dragover: [event: DragEvent]
+  dragleave: [event: DragEvent]
+}>()
+
+import { computed } from 'vue'
 import { NInput, NIcon, NDropdown, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
 import { useVirtualList } from '@vueuse/core'
-import type { SortOption } from '../hooks/usePlaylist'
-import type { AudioFile } from '../hooks/usePlaylist'
+import type { SortOption, AudioFile } from '../hooks/usePlaylist'
 import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
-import { toRef } from 'vue'
+import { useMusicPlayerContext } from '../contexts/PlayerContext'
+import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
+import { eventBus } from '../utils/eventBus'
 
-interface Props {
-  playlist: AudioFile[]
-  currentTrackId: string | null
-  sortOption: SortOption
-  sortOrder: 'asc' | 'desc'
-  sortOptions: Array<{ label: string; key: SortOption }>
-  sortLabel: string
-  actionOptions: DropdownMixedOption[]
-  contextMenuX: number
-  contextMenuY: number
-  contextMenuOptions: DropdownMixedOption[]
-  contextMenuTrack: AudioFile | null
-  infoModalTitle: string
-  infoModalData: Record<string, string> | null
-}
+const context = useMusicPlayerContext()
 
-const props = defineProps<Props>()
+const playlist = context.filteredPlaylist
+const currentTrackId = context.currentTrackId
+const sortOption = context.sortOption
+const sortOrder = context.sortOrder
 
-const searchQuery = defineModel<string>('searchQuery', { default: '' })
-const contextMenuShow = defineModel<boolean>('contextMenuShow')
-const infoModalShow = defineModel<boolean>('infoModalShow')
+const sortOptions = [
+  { label: '文件名', key: 'name' },
+  { label: '标题', key: 'title' },
+  { label: '艺术家', key: 'artist' },
+  { label: '专辑', key: 'album' }
+]
 
-const { list, containerProps, wrapperProps } = useVirtualList(toRef(props, 'playlist'), {
-  itemHeight: 50,
-  overscan: 10
+const actionOptions = [
+  { label: '添加文件夹', key: 'addFolder' },
+  { label: '清空列表', key: 'clear' }
+]
+
+const sortLabel = computed(() => {
+  const labelMap: Record<SortOption, string> = {
+    default: '默认',
+    name: '文件名',
+    title: '标题',
+    artist: '艺术家',
+    album: '专辑'
+  }
+  return labelMap[sortOption.value] || '默认'
 })
 
-const emit = defineEmits<{
-  (e: 'clearSearch'): void
-  (e: 'selectAction', key: string): void
-  (e: 'contextMenuSelect', key: string): void
-  (e: 'dblClick', id: string): void
-  (e: 'contextMenu', event: MouseEvent, track: AudioFile): void
-  (e: 'update:sortOption', option: SortOption): void
-}>()
+const searchQuery = computed({
+  get: () => context.searchQuery.value,
+  set: val => context.setSearchQuery(val)
+})
+
+const contextMenuShow = ref(false)
+const contextMenuX = ref(0)
+const contextMenuY = ref(0)
+const contextMenuTrack = ref<AudioFile | null>(null)
+
+const contextMenuOptions: DropdownMixedOption[] = [
+  { label: '播放', key: 'play' },
+  { label: '查看详情', key: 'info' },
+  { type: 'divider', key: 'd1' },
+  { label: '从列表中移除', key: 'remove' }
+]
+
+const infoModalShow = ref(false)
+const infoModalTitle = ref('')
+const infoModalData = ref<Record<string, string> | null>(null)
+
+const { list, containerProps, wrapperProps } = useVirtualList(
+  computed(() => playlist.value),
+  {
+    itemHeight: 50,
+    overscan: 10
+  }
+)
 
 function handleSortSelect(key: string) {
-  emit('update:sortOption', key as SortOption)
+  context.setSortOption(key as SortOption)
 }
 
 function handleActionSelect(key: string) {
-  emit('selectAction', key)
+  switch (key) {
+    case 'addFolder':
+      context.selectFolder()
+      break
+    case 'clear':
+      break
+  }
 }
 
 function handleContextMenuSelect(key: string) {
-  emit('contextMenuSelect', key)
+  const track = contextMenuTrack.value
+  if (!track) return
+
+  switch (key) {
+    case 'play':
+      context.playTrack(track.id)
+      break
+    case 'info':
+      infoModalTitle.value = getTrackTitle(track)
+      infoModalData.value = {
+        文件名: track.name || '未知',
+        路径: track.path || '未知',
+        标题: track.title || '未知',
+        艺术家: track.artist || '未知艺术家',
+        专辑: track.album || '未知专辑',
+        时长: '未知'
+      }
+      infoModalShow.value = true
+      break
+    case 'remove':
+      break
+  }
+  handleContextMenuHide()
 }
 
 function handleContextMenuHide() {
   contextMenuShow.value = false
 }
 
-function getTrackTitle(track: AudioFile): string {
-  return track.title || track.name || '未知曲目'
+function handleDblClick(id: string) {
+  context.playTrack(id)
 }
 
-function getTrackArtist(track: AudioFile): string {
-  return track.artist || '未知艺术家'
+function handleContextMenu(event: MouseEvent, track: AudioFile) {
+  event.preventDefault()
+  contextMenuShow.value = true
+  contextMenuX.value = event.clientX
+  contextMenuY.value = event.clientY
+  contextMenuTrack.value = track
+}
+
+function handleClearSearch() {
+  searchQuery.value = ''
+  context.setSearchQuery('')
+  eventBus.emit('clear-search')
 }
 </script>
 
 <template>
   <div
-    class="flex-1 border-(1px solid) border-[--borderColor] flex flex-col min-h-0 relative min-w-0">
+    class="flex-1 border-(1px solid) border-[--borderColor] flex flex-col min-h-0 relative min-w-0"
+    @drop="emit('drop', $event)"
+    @dragover="emit('dragover', $event)"
+    @dragleave="emit('dragleave', $event)">
     <div
       class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
       <div class="flex items-center gap-[8px]">
@@ -92,7 +164,7 @@ function getTrackArtist(track: AudioFile): string {
         clearable
         size="small"
         class="flex-1!"
-        @clear="emit('clearSearch')">
+        @clear="handleClearSearch">
         <template #prefix>
           <n-icon size="14">
             <SearchOutline />
@@ -111,7 +183,7 @@ function getTrackArtist(track: AudioFile): string {
       </n-dropdown>
     </div>
 
-    <div class="flex-1 overflow-auto" v-bind="containerProps" @click="contextMenuShow = false">
+    <div class="flex-1 overflow-auto" v-bind="containerProps" @click="handleContextMenuHide">
       <div v-bind="wrapperProps">
         <div
           v-for="item in list"
@@ -123,8 +195,8 @@ function getTrackArtist(track: AudioFile): string {
                 ? 'color-mix(in srgb, var(--primaryColor) 15%, transparent)'
                 : undefined
           }"
-          @dblclick="emit('dblClick', item.data.id)"
-          @contextmenu="emit('contextMenu', $event, item.data)">
+          @dblclick="handleDblClick(item.data.id)"
+          @contextmenu="handleContextMenu($event, item.data)">
           <div class="flex-1 min-w-0 flex flex-col justify-around h-full">
             <p
               class="text-[14px] truncate"
