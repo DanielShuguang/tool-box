@@ -43,7 +43,6 @@ const {
 function handleSortOptionChange(option: SortOption | undefined) {
   if (option) {
     setSortOption(option)
-    sortOption.value = option
   }
 }
 

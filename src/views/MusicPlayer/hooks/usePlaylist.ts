@@ -83,7 +83,31 @@ export function usePlaylist() {
     ConfigFile.MusicPlayer
   )
 
-  const { playlist, sortOption, sortOrder, currentTrackId } = toRefs(playerState.value)
+  const playlist = computed({
+    get: () => playerState.value.playlist,
+    set: val => {
+      playerState.value.playlist = val
+    }
+  })
+  const sortOption = computed({
+    get: () => playerState.value.sortOption,
+    set: val => {
+      playerState.value.sortOption = val
+    }
+  })
+  const sortOrder = computed({
+    get: () => playerState.value.sortOrder,
+    set: val => {
+      playerState.value.sortOrder = val
+    }
+  })
+  const currentTrackId = computed({
+    get: () => playerState.value.currentTrackId,
+    set: val => {
+      playerState.value.currentTrackId = val
+    }
+  })
+
   const currentTrack = computed(() => {
     const id = currentTrackId.value
     return playlist.value.find(t => t.id === id) || null

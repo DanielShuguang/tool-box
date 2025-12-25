@@ -1,6 +1,11 @@
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 
+interface PreloadedTrack {
+  track: AudioFile
+  blobUrl: string
+}
+
 /**
  * 音频核心控制 Hook
  * 封装 HTML5 Audio 元素，提供音频播放、暂停、进度控制等功能
@@ -13,10 +18,12 @@ export function useAudioCore() {
   const currentTime = ref(0)
   const duration = ref(0)
   const isLoading = ref(false)
+  const isPreloading = ref(false)
 
   let onTrackEndedCallback: (() => void) | null = null
   let currentBlobUrl: string | null = null
   let currentTrackPath: string | null = null
+  let preloadedTrack: PreloadedTrack | null = null
 
   /**
    * 初始化音频对象
@@ -58,7 +65,8 @@ export function useAudioCore() {
    */
   function setVolume(vol: number) {
     if (audio.value) {
-      audio.value.volume = vol
+      const clampedVol = Math.max(0, Math.min(1, vol))
+      audio.value.volume = clampedVol
     }
   }
 
@@ -121,6 +129,58 @@ export function useAudioCore() {
     } finally {
       isLoading.value = false
     }
+  }
+
+  /**
+   * 预加载指定音轨
+   * 提前加载音频数据到内存，实现无缝切换
+   * @param track 音频文件信息
+   */
+  async function preloadTrack(track: AudioFile) {
+    if (!track) return
+    if (isPreloading.value) return
+    if (preloadedTrack?.track.path === track.path) return
+
+    try {
+      isPreloading.value = true
+
+      if (preloadedTrack) {
+        URL.revokeObjectURL(preloadedTrack.blobUrl)
+        preloadedTrack = null
+      }
+
+      const audioData = await readAudioFile({ filePath: track.path })
+      const mimeType = getMimeType(track.path)
+      const blob = new Blob([audioData], { type: mimeType })
+      const blobUrl = URL.createObjectURL(blob)
+
+      preloadedTrack = { track, blobUrl }
+    } catch (err) {
+      console.error('Preload error:', err)
+    } finally {
+      isPreloading.value = false
+    }
+  }
+
+  /**
+   * 获取预加载的音轨并应用到 Audio 元素
+   * @param track 音频文件信息
+   */
+  function applyPreloadedTrack(track: AudioFile) {
+    if (!preloadedTrack || preloadedTrack.track.path !== track.path) return false
+
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl)
+    }
+
+    currentBlobUrl = preloadedTrack.blobUrl
+    currentTrackPath = track.path
+    if (audio.value) {
+      audio.value.src = currentBlobUrl
+    }
+    preloadedTrack = null
+
+    return true
   }
 
   /**
@@ -198,8 +258,11 @@ export function useAudioCore() {
     currentTime,
     duration,
     isLoading,
+    isPreloading,
     setVolume,
     playTrack,
+    preloadTrack,
+    applyPreloadedTrack,
     togglePlay,
     seekTo,
     stop,

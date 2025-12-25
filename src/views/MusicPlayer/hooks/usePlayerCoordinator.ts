@@ -23,6 +23,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     options
 
   const recentPlayedIds = ref<string[]>([])
+  const nextTrackIdRef = ref<string | null>(null)
 
   function getMaxRecentCount(): number {
     const total = playlist.playlist.value.length
@@ -41,11 +42,6 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     }
   )
 
-  /**
-   * 获取下一首曲目 ID
-   * 根据当前播放位置和排序规则计算下一首曲目
-   * @returns 下一首曲目 ID，若无曲目则返回 null
-   */
   function getNextTrackId(): string | null {
     if (playlist.playlist.value.length === 0) return null
     const currentId = playlist.currentTrackId.value
@@ -57,11 +53,6 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     return sortedList[nextSortedIndex]?.id || null
   }
 
-  /**
-   * 获取上一首曲目 ID
-   * 根据当前播放位置和排序规则计算上一首曲目
-   * @returns 上一首曲目 ID，若无曲目则返回 null
-   */
   function getPreviousTrackId(): string | null {
     if (playlist.playlist.value.length === 0) return null
     const currentId = playlist.currentTrackId.value
@@ -74,11 +65,21 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     return sortedList[prevSortedIndex]?.id || null
   }
 
-  /**
-   * 处理曲目播放结束事件
-   * 根据当前播放模式决定下一步操作
-   */
-  function handleTrackEnded() {
+  async function triggerPreload() {
+    if (playMode.playMode.value === 'single') return
+    if (playMode.playMode.value === 'loop') return
+
+    const nextId = getNextTrackId()
+    if (!nextId) return
+
+    nextTrackIdRef.value = nextId
+    const track = playlist.playlist.value.find(t => t.id === nextId)
+    if (track) {
+      await audioCore.preloadTrack(track)
+    }
+  }
+
+  async function handleTrackEnded() {
     if (playMode.playMode.value === 'single') {
       const currentId = playlist.currentTrackId.value
       if (currentId) {
@@ -98,11 +99,6 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     }
   }
 
-  /**
-   * 播放指定曲目
-   * 加载曲目、恢复播放进度、设置当前曲目
-   * @param trackId 要播放的曲目 ID
-   */
   async function playTrack(trackId: string) {
     const track = playlist.playlist.value.find(t => t.id === trackId)
     if (!track) return
@@ -114,11 +110,20 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
 
     progress.setCurrentTrack(trackId)
     const savedProgress = progress.getProgress(trackId)
-    await audioCore.playTrack(track)
+
+    if (audioCore.applyPreloadedTrack(track)) {
+      await audioCore.audio.value?.play()
+      audioCore.isPlaying.value = true
+    } else {
+      await audioCore.playTrack(track)
+    }
+
     playlist.updateCurrentTrackId(trackId)
     if (savedProgress > 0 && savedProgress < (audioCore.duration.value || 0) - 5) {
       audioCore.seekTo(savedProgress)
     }
+
+    triggerPreload()
   }
 
   /**

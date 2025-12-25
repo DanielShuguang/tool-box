@@ -117,7 +117,12 @@ function getTrackArtist(track: AudioFile): string {
           v-for="item in list"
           :key="item.data.id"
           class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] transition-colors cursor-pointer h-[50px] box-border"
-          :class="{ 'bg-[--activeColor]': currentTrackId === item.data.id }"
+          :style="{
+            backgroundColor:
+              currentTrackId === item.data.id
+                ? 'color-mix(in srgb, var(--primaryColor) 15%, transparent)'
+                : undefined
+          }"
           @dblclick="emit('dblClick', item.data.id)"
           @contextmenu="emit('contextMenu', $event, item.data)">
           <div class="flex-1 min-w-0 flex flex-col justify-around h-full box-border">
