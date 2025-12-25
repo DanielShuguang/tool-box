@@ -9,7 +9,6 @@ import TrashOutline from '@vicons/ionicons5/es/TrashOutline'
 
 export type UseTopActionsOptions = {
   playMode: ReturnType<typeof import('./usePlayMode').usePlayMode>
-  volume: ReturnType<typeof import('./useVolume').useVolume>
   audioCore: ReturnType<typeof import('./useAudioCore').useAudioCore>
   playlist: ReturnType<typeof import('./usePlaylist').usePlaylist>
   coordinator: ReturnType<typeof import('./usePlayerCoordinator').usePlayerCoordinator>

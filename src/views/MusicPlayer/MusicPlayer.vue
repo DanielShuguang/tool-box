@@ -41,7 +41,6 @@ const coordinator = usePlayerCoordinator({
   playlist: playlistObj,
   audioCore: audioCoreObj,
   playMode: playModeObj,
-  volume: audioCoreObj,
   fileLoader: { selectFolder, loadFilesFromFolder },
   progress: progressObj,
   isPlaying,
@@ -52,7 +51,6 @@ const dragDrop = useDragDrop({ coordinator })
 
 const topActions = useTopActions({
   playMode: playModeObj,
-  volume: audioCoreObj,
   audioCore: audioCoreObj,
   playlist: playlistObj,
   coordinator

@@ -7,7 +7,6 @@ export interface UsePlayerCoordinatorOptions {
   playlist: ReturnType<typeof import('./usePlaylist').usePlaylist>
   audioCore: ReturnType<typeof import('./useAudioCore').useAudioCore>
   playMode: ReturnType<typeof import('./usePlayMode').usePlayMode>
-  volume: ReturnType<typeof import('./useVolume').useVolume>
   fileLoader: ReturnType<typeof import('./useFileLoader').useFileLoader>
   progress: ReturnType<typeof import('./usePlaybackProgress').usePlaybackProgress>
   isPlaying: Ref<boolean>
@@ -19,7 +18,7 @@ export interface UsePlayerCoordinatorOptions {
  * 协调各模块功能，处理播放逻辑、进度保存、文件操作等核心业务流程
  */
 export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
-  const { playlist, audioCore, playMode, volume, fileLoader, progress, isPlaying, currentTrack } =
+  const { playlist, audioCore, playMode,  fileLoader, progress, isPlaying, currentTrack } =
     options
 
   const recentPlayedIds = ref<string[]>([])
@@ -165,7 +164,6 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
    * @param vol 音量值（0-1）
    */
   function setVolume(vol: number) {
-    volume.setVolume(vol)
     audioCore.setVolume(vol)
   }
 
