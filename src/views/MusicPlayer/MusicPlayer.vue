@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, onActivated, onDeactivated, provide } from 'vue'
+import { onActivated, onDeactivated, provide } from 'vue'
 import { useAudioCore } from './hooks/useAudioCore'
 import { usePlaylist } from './hooks/usePlaylist'
 import { usePlayMode } from './hooks/usePlayMode'
-import { useVolume } from './hooks/useVolume'
 import { useFileLoader } from './hooks/useFileLoader'
 import { usePlaybackProgress } from './hooks/usePlaybackProgress'
 import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
@@ -18,16 +17,8 @@ import { useEmitter } from '../../utils/event'
 const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
 const playModeObj = usePlayMode()
-const volumeObj = useVolume()
 
-const {
-  isPlaying,
-  isLoading,
-  currentTime,
-  duration,
-  togglePlay,
-  setVolume: setAudioVolume
-} = audioCoreObj
+const { isPlaying, isLoading, currentTime, duration, togglePlay, volume, setVolume } = audioCoreObj
 
 const {
   currentTrack,
@@ -42,8 +33,6 @@ const {
 
 const { togglePlayMode } = playModeObj
 
-const { volume } = volumeObj
-
 const progressObj = usePlaybackProgress()
 
 const { selectFolder, loadFilesFromFolder } = useFileLoader()
@@ -52,7 +41,7 @@ const coordinator = usePlayerCoordinator({
   playlist: playlistObj,
   audioCore: audioCoreObj,
   playMode: playModeObj,
-  volume: volumeObj,
+  volume: audioCoreObj,
   fileLoader: { selectFolder, loadFilesFromFolder },
   progress: progressObj,
   isPlaying,
@@ -63,7 +52,7 @@ const dragDrop = useDragDrop({ coordinator })
 
 const topActions = useTopActions({
   playMode: playModeObj,
-  volume: volumeObj,
+  volume: audioCoreObj,
   audioCore: audioCoreObj,
   playlist: playlistObj,
   coordinator
@@ -84,7 +73,7 @@ const playerContext: PlayerContext = {
   sortOrder,
   filteredPlaylist,
   togglePlay,
-  setVolume: setAudioVolume,
+  setVolume,
   setSearchQuery,
   setSortOption,
   playTrack: coordinator.playTrack,
@@ -115,7 +104,7 @@ useEmitter('play-previous', coordinator.playPreviousTrack, { instance: eventBus 
 
 useEmitter('seek', coordinator.seek, { instance: eventBus })
 
-useEmitter('set-volume', setAudioVolume, { instance: eventBus })
+useEmitter('set-volume', setVolume, { instance: eventBus })
 
 useEmitter('toggle-play-mode', togglePlayMode, { instance: eventBus })
 
@@ -132,8 +121,12 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => {
-  setAudioVolume(volume.value)
+onActivated(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onDeactivated(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 
 watchThrottled(
@@ -144,14 +137,6 @@ watchThrottled(
   },
   { throttle: 1000 }
 )
-
-onActivated(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onDeactivated(() => {
-  window.removeEventListener('keydown', handleKeydown)
-})
 
 function handleDragDrop(event: DragEvent) {
   dragDrop.handleDrop(event)

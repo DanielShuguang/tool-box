@@ -45,7 +45,7 @@ function handleTogglePlay() {
 }
 
 function handleVolumeChange(value: number) {
-  eventBus.emit('set-volume', value / 100)
+  eventBus.emit('set-volume', value)
 }
 
 function handlePlayPrevious() {
@@ -184,7 +184,7 @@ function handlePlayNext() {
           <VolumeMuteOutline v-else />
         </n-icon>
         <n-slider
-          :value="volume * 100"
+          :value="Math.round(volume * 100)"
           class="flex-1"
           color="--primaryColor"
           @update:value="handleVolumeChange" />

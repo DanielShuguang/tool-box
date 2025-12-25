@@ -1,6 +1,7 @@
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 import { throttle } from 'lodash-es'
+import { useVolume } from './useVolume'
 
 interface PreloadedTrack {
   track: AudioFile
@@ -13,6 +14,8 @@ interface PreloadedTrack {
  */
 export function useAudioCore() {
   const message = useMessage()
+
+  const { volume, setVolume: setPersistedVolume } = useVolume()
 
   const audio = ref<HTMLAudioElement | null>(null)
   const isPlaying = ref(false)
@@ -35,6 +38,7 @@ export function useAudioCore() {
    */
   function initAudio() {
     audio.value = new Audio()
+    audio.value.volume = volume.value
 
     audio.value.addEventListener(
       'timeupdate',
@@ -73,13 +77,14 @@ export function useAudioCore() {
 
   /**
    * 设置音量
-   * @param vol 音量值（0-1）
+   * @param vol 音量值（0-100）
    */
   function setVolume(vol: number) {
+    const clampedVol = Math.max(0, Math.min(100, Math.round(vol))) / 100
     if (audio.value) {
-      const clampedVol = Math.max(0, Math.min(1, vol))
       audio.value.volume = clampedVol
     }
+    setPersistedVolume(clampedVol)
   }
 
   /**
@@ -275,6 +280,7 @@ export function useAudioCore() {
     duration,
     isLoading,
     isPreloading,
+    volume,
     setVolume,
     playTrack,
     preloadTrack,
