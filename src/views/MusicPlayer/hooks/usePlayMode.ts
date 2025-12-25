@@ -1,4 +1,3 @@
-import { computed } from 'vue'
 import { useMessage } from 'naive-ui'
 import { usePersistentStorage } from '@/hooks/usePersistentStorage'
 import { ConfigFile } from '@/utils/storage'
@@ -22,10 +21,10 @@ export function usePlayMode() {
     ConfigFile.MusicPlayer
   )
 
-  const playMode = computed(() => playerState.value.playMode)
+  const { playMode } = toRefs(playerState.value)
 
   function updatePlayMode(mode: PlayMode) {
-    playerState.value.playMode = mode
+    playMode.value = mode
   }
 
   /**

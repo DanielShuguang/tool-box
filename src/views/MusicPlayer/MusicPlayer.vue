@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { SortOption } from './hooks/usePlaylist'
 import { watch, onMounted, onActivated, onDeactivated, reactive } from 'vue'
 import { useAudioCore } from './hooks/useAudioCore'
 import { usePlaylist } from './hooks/usePlaylist'
@@ -35,8 +36,16 @@ const {
   sortOption,
   sortOrder,
   filteredPlaylist,
-  setSearchQuery
+  setSearchQuery,
+  setSortOption
 } = playlistObj
+
+function handleSortOptionChange(option: SortOption | undefined) {
+  if (option) {
+    setSortOption(option)
+    sortOption.value = option
+  }
+}
 
 const { togglePlayMode } = playModeObj
 
@@ -176,9 +185,9 @@ function handleDragLeave(event: DragEvent) {
 
     <PlaylistPanel
       v-model:search-query="searchQuery"
-      v-model:sort-option="sortOption"
       v-model:context-menu-show="contextMenuMenuProps.show"
       v-model:info-modal-show="infoModalProps.show"
+      :sort-option="sortOption"
       :playlist="filteredPlaylist"
       :current-track-id="currentTrackId"
       :sort-order="sortOrder"
@@ -199,6 +208,7 @@ function handleDragLeave(event: DragEvent) {
       @select-action="topActions.handleActionSelect"
       @context-menu-select="handlePlaylistMenuSelect"
       @dbl-click="coordinator.playTrack"
-      @context-menu="showContextMenu" />
+      @context-menu="showContextMenu"
+      @update:sort-option="handleSortOptionChange" />
   </div>
 </template>

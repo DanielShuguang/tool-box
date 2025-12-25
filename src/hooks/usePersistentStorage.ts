@@ -1,38 +1,66 @@
 import { load, save, ConfigFile } from '@/utils/storage'
 import { TimeUnits } from '@/utils/time'
 
-/**
- * 持久化存储组合式函数
- *
- * 该函数提供了一个响应式数据存储，能够在数据变化时自动保存到持久化存储中，
- * 并在组件挂载时从持久化存储中加载数据。
- *
- * @param key - 存储键名，用于标识存储的数据
- * @param defaultValue - 默认值，当存储中没有找到对应数据时使用
- * @param configFile - 配置文件对象，可选参数，用于指定存储配置
- * @returns 返回一个响应式引用，包含存储的数据
- */
+interface SharedDataCache {
+  data: Ref<unknown>
+  loading: boolean
+  subscribers: Set<string>
+}
+
+const sharedDataCache = new Map<string, SharedDataCache>()
+
+function getCacheKey(key: string, configFile?: ConfigFile): string {
+  return configFile ? `${configFile}:${key}` : key
+}
+
 export function usePersistentStorage<T>(key: string, defaultValue: T, configFile?: ConfigFile) {
-  const data = ref<T>(defaultValue)
+  const cacheKey = getCacheKey(key, configFile)
+
+  if (!sharedDataCache.has(cacheKey)) {
+    sharedDataCache.set(cacheKey, {
+      data: ref<T>(defaultValue) as Ref<T>,
+      loading: false,
+      subscribers: new Set()
+    })
+  }
+
+  const cache = sharedDataCache.get(cacheKey)!
+  const subscriberId = Math.random().toString(36).slice(2, 9)
+  cache.subscribers.add(subscriberId)
+
   let isInitialized = false
 
-  // 组件挂载时从持久化存储中加载数据
-  onMounted(async () => {
+  async function loadData() {
+    if (cache.loading) return
+    cache.loading = true
     try {
-      data.value = await load(key, defaultValue, configFile)
-      isInitialized = true
+      const loadedValue = await load(key, defaultValue, configFile)
+      cache.data.value = loadedValue as T
     } catch (error) {
       console.error('Failed to load settings:', error)
+    } finally {
+      cache.loading = false
+    }
+  }
+
+  onMounted(() => {
+    if (!isInitialized) {
+      loadData()
+      isInitialized = true
     }
   })
 
-  // 监听数据变化，当数据变化时自动保存到持久化存储
-  watchDebounced(
-    data,
-    async newValue => {
-      // 避免初始化时触发保存
-      if (!isInitialized) return
+  onUnmounted(() => {
+    cache.subscribers.delete(subscriberId)
+    if (cache.subscribers.size === 0) {
+      sharedDataCache.delete(cacheKey)
+    }
+  })
 
+  watchDebounced(
+    cache.data,
+    async newValue => {
+      if (!isInitialized) return
       try {
         await save(key, newValue, configFile)
       } catch (error) {
@@ -42,5 +70,5 @@ export function usePersistentStorage<T>(key: string, defaultValue: T, configFile
     { flush: 'post', debounce: TimeUnits.Second }
   )
 
-  return data
+  return cache.data as Ref<T>
 }

@@ -91,14 +91,11 @@ export function usePlaylist() {
     ConfigFile.MusicPlayer
   )
 
-  const playlist = computed(() => playerState.value.playlist)
-  const currentTrackId = computed(() => playerState.value.currentTrackId)
+  const { playlist, sortOption, sortOrder, currentTrackId } = toRefs(playerState.value)
   const currentTrack = computed(() => {
-    const id = playerState.value.currentTrackId
+    const id = currentTrackId.value
     return playlist.value.find(t => t.id === id) || null
   })
-  const sortOption = computed(() => playerState.value.sortOption)
-  const sortOrder = computed(() => playerState.value.sortOrder)
   const searchQuery = ref('')
 
   const filteredPlaylist = computed(() => {
@@ -112,9 +109,9 @@ export function usePlaylist() {
   })
 
   const sortedPlaylist = computed(() => {
-    const originalPlaylist = playerState.value.playlist
-    const option = playerState.value.sortOption
-    const order = playerState.value.sortOrder
+    const originalPlaylist = playlist.value
+    const option = sortOption.value
+    const order = sortOrder.value
 
     if (option === 'default') {
       return originalPlaylist

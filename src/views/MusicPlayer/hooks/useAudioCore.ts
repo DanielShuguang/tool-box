@@ -45,7 +45,7 @@ export function useAudioCore() {
 
     audio.value.addEventListener('error', () => {
       const error = audio.value?.error
-      if (error) {
+      if (error && currentTrackPath) {
         console.error('Audio error:', error)
         message.error('音频播放失败，将自动跳过')
       }

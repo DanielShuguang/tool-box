@@ -26,7 +26,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const searchQuery = defineModel<string>('searchQuery', { default: '' })
-const sortOption = defineModel<SortOption>('sortOption')
 const contextMenuShow = defineModel<boolean>('contextMenuShow')
 const infoModalShow = defineModel<boolean>('infoModalShow')
 
@@ -41,10 +40,11 @@ const emit = defineEmits<{
   (e: 'contextMenuSelect', key: string): void
   (e: 'dblClick', id: string): void
   (e: 'contextMenu', event: MouseEvent, track: AudioFile): void
+  (e: 'update:sortOption', option: SortOption): void
 }>()
 
 function handleSortSelect(key: string) {
-  sortOption.value = key as SortOption
+  emit('update:sortOption', key as SortOption)
 }
 
 function handleActionSelect(key: string) {
