@@ -12,14 +12,20 @@ export interface PersistOptions {
 
 export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin {
   return function persistPlugin(context) {
+    const persistOptions = context.options.persist
+
+    // 如果 store 没有配置 persist 选项，则不启用持久化
+    if (!persistOptions) {
+      return
+    }
+
     const storeId = context.store.$id
-    const persistOptions = (context.options as { persist?: PersistOptions }).persist
     const {
       fileName = globalOptions?.fileName ?? ConfigFile.Settings,
       key = globalOptions?.key ?? storeId,
       debounce = globalOptions?.debounce ?? TimeUnits.Second,
       keys: persistKeys
-    } = persistOptions || globalOptions || {}
+    } = persistOptions
 
     async function loadState() {
       try {
