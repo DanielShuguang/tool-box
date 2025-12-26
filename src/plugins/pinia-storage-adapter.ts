@@ -10,6 +10,31 @@ export interface PersistOptions {
   keys?: string[]
 }
 
+let restorePromise: Promise<void> | null = null
+let restoreResolve: (() => void) | null = null
+const pendingStores = new Set<string>()
+
+function createRestorePromise() {
+  restorePromise = new Promise(resolve => {
+    restoreResolve = resolve
+  })
+  pendingStores.clear()
+}
+
+createRestorePromise()
+
+export function waitForRestore(): Promise<void> {
+  return restorePromise!
+}
+
+function markStoreRestored(storeId: string) {
+  pendingStores.delete(storeId)
+  if (pendingStores.size === 0 && restoreResolve) {
+    restoreResolve()
+    createRestorePromise()
+  }
+}
+
 export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin {
   return function persistPlugin(context) {
     const persistOptions = context.options.persist
@@ -20,6 +45,8 @@ export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin 
     }
 
     const storeId = context.store.$id
+    pendingStores.add(storeId)
+
     const {
       fileName = globalOptions?.fileName ?? ConfigFile.Settings,
       key = globalOptions?.key ?? storeId,
@@ -44,6 +71,8 @@ export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin 
         }
       } catch (error) {
         console.error(`Failed to load state for ${key}:`, error)
+      } finally {
+        markStoreRestored(storeId)
       }
     }
 

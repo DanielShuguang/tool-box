@@ -13,17 +13,20 @@ import { getName } from '@tauri-apps/api/app'
 import { Motion, AnimatePresence } from 'motion-v'
 import { isDevelopment } from '@/utils/development'
 import { useRouterStore } from '@/stores/router'
+import { waitForRestore } from '@/plugins/pinia-storage-adapter'
 
 const router = useRouter()
 const appName = ref('')
 const routerStore = useRouterStore()
 
 onMounted(async () => {
-  router.push(routerStore.currentRoutePath)
   appName.value = await getName()
   if (isDevelopment) {
     appName.value += '（Dev）'
   }
+
+  await waitForRestore()
+  router.push(routerStore.currentRoutePath)
 })
 
 const options = computed(() =>

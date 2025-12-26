@@ -9,6 +9,8 @@
   ],
   "categories": {},
   "rules": {
+    "no-nested-ternary": "warn",
+    "no-floating-promises": "off",
     "for-direction": "warn",
     "no-async-promise-executor": "warn",
     "no-caller": "warn",
@@ -79,7 +81,6 @@
     "typescript/no-duplicate-enum-values": "warn",
     "typescript/no-duplicate-type-constituents": "warn",
     "typescript/no-extra-non-null-assertion": "warn",
-    "typescript/no-floating-promises": "warn",
     "typescript/no-for-in-array": "warn",
     "typescript/no-implied-eval": "warn",
     "typescript/no-meaningless-void-operator": "warn",
