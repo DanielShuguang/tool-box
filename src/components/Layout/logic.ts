@@ -1,18 +1,20 @@
+import { storeToRefs } from 'pinia'
 import { emitter } from '@/utils/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useThemeVars } from 'naive-ui'
+import { useAppSettingsStore } from '@/stores/appSettings'
 
 export function useSystemTheme() {
-  const isAuto = useLocalStorage('theme-state', false)
-  const isDark = useDark({ selector: 'html' })
+  const appSettingsStore = useAppSettingsStore()
+  const { themeAutoFollow, isDark } = storeToRefs(appSettingsStore)
 
   function handleChangeTheme() {
     isDark.value = !isDark.value
   }
 
   function handleChangeThemeState() {
-    isAuto.value = !isAuto.value
-    if (isAuto.value) {
+    themeAutoFollow.value = !themeAutoFollow.value
+    if (themeAutoFollow.value) {
       getThemeBySystem()
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', getThemeBySystem)
     } else {
@@ -27,16 +29,21 @@ export function useSystemTheme() {
   }
 
   onMounted(() => {
-    if (isAuto.value) {
-      isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    // 确保主题状态同步到 DOM（处理数据加载时机问题）
+    if (typeof document !== 'undefined' && document.documentElement) {
+      if (isDark.value) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
     }
 
-    emitter.emit('theme-change', isDark.value)
+    if (themeAutoFollow.value) {
+      getThemeBySystem()
+    }
   })
 
-  watch(isDark, val => emitter.emit('theme-change', val))
-
-  return { isDark, isAuto, handleChangeTheme, handleChangeThemeState }
+  return { isDark, themeAutoFollow, handleChangeTheme, handleChangeThemeState }
 }
 
 export function useUpdateThemeVariables() {

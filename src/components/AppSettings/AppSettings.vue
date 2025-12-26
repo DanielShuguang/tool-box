@@ -1,30 +1,25 @@
 <script lang="ts" setup>
 import { isDevelopment } from '@/utils/development'
 import { useAppAutostart, useGenerateTrayIcon } from './logic'
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
+import { useAppSettingsStore } from '@/stores/appSettings'
 
 defineProps<{ open: boolean }>()
 
-const state = usePersistentStorage('app-settings', {
-  autostart: false,
-  enableTrayIcon: false
-})
+const appSettingsStore = useAppSettingsStore()
+
+const { autostart, enableTrayIcon } = storeToRefs(appSettingsStore)
 
 onMounted(() => {
   if (isDevelopment) {
-    state.value = {
-      autostart: false,
-      enableTrayIcon: false
-    }
+    appSettingsStore.autostart = false
+    appSettingsStore.enableTrayIcon = false
   }
 })
-
-const { autostart, enableTrayIcon } = toRefs(state.value)
 
 const { toggleTrayIcon } = useGenerateTrayIcon(enableTrayIcon)
 
 const { toggleAutostart } = useAppAutostart(autostart, () => {
-  enableTrayIcon.value = true
+  appSettingsStore.enableTrayIcon = true
 })
 </script>
 <template>
@@ -33,11 +28,14 @@ const { toggleAutostart } = useAppAutostart(autostart, () => {
 
     <n-form label-placement="left">
       <n-form-item label="开机启动">
-        <n-switch :value="autostart" @update:value="toggleAutostart" />
+        <n-switch :value="appSettingsStore.autostart" @update:value="toggleAutostart" />
         <span class="ml-[15px]">该功能暂时仅支持 Windows 系统</span>
       </n-form-item>
       <n-form-item label="托盘图标">
-        <n-switch :disabled="autostart" :value="enableTrayIcon" @update:value="toggleTrayIcon" />
+        <n-switch
+          :disabled="appSettingsStore.autostart"
+          :value="appSettingsStore.enableTrayIcon"
+          @update:value="toggleTrayIcon" />
         <span class="ml-[15px]">开启后点击关闭不会彻底退出应用</span>
       </n-form-item>
     </n-form>

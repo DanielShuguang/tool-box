@@ -1,6 +1,24 @@
 import { load, save, ConfigFile } from '@/utils/storage'
 import { TimeUnits } from '@/utils/time'
 
+/**
+ * @deprecated 此 hook 已废弃，请使用 Pinia Store 配合 `pinia-storage-adapter` 插件进行数据持久化。
+ * 
+ * 迁移指南：
+ * 1. 创建对应的 Pinia Store（参考 src/stores/todo.ts、src/stores/eyeProtection.ts 等）
+ * 2. 在 Store 中使用 `persist` 选项配置持久化（参考 src/stores/settings.ts）
+ * 3. 在组件中使用 Store 替代此 hook
+ * 
+ * 示例：
+ * ```typescript
+ * // 旧方式
+ * const todos = usePersistentStorage('todos', [])
+ * 
+ * // 新方式
+ * const todoStore = useTodoStore()
+ * const { todos } = todoStore
+ * ```
+ */
 interface SharedDataCache {
   data: Ref<unknown>
   loading: boolean

@@ -7,9 +7,7 @@ import {
 import { handleShowMainWindow } from '@/components/AppSettings/logic'
 import { TimeUnits } from '@/utils/time'
 import { CountdownInst } from 'naive-ui'
-import { Nullable } from '@/types/common'
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
-import { ConfigFile } from '@/utils/storage'
+import { useEyeProtectionStore } from '@/stores/eyeProtection'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -18,18 +16,10 @@ const closeEyesRef = useTemplateRef<CountdownInst>('closeEyes')
 const restRef = useTemplateRef<CountdownInst>('rest')
 const activeCountdown = ref(false)
 
-const state = usePersistentStorage(
-  'open-eye-protection',
-  {
-    isOpen: false,
-    closeEyesInterval: 120 as Nullable<number>,
-    restInterval: 20 as Nullable<number>
-  },
-  ConfigFile.EyeProtection
-)
+const eyeProtectionStore = useEyeProtectionStore()
 
 watch(
-  () => state.value.isOpen,
+  () => eyeProtectionStore.isOpen,
   val => {
     if (val) {
       startTiming()
@@ -146,13 +136,13 @@ onMounted(() => {
 
     <n-form label-placement="left">
       <n-form-item label="开启">
-        <n-switch v-model:value="state.isOpen" />
+        <n-switch v-model:value="eyeProtectionStore.isOpen" />
       </n-form-item>
-      <template v-if="state.isOpen">
+      <template v-if="eyeProtectionStore.isOpen">
         <n-form-item label="闭眼休息间隔">
           <n-input-number
             class="w-[300px]"
-            v-model:value="state.closeEyesInterval"
+            v-model:value="eyeProtectionStore.closeEyesInterval"
             :show-button="false">
             <template #suffix>
               <span>分钟</span>
@@ -161,7 +151,10 @@ onMounted(() => {
           <span class="ml-[15px]">长时间工作后闭眼休息能放松眼球</span>
         </n-form-item>
         <n-form-item label="小憩间隔">
-          <n-input-number class="w-[300px]" v-model:value="state.restInterval" :show-button="false">
+          <n-input-number
+            class="w-[300px]"
+            v-model:value="eyeProtectionStore.restInterval"
+            :show-button="false">
             <template #suffix>
               <span>分钟</span>
             </template>
@@ -176,16 +169,16 @@ onMounted(() => {
           <n-card title="距离下次闭眼休息剩余">
             <n-countdown
               ref="closeEyes"
-              :active="activeCountdown && !!state.closeEyesInterval"
-              :duration="(state.closeEyesInterval || 0) * TimeUnits.Minute"
+              :active="activeCountdown && !!eyeProtectionStore.closeEyesInterval"
+              :duration="(eyeProtectionStore.closeEyesInterval || 0) * TimeUnits.Minute"
               @finish="closeEyesAlarm" />
           </n-card>
 
           <n-card title="距离下次远眺小憩剩余">
             <n-countdown
               ref="rest"
-              :active="activeCountdown && !!state.restInterval"
-              :duration="(state.restInterval || 0) * TimeUnits.Minute"
+              :active="activeCountdown && !!eyeProtectionStore.restInterval"
+              :duration="(eyeProtectionStore.restInterval || 0) * TimeUnits.Minute"
               @finish="restAlarm" />
           </n-card>
         </div>

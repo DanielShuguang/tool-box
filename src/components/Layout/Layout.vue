@@ -12,15 +12,14 @@ import { Maximize20Regular } from '@vicons/fluent'
 import { getName } from '@tauri-apps/api/app'
 import { Motion, AnimatePresence } from 'motion-v'
 import { isDevelopment } from '@/utils/development'
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
-import { ConfigFile } from '@/utils/storage'
+import { useRouterStore } from '@/stores/router'
 
 const router = useRouter()
 const appName = ref('')
-const activePath = usePersistentStorage('current-route-path', '/', ConfigFile.Router)
+const routerStore = useRouterStore()
 
 onMounted(async () => {
-  router.push(activePath.value)
+  router.push(routerStore.currentRoutePath)
   appName.value = await getName()
   if (isDevelopment) {
     appName.value += '（Dev）'
@@ -44,7 +43,7 @@ function changeSelect(v: string) {
 watch(
   () => router.currentRoute.value.path,
   () => {
-    activePath.value = router.currentRoute.value.path
+    routerStore.currentRoutePath = router.currentRoute.value.path
   }
 )
 
@@ -54,7 +53,7 @@ function disableContextmenu(ev: MouseEvent) {
   }
 }
 
-const { isDark, isAuto, handleChangeTheme, handleChangeThemeState } = useSystemTheme()
+const { isDark, themeAutoFollow, handleChangeTheme, handleChangeThemeState } = useSystemTheme()
 
 useUpdateThemeVariables()
 
@@ -104,25 +103,25 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
           <n-select
             class="inline-block w-[150px]"
             :options="options"
-            v-model:value="activePath"
+            v-model:value="routerStore.currentRoutePath"
             @update:value="changeSelect" />
         </Motion>
       </AnimatePresence>
       <n-tooltip>
         <template #trigger>
-          <n-button :disabled="isAuto" @click="handleChangeTheme">
+          <n-button :disabled="themeAutoFollow" @click="handleChangeTheme">
             <n-icon size="14">
               <Moon v-if="isDark" />
               <Sunny v-else />
             </n-icon>
           </n-button>
         </template>
-        <span v-if="isAuto">跟随系统</span>
+        <span v-if="themeAutoFollow">跟随系统</span>
         <span v-else>
           {{ isDark ? '深色' : '浅色' }}
         </span>
       </n-tooltip>
-      <n-button :type="isAuto ? 'success' : 'default'" @click="handleChangeThemeState">
+      <n-button :type="themeAutoFollow ? 'success' : 'default'" @click="handleChangeThemeState">
         跟随系统
       </n-button>
 

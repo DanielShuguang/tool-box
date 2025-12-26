@@ -1,13 +1,11 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { zhCN, darkTheme, dateZhCN } from 'naive-ui'
-import { useEmitter } from './utils/event'
 import { isDevelopment } from './utils/development'
+import { useAppSettingsStore } from './stores/appSettings'
 
-const isDark = ref(false)
-
-useEmitter('theme-change', val => {
-  isDark.value = val
-})
+const appSettingsStore = useAppSettingsStore()
+const { isDark } = storeToRefs(appSettingsStore)
 
 // 禁用 F5 和 Ctrl + R
 if (!isDevelopment) {

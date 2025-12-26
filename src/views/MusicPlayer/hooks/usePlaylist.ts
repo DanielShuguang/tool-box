@@ -1,24 +1,12 @@
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
-import { ConfigFile } from '@/utils/storage'
+import {
+  useMusicPlayerStore,
+  type PlayMode,
+  type SortOption,
+  type AudioFile
+} from '@/stores/musicPlayer'
 
-/**
- * 播放模式类型
- * - sequence: 顺序播放
- * - loop: 列表循环
- * - single: 单曲循环
- * - random: 随机播放
- */
-export type PlayMode = 'sequence' | 'loop' | 'single' | 'random'
-
-/**
- * 排序选项类型
- * - default: 默认排序（保持原始顺序）
- * - title: 按标题排序
- * - artist: 按艺术家排序
- * - album: 按专辑排序
- * - name: 按文件名排序
- */
-export type SortOption = 'default' | 'title' | 'artist' | 'album' | 'name'
+// 重新导出类型以保持向后兼容
+export type { PlayMode, SortOption, AudioFile }
 
 /**
  * 排序状态
@@ -26,26 +14,6 @@ export type SortOption = 'default' | 'title' | 'artist' | 'album' | 'name'
 export interface SortState {
   option: SortOption
   order: 'asc' | 'desc'
-}
-
-/**
- * 音频文件信息
- */
-export interface AudioFile {
-  /** 唯一标识符 */
-  id: string
-  /** 文件名 */
-  name: string
-  /** 文件路径 */
-  path: string
-  /** 音频时长（秒） */
-  duration?: number
-  /** 艺术家名称 */
-  artist?: string
-  /** 专辑名称 */
-  album?: string
-  /** 标题 */
-  title?: string
 }
 
 /**
@@ -70,48 +38,17 @@ function matchAudioFile(file: AudioFile, query: string): boolean {
 }
 
 export function usePlaylist() {
-  const playerState = usePersistentStorage(
-    'player-state',
-    {
-      volume: 0.8,
-      playMode: 'sequence' as PlayMode,
-      currentTrackId: null as string | null,
-      playlist: [] as AudioFile[],
-      sortOption: 'default' as SortOption,
-      sortOrder: 'asc' as 'asc' | 'desc'
-    },
-    ConfigFile.MusicPlayer
-  )
+  const musicPlayerStore = useMusicPlayerStore()
+  const { playlist, sortOption, sortOrder, currentTrackId, currentTrack } =
+    storeToRefs(musicPlayerStore)
+  const {
+    setSortOption: storeSetSortOption,
+    addToPlaylist: storeAddToPlaylist,
+    removeFromPlaylist: storeRemoveFromPlaylist,
+    clearPlaylist: storeClearPlaylist,
+    updatePlaylist: storeUpdatePlaylist
+  } = musicPlayerStore
 
-  const playlist = computed({
-    get: () => playerState.value.playlist,
-    set: val => {
-      playerState.value.playlist = val
-    }
-  })
-  const sortOption = computed({
-    get: () => playerState.value.sortOption,
-    set: val => {
-      playerState.value.sortOption = val
-    }
-  })
-  const sortOrder = computed({
-    get: () => playerState.value.sortOrder,
-    set: val => {
-      playerState.value.sortOrder = val
-    }
-  })
-  const currentTrackId = computed({
-    get: () => playerState.value.currentTrackId,
-    set: val => {
-      playerState.value.currentTrackId = val
-    }
-  })
-
-  const currentTrack = computed(() => {
-    const id = currentTrackId.value
-    return playlist.value.find(t => t.id === id) || null
-  })
   const searchQuery = ref('')
   const searchQueryDbs = refDebounced(searchQuery, 500)
   const filteredPlaylist = computed(() => {
@@ -170,35 +107,27 @@ export function usePlaylist() {
   })
 
   function updatePlaylist(newPlaylist: AudioFile[]) {
-    playerState.value.playlist = newPlaylist
+    storeUpdatePlaylist(newPlaylist)
   }
 
   function updateCurrentTrackId(trackId: string | null) {
-    playerState.value.currentTrackId = trackId
+    musicPlayerStore.currentTrackId = trackId
   }
 
   function setSortOption(option: SortOption) {
-    if (playerState.value.sortOption === option) {
-      playerState.value.sortOrder = playerState.value.sortOrder === 'asc' ? 'desc' : 'asc'
-    } else {
-      playerState.value.sortOption = option
-      playerState.value.sortOrder = 'asc'
-    }
+    storeSetSortOption(option)
   }
 
   function addToPlaylist(files: AudioFile[]) {
-    playerState.value.playlist = [...playerState.value.playlist, ...files]
+    storeAddToPlaylist(files)
   }
 
   function removeFromPlaylist(index: number) {
-    const newPlaylist = [...playlist.value]
-    newPlaylist.splice(index, 1)
-    playerState.value.playlist = newPlaylist
+    storeRemoveFromPlaylist(index)
   }
 
   function clearPlaylist() {
-    updatePlaylist([])
-    updateCurrentTrackId(null)
+    storeClearPlaylist()
   }
 
   return {

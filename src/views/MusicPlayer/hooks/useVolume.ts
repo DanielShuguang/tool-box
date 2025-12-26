@@ -1,28 +1,12 @@
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
-import { ConfigFile } from '@/utils/storage'
+import { useMusicPlayerStore } from '@/stores/musicPlayer'
 
 /**
  * 音量控制 Hook
  * 管理音量的状态和持久化
  */
 export function useVolume() {
-  const playerState = usePersistentStorage(
-    'player-state',
-    {
-      volume: 0.8,
-      playMode: 'sequence',
-      currentTrackId: null as string | null,
-      playlist: []
-    },
-    ConfigFile.MusicPlayer
-  )
-
-  const volume = computed({
-    get: () => playerState.value.volume,
-    set: (vol: number) => {
-      playerState.value.volume = vol
-    }
-  })
+  const musicPlayerStore = useMusicPlayerStore()
+  const { volume } = storeToRefs(musicPlayerStore)
 
   function setVolume(vol: number) {
     volume.value = vol

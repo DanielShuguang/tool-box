@@ -1,29 +1,15 @@
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
-import { ConfigFile } from '@/utils/storage'
+import { usePlaybackProgressStore } from '@/stores/musicPlayer'
 
 /**
  * 播放进度 Hook
  * 管理单个曲目的播放进度持久化
  */
 export function usePlaybackProgress() {
-  const progressState = usePersistentStorage(
-    'playback-progress',
-    {} as Record<string, number>,
-    ConfigFile.MusicPlayer
-  )
+  const playbackProgressStore = usePlaybackProgressStore()
+  const { saveProgress, getProgress, clearProgress, clearAllProgress } = playbackProgressStore
 
   const currentTrackId = ref<string | null>(null)
   const currentProgress = ref(0)
-
-  function saveProgress(trackId: string, time: number) {
-    if (time > 0) {
-      progressState.value[trackId] = time
-    }
-  }
-
-  function getProgress(trackId: string): number {
-    return progressState.value[trackId] || 0
-  }
 
   function setCurrentTrack(trackId: string | null) {
     currentTrackId.value = trackId
@@ -32,14 +18,6 @@ export function usePlaybackProgress() {
     } else {
       currentProgress.value = 0
     }
-  }
-
-  function clearProgress(trackId: string) {
-    delete progressState.value[trackId]
-  }
-
-  function clearAllProgress() {
-    progressState.value = {}
   }
 
   return {

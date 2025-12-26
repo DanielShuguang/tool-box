@@ -1,23 +1,13 @@
 import { ref, computed } from 'vue'
-import { usePersistentStorage } from '@/hooks/usePersistentStorage'
+import { useTodoStore, type Todo, type FilterType } from '@/stores/todo'
 
-export interface Todo {
-  id: number
-  text: string
-  completed: boolean
-  deadline?: number // 时间戳格式的日期，可选
-}
-
-export type FilterType = 'all' | 'active' | 'completed'
+export type { Todo, FilterType }
 
 export function useTodoLogic() {
-  // 使用持久化存储来保存todos
-  const todos = usePersistentStorage<Todo[]>('todos', [])
+  // 使用 TodoStore 进行状态管理
+  const todoStore = useTodoStore()
+  const { todos, addTodo: storeAddTodo, removeTodo: storeRemoveTodo, toggleTodo: storeToggleTodo, clearCompleted: storeClearCompleted } = todoStore
 
-  // 定义设置todos的方法
-  const setTodos = (newTodos: Todo[]) => {
-    todos.value = newTodos
-  }
   const newTodo = ref('')
   const filter = ref<FilterType>('all')
 
@@ -32,25 +22,23 @@ export function useTodoLogic() {
       deadline
     }
 
-    setTodos([...todos.value, todo])
+    storeAddTodo(todo)
     newTodo.value = ''
   }
 
   // 删除任务
   const removeTodo = (id: number) => {
-    setTodos(todos.value.filter(todo => todo.id !== id))
+    storeRemoveTodo(id)
   }
 
   // 切换任务完成状态
   const toggleTodo = (id: number) => {
-    setTodos(
-      todos.value.map(todo => (todo.id === id ? { ...todo, completed: !todo.completed } : todo))
-    )
+    storeToggleTodo(id)
   }
 
   // 清除已完成的任务
   const clearCompleted = () => {
-    setTodos(todos.value.filter(todo => !todo.completed))
+    storeClearCompleted()
   }
 
   // 根据过滤器筛选任务
