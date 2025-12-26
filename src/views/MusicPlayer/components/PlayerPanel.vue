@@ -5,7 +5,6 @@ const emit = defineEmits<{
   dragleave: [event: DragEvent]
 }>()
 
-import { computed } from 'vue'
 import { Motion, AnimatePresence } from 'motion-v'
 import { NIcon, NSpin, NSlider } from 'naive-ui'
 import {
@@ -18,22 +17,24 @@ import {
   FolderOutline
 } from '@vicons/ionicons5'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
+import { useMusicPlayerStore } from '@/stores/musicPlayer'
 import { eventBus } from '../utils/eventBus'
 import { formatTime, getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 
 const context = useMusicPlayerContext()
+const store = useMusicPlayerStore()
 
 const {
   isPlaying,
   isLoading,
-  currentTrack,
   currentTime,
   duration,
-  volume,
   togglePlayMode,
   handleProgressChange,
   selectFolder
 } = context
+
+const { currentTrack, volume } = storeToRefs(store)
 
 const playModeLabel = computed(() => {
   if (currentTrack.value) {

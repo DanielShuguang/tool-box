@@ -1,5 +1,5 @@
-import type { ComputedRef, InjectionKey, Ref } from 'vue'
-import type { AudioFile, SortOption } from '../hooks/usePlaylist'
+import type { InjectionKey, Ref } from 'vue'
+import type { AudioFile } from '../hooks/usePlaylist'
 import { noop } from 'lodash-es'
 
 export interface PlayerContext {
@@ -8,16 +8,9 @@ export interface PlayerContext {
   currentTime: Ref<number>
   duration: Ref<number>
   volume: Ref<number>
-  currentTrack: ComputedRef<AudioFile | null>
-  currentTrackId: Ref<string | null>
-  searchQuery: Ref<string>
-  sortOption: Ref<SortOption>
-  sortOrder: Ref<'asc' | 'desc'>
-  filteredPlaylist: ComputedRef<AudioFile[]>
+  currentTrack: Ref<AudioFile | null>
   togglePlay: () => void
   setVolume: (value: number) => void
-  setSearchQuery: (query: string) => void
-  setSortOption: (option: SortOption) => void
   playTrack: (id: string) => void
   playNextTrack: () => void
   playPreviousTrack: () => void
@@ -25,7 +18,7 @@ export interface PlayerContext {
   togglePlayMode: () => void
   selectFolder: () => void
   removeTrack: (trackId: string) => void
-  removeTracks?: (trackIds: string[]) => void
+  removeTracks: (trackIds: string[]) => void
   clearPlaylist: () => void
   stop: () => void
 }
@@ -39,16 +32,9 @@ export function createMusicPlayerContextDefaults(): PlayerContext {
     currentTime: ref(0),
     duration: ref(0),
     volume: ref(1),
-    currentTrack: computed(() => null),
-    currentTrackId: ref(null),
-    searchQuery: ref(''),
-    sortOption: ref('name'),
-    sortOrder: ref('asc'),
-    filteredPlaylist: computed(() => [] as AudioFile[]),
+    currentTrack: ref(null),
     togglePlay: noop,
     setVolume: noop,
-    setSearchQuery: noop,
-    setSortOption: noop,
     playTrack: noop,
     playNextTrack: noop,
     playPreviousTrack: noop,
@@ -56,6 +42,7 @@ export function createMusicPlayerContextDefaults(): PlayerContext {
     togglePlayMode: noop,
     selectFolder: noop,
     removeTrack: noop,
+    removeTracks: noop,
     clearPlaylist: noop,
     stop: noop
   }

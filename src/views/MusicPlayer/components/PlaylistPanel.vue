@@ -5,28 +5,31 @@ const emit = defineEmits<{
   dragleave: [event: DragEvent]
 }>()
 
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { NInput, NIcon, NDropdown, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
 import { useVirtualList } from '@vueuse/core'
 import type { SortOption, AudioFile } from '../hooks/usePlaylist'
 import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
+import { useMusicPlayerStore } from '@/stores/musicPlayer'
+import { usePlaylist } from '../hooks/usePlaylist'
 import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 import { eventBus } from '../utils/eventBus'
 import { useListSelection } from '../hooks/useListSelection'
 
 const context = useMusicPlayerContext()
+const store = useMusicPlayerStore()
+const playlistObj = usePlaylist()
 
-const {
-  filteredPlaylist: playlist,
-  currentTrackId,
-  sortOption,
-  sortOrder,
-  removeTrack,
-  clearPlaylist,
-  removeTracks
-} = context
+const { currentTrackId, sortOption, sortOrder } = storeToRefs(store)
+
+const { filteredPlaylist: playlist, setSearchQuery } = playlistObj
+
+const { removeTrack, removeTracks, clearPlaylist, selectFolder, playTrack } = context
+
+const searchQuery = ref('')
 
 const sortOptions = [
   { label: '文件名', key: 'name' },
@@ -51,48 +54,36 @@ const sortLabel = computed(() => {
   return labelMap[sortOption.value] || '默认'
 })
 
-const searchQuery = computed({
-  get: () => context.searchQuery.value,
-  set: val => context.setSearchQuery(val)
-})
-
 const contextMenuShow = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 const contextMenuTrack = ref<AudioFile | null>(null)
 
-// 动态右键菜单选项
 const contextMenuOptions = computed<DropdownMixedOption[]>(() => {
   const hasSel = hasSelection.value
 
-  // 顶部显示选中数量
   const header = hasSel
     ? { label: `已选择 ${selectedCount.value} 首歌曲`, key: 'header', disabled: true }
     : null
 
   const options: DropdownMixedOption[] = []
 
-  // 添加头部（如果有选中）
   if (header) {
     options.push(header)
   }
 
-  // 播放选项
   if (hasSel) {
     options.push({ label: '批量播放', key: 'playSelected' })
   } else {
     options.push({ label: '播放', key: 'play' })
   }
 
-  // 分隔符
   options.push({ type: 'divider', key: 'd1' })
 
-  // 查看详情（仅单选时）
   if (!hasSel) {
     options.push({ label: '查看详情', key: 'info' })
   }
 
-  // 删除选项
   if (hasSel) {
     options.push({ label: '批量删除', key: 'removeSelected' })
   } else {
@@ -114,7 +105,6 @@ const { list, containerProps, wrapperProps } = useVirtualList(
   }
 )
 
-// 初始化多选功能
 const {
   selectedCount,
   hasSelection,
@@ -126,19 +116,16 @@ const {
   playSelected,
   removeSelected,
   isSelected
-} = useListSelection(
-  () => playlist.value,
-  { clearOnBackgroundClick: true }
-)
+} = useListSelection(() => playlist.value, { clearOnBackgroundClick: true })
 
 function handleSortSelect(key: string) {
-  context.setSortOption(key as SortOption)
+  store.setSortOption(key as SortOption)
 }
 
 function handleActionSelect(key: string) {
   switch (key) {
     case 'addFolder':
-      context.selectFolder()
+      selectFolder()
       break
     case 'clear':
       clearPlaylist()
@@ -152,11 +139,11 @@ function handleContextMenuSelect(key: string) {
   switch (key) {
     case 'play':
       if (track) {
-        context.playTrack(track.id)
+        playTrack(track.id)
       }
       break
     case 'playSelected':
-      playSelected((id) => context.playTrack(id))
+      playSelected(id => playTrack(id))
       break
     case 'info':
       if (track) {
@@ -182,7 +169,6 @@ function handleContextMenuSelect(key: string) {
         const removedIds = removeSelected()
         removeTracks(removedIds)
       } else {
-        // 如果没有批量删除方法，逐个删除
         const removedIds = removeSelected()
         removedIds.forEach(id => removeTrack(id))
       }
@@ -196,7 +182,7 @@ function handleContextMenuHide() {
 }
 
 function handleDblClick(item: AudioFile) {
-  handleRowDoubleClick(item, (track) => context.playTrack(track.id))
+  handleRowDoubleClick(item, track => playTrack(track.id))
 }
 
 function handleRowClickWrapper(item: AudioFile, index: number, event: MouseEvent) {
@@ -205,11 +191,9 @@ function handleRowClickWrapper(item: AudioFile, index: number, event: MouseEvent
 
 function handleContextMenu(event: MouseEvent, track: AudioFile) {
   event.preventDefault()
-  // 如果右键点击的项未被选中，且没有其他选中的项，则显示单条操作菜单
   if (!isSelected(track.id) && !hasSelection.value) {
     contextMenuTrack.value = track
   } else {
-    // 否则显示批量操作菜单
     contextMenuTrack.value = null
   }
   contextMenuShow.value = true
@@ -219,7 +203,7 @@ function handleContextMenu(event: MouseEvent, track: AudioFile) {
 
 function handleClearSearch() {
   searchQuery.value = ''
-  context.setSearchQuery('')
+  setSearchQuery('')
   eventBus.emit('clear-search')
 }
 </script>

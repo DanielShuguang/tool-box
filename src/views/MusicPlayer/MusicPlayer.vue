@@ -21,16 +21,7 @@ const playModeObj = usePlayMode()
 const { isPlaying, isLoading, currentTime, duration, togglePlay, volume, setVolume, stop } =
   audioCoreObj
 
-const {
-  currentTrack,
-  currentTrackId,
-  searchQuery,
-  sortOption,
-  sortOrder,
-  filteredPlaylist,
-  setSearchQuery,
-  setSortOption
-} = playlistObj
+const { currentTrack, currentTrackId, setSearchQuery } = playlistObj
 
 const { togglePlayMode } = playModeObj
 
@@ -102,15 +93,8 @@ const playerContext: PlayerContext = {
   duration,
   volume,
   currentTrack,
-  currentTrackId,
-  searchQuery,
-  sortOption,
-  sortOrder,
-  filteredPlaylist,
   togglePlay,
   setVolume,
-  setSearchQuery,
-  setSortOption,
   playTrack: coordinator.playTrack,
   playNextTrack: coordinator.playNextTrack,
   playPreviousTrack: coordinator.playPreviousTrack,

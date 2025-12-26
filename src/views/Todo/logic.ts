@@ -6,7 +6,13 @@ export type { Todo, FilterType }
 export function useTodoLogic() {
   // 使用 TodoStore 进行状态管理
   const todoStore = useTodoStore()
-  const { todos, addTodo: storeAddTodo, removeTodo: storeRemoveTodo, toggleTodo: storeToggleTodo, clearCompleted: storeClearCompleted } = todoStore
+  const {
+    addTodo: storeAddTodo,
+    removeTodo: storeRemoveTodo,
+    toggleTodo: storeToggleTodo,
+    clearCompleted: storeClearCompleted
+  } = todoStore
+  const { todos } = storeToRefs(todoStore)
 
   const newTodo = ref('')
   const filter = ref<FilterType>('all')
@@ -53,7 +59,6 @@ export function useTodoLogic() {
     }
   })
 
-  // 计算剩余未完成任务数
   const remainingCount = computed(() => {
     return todos.value.filter(todo => !todo.completed).length
   })

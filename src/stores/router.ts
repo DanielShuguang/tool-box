@@ -7,6 +7,10 @@ export const useRouterStore = defineStore(
   () => {
     const currentRoutePath = ref('/')
 
+    watch(currentRoutePath, (newPath, prevPath) => {
+      console.log('currentRoutePath', newPath, prevPath)
+    })
+
     return {
       currentRoutePath
     }
