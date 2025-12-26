@@ -49,6 +49,25 @@ function removeTrack(trackId: string) {
   }
 }
 
+function removeTracks(trackIds: string[]) {
+  // 如果删除的列表包含当前正在播放的曲目，则停止播放
+  if (trackIds.includes(currentTrackId.value || '')) {
+    stop()
+  }
+  // 批量删除：从后往前删除，避免索引变化问题
+  const sortedIds = [...trackIds].sort((a, b) => {
+    const indexA = playlistObj.playlist.value.findIndex(track => track.id === a)
+    const indexB = playlistObj.playlist.value.findIndex(track => track.id === b)
+    return indexB - indexA
+  })
+  sortedIds.forEach(trackId => {
+    const index = playlistObj.playlist.value.findIndex(track => track.id === trackId)
+    if (index !== -1) {
+      playlistObj.removeFromPlaylist(index)
+    }
+  })
+}
+
 function clearPlaylist() {
   // 清空列表时停止播放
   stop()
@@ -99,6 +118,7 @@ const playerContext: PlayerContext = {
   togglePlayMode,
   selectFolder: coordinator.selectFolder,
   removeTrack,
+  removeTracks,
   clearPlaylist,
   stop
 }

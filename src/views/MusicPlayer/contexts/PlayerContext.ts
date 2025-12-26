@@ -25,6 +25,7 @@ export interface PlayerContext {
   togglePlayMode: () => void
   selectFolder: () => void
   removeTrack: (trackId: string) => void
+  removeTracks?: (trackIds: string[]) => void
   clearPlaylist: () => void
   stop: () => void
 }
