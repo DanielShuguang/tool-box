@@ -5,9 +5,7 @@ const emit = defineEmits<{
   dragleave: [event: DragEvent]
 }>()
 
-import { NInput, NIcon, NDropdown, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
-import { useVirtualList } from '@vueuse/core'
 import type { SortOption, AudioFile } from '../hooks/usePlaylist'
 import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
@@ -224,6 +222,17 @@ function getRowBackgroundColor(track: AudioFile) {
   }
   return undefined
 }
+
+// 监听搜索查询变化，当搜索内容改变时滚动到顶部
+watchDebounced(
+  searchQuery,
+  newValue => {
+    setSearchQuery(newValue)
+    // 当搜索内容变化时，滚动到顶部
+    containerProps.ref.value?.scrollTo({ top: 0 })
+  },
+  { debounce: 300 }
+)
 </script>
 
 <template>
