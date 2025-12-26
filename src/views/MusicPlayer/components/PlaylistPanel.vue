@@ -5,7 +5,16 @@ const emit = defineEmits<{
   dragleave: [event: DragEvent]
 }>()
 
-import { computed, ref } from 'vue'
+// 键盘事件监听
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
+
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { NInput, NIcon, NDropdown, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
@@ -115,8 +124,17 @@ const {
   toggleSelectAll,
   playSelected,
   removeSelected,
-  isSelected
-} = useListSelection(() => playlist.value, { clearOnBackgroundClick: true })
+  isSelected,
+  selectionBoxStyle,
+  temporarilyHighlightedIds,
+  handleMouseDown,
+  handleMouseMove,
+  handleMouseUp,
+  handleKeyDown
+} = useListSelection(() => playlist.value, {
+  clearOnBackgroundClick: true,
+  containerRef: containerProps.ref
+})
 
 function handleSortSelect(key: string) {
   store.setSortOption(key as SortOption)
@@ -206,6 +224,20 @@ function handleClearSearch() {
   setSearchQuery('')
   eventBus.emit('clear-search')
 }
+
+// 计算行背景颜色
+function getRowBackgroundColor(track: AudioFile) {
+  if (currentTrackId.value === track.id) {
+    return 'color-mix(in srgb, var(--primaryColor) 15%, transparent)'
+  }
+  if (isSelected(track.id)) {
+    return 'color-mix(in srgb, var(--primaryColor) 10%, transparent)'
+  }
+  if (temporarilyHighlightedIds.value.has(track.id)) {
+    return 'color-mix(in srgb, var(--primaryColor) 5%, transparent)'
+  }
+  return undefined
+}
 </script>
 
 <template>
@@ -267,23 +299,27 @@ function handleClearSearch() {
       </n-dropdown>
     </div>
 
-    <div class="flex-1 overflow-auto" v-bind="containerProps" @click="handleBackgroundClick">
+    <div
+      class="flex-1 overflow-auto relative"
+      v-bind="containerProps"
+      @click="handleBackgroundClick"
+      @mousedown="handleMouseDown"
+      @mousemove="handleMouseMove"
+      @mouseup="handleMouseUp"
+      @mouseleave="handleMouseUp">
+      <div class="selection-box" :style="selectionBoxStyle"></div>
       <div v-bind="wrapperProps">
         <div
           v-for="item in list"
           :key="item.data.id"
+          :data-index="item.index"
           class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] cursor-pointer h-[50px] select-none relative transition-all duration-200 ease-out"
           :class="{
             'border-l-[3px]': isSelected(item.data.id),
             'border-l-transparent': !isSelected(item.data.id)
           }"
           :style="{
-            backgroundColor:
-              currentTrackId === item.data.id
-                ? 'color-mix(in srgb, var(--primaryColor) 15%, transparent)'
-                : isSelected(item.data.id)
-                ? 'color-mix(in srgb, var(--primaryColor) 10%, transparent)'
-                : undefined,
+            backgroundColor: getRowBackgroundColor(item.data),
             borderColor: isSelected(item.data.id) ? 'var(--primaryColor)' : undefined
           }"
           @click.stop="handleRowClickWrapper(item.data, item.index, $event)"
