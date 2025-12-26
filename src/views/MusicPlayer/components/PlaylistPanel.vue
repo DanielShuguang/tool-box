@@ -288,7 +288,7 @@ function handleClearSearch() {
         <div
           v-for="item in list"
           :key="item.data.id"
-          class="flex items-center px-[12px] border-b-[1px solid] border-[--borderColor] hover:bg-[--hoverColor] cursor-pointer h-[50px] select-none relative transition-all duration-200 ease-out"
+          class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] cursor-pointer h-[50px] select-none relative transition-all duration-200 ease-out"
           :class="{
             'border-l-[3px]': isSelected(item.data.id),
             'border-l-transparent': !isSelected(item.data.id)
