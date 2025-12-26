@@ -5,17 +5,6 @@ const emit = defineEmits<{
   dragleave: [event: DragEvent]
 }>()
 
-// 键盘事件监听
-onMounted(() => {
-  document.addEventListener('keydown', handleKeyDown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown)
-})
-
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { storeToRefs } from 'pinia'
 import { NInput, NIcon, NDropdown, NModal, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
 import { useVirtualList } from '@vueuse/core'
@@ -34,11 +23,9 @@ const playlistObj = usePlaylist()
 
 const { currentTrackId, sortOption, sortOrder } = storeToRefs(store)
 
-const { filteredPlaylist: playlist, setSearchQuery } = playlistObj
+const { filteredPlaylist: playlist, setSearchQuery, searchQuery } = playlistObj
 
 const { removeTrack, removeTracks, clearPlaylist, selectFolder, playTrack } = context
-
-const searchQuery = ref('')
 
 const sortOptions = [
   { label: '文件名', key: 'name' },
@@ -129,8 +116,7 @@ const {
   temporarilyHighlightedIds,
   handleMouseDown,
   handleMouseMove,
-  handleMouseUp,
-  handleKeyDown
+  handleMouseUp
 } = useListSelection(() => playlist.value, {
   clearOnBackgroundClick: true,
   containerRef: containerProps.ref

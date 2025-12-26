@@ -362,6 +362,7 @@ export function useListSelection<T extends { id: string }>(
       resetSelectionBox()
     }
   }
+  useEventListener(document, 'keydown', handleKeyDown)
 
   /**
    * 是否全选
