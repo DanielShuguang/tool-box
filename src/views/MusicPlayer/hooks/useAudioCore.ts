@@ -1,6 +1,7 @@
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 import { throttle } from 'lodash-es'
+import { watch } from 'vue'
 import { useVolume } from './useVolume'
 
 interface PreloadedTrack {
@@ -267,6 +268,13 @@ export function useAudioCore() {
 
   onMounted(() => {
     initAudio()
+  })
+
+  // 监听音量变化，确保 Audio 元素的音量与持久化存储中的值同步
+  watch(volume, newVolume => {
+    if (audio.value) {
+      audio.value.volume = newVolume
+    }
   })
 
   onUnmounted(() => {

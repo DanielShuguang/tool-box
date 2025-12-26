@@ -146,6 +146,8 @@ function handleKeydown(e: KeyboardEvent) {
 
 onActivated(() => {
   window.addEventListener('keydown', handleKeydown)
+  // 同步音量，确保 Audio 元素的音量与持久化存储中的值一致
+  setVolume(volume.value * 100)
 })
 
 onDeactivated(() => {
