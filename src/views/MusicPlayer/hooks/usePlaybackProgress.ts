@@ -1,32 +1,34 @@
 import { usePlaybackProgressStore } from '@/stores/musicPlayer'
+import { storeToRefs } from 'pinia'
 
 /**
  * 播放进度 Hook
- * 管理单个曲目的播放进度持久化
+ * 管理当前播放音乐的播放进度持久化
  */
 export function usePlaybackProgress() {
   const playbackProgressStore = usePlaybackProgressStore()
-  const { saveProgress, getProgress, clearProgress, clearAllProgress } = playbackProgressStore
+  const { saveProgress, getProgress, pauseProgress, clearProgress } = playbackProgressStore
 
-  const currentTrackId = ref<string | null>(null)
-  const currentProgress = ref(0)
+  const { currentTrackId, currentTime, isPlaying } = storeToRefs(playbackProgressStore)
 
   function setCurrentTrack(trackId: string | null) {
-    currentTrackId.value = trackId
     if (trackId) {
-      currentProgress.value = getProgress(trackId)
-    } else {
-      currentProgress.value = 0
+      const progress = getProgress()
+      if (progress.trackId !== trackId) {
+        // 切换到不同曲目时重置播放时间
+        playbackProgressStore.currentTime = 0
+      }
     }
   }
 
   return {
     currentTrackId,
-    currentProgress,
+    currentTime,
+    isPlaying,
     saveProgress,
     getProgress,
     setCurrentTrack,
-    clearProgress,
-    clearAllProgress
+    pauseProgress,
+    clearProgress
   }
 }

@@ -22,6 +22,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
 
   const recentPlayedIds = ref<string[]>([])
   const nextTrackIdRef = ref<string | null>(null)
+  const isInitializing = ref(false)
 
   function getMaxRecentCount(): number {
     const total = playlist.playlist.value.length
@@ -97,6 +98,43 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     }
   }
 
+  /**
+   * 初始化播放进度
+   * 在组件初始化时检查是否有保存的播放进度，如果有则预加载对应音轨
+   */
+  async function initializeProgress() {
+    const savedProgress = progress.getProgress()
+    const { trackId, time } = savedProgress
+
+    if (trackId && time > 0) {
+      const track = playlist.playlist.value.find(t => t.id === trackId)
+      if (track) {
+        try {
+          // 设置初始化loading状态
+          isInitializing.value = true
+
+          // 预加载音轨
+          await audioCore.preloadTrack(track)
+
+          // 应用预加载的音轨到Audio元素
+          await audioCore.applyPreloadedTrack(track)
+
+          // 设置播放列表和进度状态
+          playlist.updateCurrentTrackId(trackId)
+          progress.setCurrentTrack(trackId)
+
+          // 设置播放时间
+          audioCore.seekTo(time)
+        } catch (error) {
+          console.error('初始化进度时出错:', error)
+        } finally {
+          // 无论成功还是失败，都要关闭loading状态
+          isInitializing.value = false
+        }
+      }
+    }
+  }
+
   async function playTrack(trackId: string) {
     const track = playlist.playlist.value.find(t => t.id === trackId)
     if (!track) return
@@ -107,9 +145,14 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     )
 
     progress.setCurrentTrack(trackId)
-    const savedProgress = progress.getProgress(trackId)
+    const savedProgress = progress.getProgress()
 
-    if (audioCore.applyPreloadedTrack(track)) {
+    // 保存当前播放状态
+    progress.saveProgress(trackId, savedProgress.time || 0)
+
+    // 尝试使用预加载的音轨
+    const applied = await audioCore.applyPreloadedTrack(track)
+    if (applied) {
       await audioCore.audio.value?.play()
       audioCore.isPlaying.value = true
     } else {
@@ -117,8 +160,8 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     }
 
     playlist.updateCurrentTrackId(trackId)
-    if (savedProgress > 0 && savedProgress < (audioCore.duration.value || 0) - 5) {
-      audioCore.seekTo(savedProgress)
+    if (savedProgress.time > 0 && savedProgress.time < (audioCore.duration.value || 0) - 5) {
+      audioCore.seekTo(savedProgress.time)
     }
 
     triggerPreload()
@@ -257,6 +300,8 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     const trackId = playlist.currentTrackId.value
     if (trackId && time > 0) {
       progress.saveProgress(trackId, time)
+    } else if (trackId && time === 0) {
+      progress.saveProgress(trackId, 0)
     }
   }
 
@@ -272,6 +317,8 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
   }
 
   return {
+    isInitializing,
+    initializeProgress,
     getNextTrackId,
     getPreviousTrackId,
     playTrack,

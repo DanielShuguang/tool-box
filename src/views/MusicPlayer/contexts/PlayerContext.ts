@@ -5,6 +5,7 @@ import { noop } from 'lodash-es'
 export interface PlayerContext {
   isPlaying: Ref<boolean>
   isLoading: Ref<boolean>
+  isAnyLoading: Ref<boolean>
   currentTime: Ref<number>
   duration: Ref<number>
   volume: Ref<number>
@@ -29,6 +30,7 @@ export function createMusicPlayerContextDefaults(): PlayerContext {
   return {
     isPlaying: ref(false),
     isLoading: ref(false),
+    isAnyLoading: ref(false),
     currentTime: ref(0),
     duration: ref(0),
     volume: ref(1),

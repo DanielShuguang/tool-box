@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { defineStore } from 'pinia'
 import { ConfigFile } from '@/utils/storage'
 
@@ -132,42 +132,111 @@ export const useMusicPlayerStore = defineStore(
   }
 )
 
+export interface PlaybackProgressState {
+  /** 当前播放音乐的 ID */
+  currentTrackId: string | null
+  /** 当前播放时间（秒） */
+  currentTime: number
+  /** 是否正在播放 */
+  isPlaying: boolean
+}
+
 // 播放进度单独持久化
 export const usePlaybackProgressStore = defineStore(
   'playbackProgress',
   () => {
-    const playbackProgress = ref<Record<string, number>>({})
+    const currentTrackId = ref<string | null>(null)
+    const currentTime = ref(0)
+    const isPlaying = ref(false)
 
-    function saveProgress(trackId: string, time: number) {
-      if (time > 0) {
-        playbackProgress.value[trackId] = time
+    /**
+     * 数据迁移：从旧版本的多音乐进度存储迁移到新的单音乐进度存储
+     */
+    function migrateFromOldFormat() {
+      // 检查是否存在旧版本数据
+      const storedData = localStorage.getItem(`pinia-playbackProgress`)
+
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData)
+
+          // 检查是否是旧版本格式（playbackProgress 字段）
+          if (parsedData.state && parsedData.state.playbackProgress) {
+            const oldProgress = parsedData.state.playbackProgress as Record<string, number>
+            const trackIds = Object.keys(oldProgress)
+
+            if (trackIds.length > 0) {
+              // 找到最近播放的音乐（进度最大的那个）
+              let latestTrackId = trackIds[0]
+              let latestTime = oldProgress[latestTrackId] || 0
+
+              for (const trackId of trackIds) {
+                const time = oldProgress[trackId] || 0
+                if (time > latestTime) {
+                  latestTime = time
+                  latestTrackId = trackId
+                }
+              }
+
+              // 迁移到新的格式
+              currentTrackId.value = latestTrackId
+              currentTime.value = latestTime
+              isPlaying.value = false
+            }
+
+            // 清除旧版本数据
+            delete parsedData.state.playbackProgress
+            localStorage.setItem(`pinia-playbackProgress`, JSON.stringify(parsedData))
+          }
+        } catch (err) {
+          console.error('数据迁移失败:', err)
+        }
       }
     }
 
-    function getProgress(trackId: string): number {
-      return playbackProgress.value[trackId] || 0
+    function saveProgress(trackId: string, time: number) {
+      currentTrackId.value = trackId
+      currentTime.value = time
+      isPlaying.value = true
     }
 
-    function clearProgress(trackId: string) {
-      delete playbackProgress.value[trackId]
+    function getProgress(): { trackId: string | null; time: number } {
+      return {
+        trackId: currentTrackId.value,
+        time: currentTime.value
+      }
     }
 
-    function clearAllProgress() {
-      playbackProgress.value = {}
+    function pauseProgress() {
+      isPlaying.value = false
     }
+
+    function clearProgress() {
+      currentTrackId.value = null
+      currentTime.value = 0
+      isPlaying.value = false
+    }
+
+    // 在 store 初始化时执行数据迁移
+    onMounted(() => {
+      migrateFromOldFormat()
+    })
 
     return {
-      playbackProgress,
+      currentTrackId,
+      currentTime,
+      isPlaying,
       saveProgress,
       getProgress,
-      clearProgress,
-      clearAllProgress
+      pauseProgress,
+      clearProgress
     }
   },
   {
     persist: {
       fileName: ConfigFile.MusicPlayer,
-      key: 'playback-progress'
+      key: 'playback-progress',
+      keys: ['currentTrackId', 'currentTime', 'isPlaying']
     }
   }
 )

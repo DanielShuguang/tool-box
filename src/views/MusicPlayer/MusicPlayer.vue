@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onActivated, onDeactivated, provide } from 'vue'
+import { onActivated, onDeactivated, onMounted, provide, watch, computed } from 'vue'
 import { useAudioCore } from './hooks/useAudioCore'
 import { usePlaylist } from './hooks/usePlaylist'
 import { usePlayMode } from './hooks/usePlayMode'
@@ -13,12 +13,15 @@ import PlaylistPanel from './components/PlaylistPanel.vue'
 import { MusicPlayerContextKey, type PlayerContext } from './contexts/PlayerContext'
 import { eventBus } from './utils/eventBus'
 import { useEmitter } from '../../utils/event'
+import { useMusicPlayerStore, usePlaybackProgressStore } from '@/stores/musicPlayer'
 
 const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
 const playModeObj = usePlayMode()
+const musicPlayerStore = useMusicPlayerStore()
+const playbackProgressStore = usePlaybackProgressStore()
 
-const { isPlaying, isLoading, currentTime, duration, togglePlay, volume, setVolume, stop } =
+const { isPlaying, isLoading, isPreloading, currentTime, duration, togglePlay, volume, setVolume, stop } =
   audioCoreObj
 
 const { currentTrack, currentTrackId, setSearchQuery } = playlistObj
@@ -75,6 +78,13 @@ const coordinator = usePlayerCoordinator({
   currentTrack
 })
 
+const { isInitializing } = coordinator
+
+// 组合的loading状态：初始化loading、播放loading或预加载loading
+const isAnyLoading = computed(() =>
+  isInitializing.value || isLoading.value || isPreloading.value
+)
+
 const dragDrop = useDragDrop({ coordinator })
 
 const topActions = useTopActions({
@@ -89,6 +99,7 @@ const isDragging = dragDrop.isDragging
 const playerContext: PlayerContext = {
   isPlaying,
   isLoading,
+  isAnyLoading,
   currentTime,
   duration,
   volume,
@@ -144,6 +155,17 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+onMounted(async () => {
+  // 等待 store 准备就绪后再初始化播放进度
+  await Promise.all([
+    musicPlayerStore.$ready?.waitForReady?.(),
+    playbackProgressStore.$ready?.waitForReady?.()
+  ])
+
+  // 初始化播放进度，预加载上次播放的音乐音轨
+  await coordinator.initializeProgress()
+})
+
 onActivated(() => {
   window.addEventListener('keydown', handleKeydown)
   // 同步音量，确保 Audio 元素的音量与持久化存储中的值一致
@@ -162,6 +184,13 @@ watchThrottled(
   },
   { throttle: 1000 }
 )
+
+// 监听播放状态变化，更新进度存储
+watch(isPlaying, (playing) => {
+  if (!playing && currentTime.value > 0) {
+    progressObj.pauseProgress()
+  }
+})
 
 function handleDragDrop(event: DragEvent) {
   dragDrop.handleDrop(event)

@@ -108,7 +108,7 @@ export function useAudioCore() {
 
   /**
    * 播放指定音轨
-   * 如果是同一音轨则继续播放，否则加载新音轨
+   * 优先使用预加载的音轨，如果未预加载则加载新音轨
    * @param track 音频文件信息
    */
   async function playTrack(track: AudioFile) {
@@ -123,23 +123,29 @@ export function useAudioCore() {
     }
 
     isLoading.value = true
-    currentTrackPath = track.path
 
     try {
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl)
-        currentBlobUrl = null
+      // 尝试使用预加载的音轨
+      if (await applyPreloadedTrack(track)) {
+        await audio.value.play()
+        isPlaying.value = true
+      } else {
+        // 没有预加载音轨，正常加载
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl)
+          currentBlobUrl = null
+        }
+
+        const audioData = await readAudioFile({ filePath: track.path })
+
+        const mimeType = getMimeType(track.path)
+        const blob = new Blob([audioData], { type: mimeType })
+        currentBlobUrl = URL.createObjectURL(blob)
+
+        audio.value.src = currentBlobUrl
+        await audio.value.play()
+        isPlaying.value = true
       }
-
-      const audioData = await readAudioFile({ filePath: track.path })
-
-      const mimeType = getMimeType(track.path)
-      const blob = new Blob([audioData], { type: mimeType })
-      currentBlobUrl = URL.createObjectURL(blob)
-
-      audio.value.src = currentBlobUrl
-      await audio.value.play()
-      isPlaying.value = true
     } catch (err) {
       message.error('音频加载失败')
       console.error('Audio load error:', err)
@@ -150,18 +156,20 @@ export function useAudioCore() {
   }
 
   /**
-   * 预加载指定音轨
-   * 提前加载音频数据到内存，实现无缝切换
+   * 预加载指定音轨到内存
+   * 提前加载音频数据到内存，但不设置到 Audio 元素
    * @param track 音频文件信息
    */
-  async function preloadTrack(track: AudioFile) {
+  async function preloadTrack(track: AudioFile): Promise<void> {
     if (!track) return
     if (isPreloading.value) return
+    if (currentTrackPath === track.path) return
     if (preloadedTrack?.track.path === track.path) return
 
     try {
       isPreloading.value = true
 
+      // 清理之前的预加载音轨
       if (preloadedTrack) {
         URL.revokeObjectURL(preloadedTrack.blobUrl)
         preloadedTrack = null
@@ -174,7 +182,8 @@ export function useAudioCore() {
 
       preloadedTrack = { track, blobUrl }
     } catch (err) {
-      console.error('Preload error:', err)
+      console.error('Audio preload error:', err)
+      preloadedTrack = null
     } finally {
       isPreloading.value = false
     }
@@ -184,8 +193,10 @@ export function useAudioCore() {
    * 获取预加载的音轨并应用到 Audio 元素
    * @param track 音频文件信息
    */
-  function applyPreloadedTrack(track: AudioFile) {
-    if (!preloadedTrack || preloadedTrack.track.path !== track.path) return false
+  async function applyPreloadedTrack(track: AudioFile): Promise<boolean> {
+    if (!preloadedTrack || preloadedTrack.track.path !== track.path) {
+      return false
+    }
 
     if (currentBlobUrl) {
       URL.revokeObjectURL(currentBlobUrl)
@@ -195,6 +206,29 @@ export function useAudioCore() {
     currentTrackPath = track.path
     if (audio.value) {
       audio.value.src = currentBlobUrl
+      // 等待音频源设置完成
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('音频源设置超时'))
+        }, 3000)
+
+        function onCanPlay() {
+          clearTimeout(timeout)
+          audio.value?.removeEventListener('canplay', onCanPlay)
+          audio.value?.removeEventListener('error', onError)
+          resolve()
+        }
+
+        function onError() {
+          clearTimeout(timeout)
+          audio.value?.removeEventListener('canplay', onCanPlay)
+          audio.value?.removeEventListener('error', onError)
+          reject(new Error('音频加载失败'))
+        }
+
+        audio.value?.addEventListener('canplay', onCanPlay, { once: true })
+        audio.value?.addEventListener('error', onError, { once: true })
+      })
     }
     preloadedTrack = null
 

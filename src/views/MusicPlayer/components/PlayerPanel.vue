@@ -26,7 +26,7 @@ const store = useMusicPlayerStore()
 
 const {
   isPlaying,
-  isLoading,
+  isAnyLoading,
   currentTime,
   duration,
   togglePlayMode,
@@ -127,13 +127,13 @@ function handlePlayNext() {
           :format-tooltip="() => formatTime(currentTime)"
           color="--primaryColor"
           @update:value="handleProgressChange"
-          :disabled="isLoading" />
+          :disabled="isAnyLoading" />
         <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
           <span>{{ formatTime(currentTime) }}</span>
           <span>{{ formatTime(duration) }}</span>
         </div>
         <div
-          v-if="isLoading"
+          v-if="isAnyLoading"
           class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg">
           <n-spin size="small" :radius="12" />
         </div>
