@@ -10,28 +10,22 @@ export interface PersistOptions {
   keys?: string[]
 }
 
-let restorePromise: Promise<void> | null = null
-let restoreResolve: (() => void) | null = null
-const pendingStores = new Set<string>()
-
-function createRestorePromise() {
-  restorePromise = new Promise(resolve => {
-    restoreResolve = resolve
+function createStoreReadyState() {
+  const isReady = ref(false)
+  let resolve: (() => void) | null = null
+  const promise = new Promise<void>(r => {
+    resolve = r
   })
-  pendingStores.clear()
-}
 
-createRestorePromise()
+  function markReady() {
+    isReady.value = true
+    resolve?.()
+  }
 
-export function waitForRestore(): Promise<void> {
-  return restorePromise!
-}
-
-function markStoreRestored(storeId: string) {
-  pendingStores.delete(storeId)
-  if (pendingStores.size === 0 && restoreResolve) {
-    restoreResolve()
-    createRestorePromise()
+  return {
+    isReady,
+    promise,
+    markReady
   }
 }
 
@@ -39,17 +33,26 @@ export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin 
   return function persistPlugin(context) {
     const persistOptions = context.options.persist
 
-    // 如果 store 没有配置 persist 选项，则不启用持久化
     if (!persistOptions) {
       return
     }
 
-    const storeId = context.store.$id
-    pendingStores.add(storeId)
+    const readyState = createStoreReadyState()
+
+    Object.defineProperty(context.store, '$ready', {
+      get() {
+        return {
+          isReady: readyState.isReady,
+          waitForReady: () => readyState.promise
+        }
+      },
+      enumerable: false,
+      configurable: false
+    })
 
     const {
       fileName = globalOptions?.fileName ?? ConfigFile.Settings,
-      key = globalOptions?.key ?? storeId,
+      key = globalOptions?.key ?? context.store.$id,
       debounce = globalOptions?.debounce ?? TimeUnits.Second,
       keys: persistKeys
     } = persistOptions
@@ -72,7 +75,7 @@ export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin 
       } catch (error) {
         console.error(`Failed to load state for ${key}:`, error)
       } finally {
-        markStoreRestored(storeId)
+        readyState.markReady()
       }
     }
 
