@@ -1,0 +1,10 @@
+{
+  "*.{ts,js,tsx}": [
+    "oxlint --fix",
+    "oxfmt"
+  ],
+  "*.vue": [
+    "oxlint --fix --vue-plugin",
+    "prettier --write"
+  ]
+}
