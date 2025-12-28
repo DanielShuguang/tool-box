@@ -4,6 +4,7 @@ import {
   type SortOption,
   type AudioFile
 } from '@/stores/musicPlayer'
+import Fuse, { IFuseOptions } from 'fuse.js'
 
 // 重新导出类型以保持向后兼容
 export type { PlayMode, SortOption, AudioFile }
@@ -14,27 +15,6 @@ export type { PlayMode, SortOption, AudioFile }
 export interface SortState {
   option: SortOption
   order: 'asc' | 'desc'
-}
-
-/**
- * 模糊匹配算法
- * 检查文本中是否包含查询字符串的所有字符（按顺序）
- * @param text 被搜索的文本
- * @param query 查询字符串
- * @returns 是否匹配
- */
-function fuzzyMatch(text: string, query: string): boolean {
-  return text.toLowerCase().includes(query.toLowerCase())
-}
-
-function matchAudioFile(file: AudioFile, query: string): boolean {
-  if (!query.trim()) return true
-
-  const searchFields = [file.name, file.title || '', file.artist || '', file.album || '']
-    .filter(Boolean)
-    .join(' ')
-
-  return fuzzyMatch(searchFields, query)
 }
 
 export function usePlaylist() {
@@ -51,14 +31,26 @@ export function usePlaylist() {
 
   const searchQuery = ref('')
   const searchQueryDbs = refDebounced(searchQuery, 500)
+
+  const fuseOptions: IFuseOptions<AudioFile> = {
+    keys: ['name', 'title', 'artist', 'album'],
+    threshold: 0.3,
+    ignoreLocation: true,
+    includeScore: false
+  }
+
+  const fuseInstance = computed(() => {
+    return new Fuse(sortedPlaylist.value, fuseOptions)
+  })
+
   const filteredPlaylist = computed(() => {
-    const query = searchQueryDbs.value.trim().toLowerCase()
+    const query = searchQueryDbs.value.trim()
 
     if (!query) {
       return sortedPlaylist.value
     }
 
-    return sortedPlaylist.value.filter(item => matchAudioFile(item, query))
+    return fuseInstance.value.search(query).map(result => result.item)
   })
 
   const sortedPlaylist = computed(() => {
