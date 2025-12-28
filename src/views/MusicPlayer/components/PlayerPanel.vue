@@ -7,7 +7,9 @@ import {
   PlaySkipForwardOutline,
   VolumeHighOutline,
   VolumeMuteOutline,
-  FolderOutline
+  FolderOutline,
+  RepeatOutline,
+  ShuffleOutline
 } from '@vicons/ionicons5'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
@@ -33,14 +35,32 @@ const {
   selectFolder
 } = context
 
-const { currentTrack, volume } = storeToRefs(store)
+const { currentTrack, volume, playMode } = storeToRefs(store)
+
+// 播放模式标签映射
+const playModeLabels: Record<string, string> = {
+  sequence: '顺序播放',
+  loop: '列表循环',
+  single: '单曲循环',
+  random: '随机播放'
+}
+
+// 播放模式图标映射
+const playModeIcons: Record<string, any> = {
+  sequence: RepeatOutline,
+  loop: RepeatOutline,
+  single: RepeatOutline,
+  random: ShuffleOutline
+}
 
 const playModeLabel = computed(() => {
   if (currentTrack.value) {
-    return '播放模式'
+    return playModeLabels[playMode.value]
   }
   return ''
 })
+
+const currentPlayModeIcon = computed(() => playModeIcons[playMode.value])
 
 function handleTogglePlay() {
   eventBus.emit('toggle-play')
@@ -196,7 +216,7 @@ function handlePlayNext() {
         <n-button quaternary @click="togglePlayMode" size="small" class="transition-colors">
           <template #icon>
             <n-icon size="16">
-              <FolderOutline />
+              <component :is="currentPlayModeIcon" />
             </n-icon>
           </template>
           {{ playModeLabel }}
