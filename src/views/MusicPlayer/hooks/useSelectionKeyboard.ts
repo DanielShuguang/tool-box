@@ -10,10 +10,7 @@ export function useSelectionKeyboard(
   onCancelSelection?: () => void
 ) {
   const selectionStore = useSelectionStore()
-  const { meta: isMeta, ctrl: isCtrl, a, escape } = useMagicKeys()
-
-  // 检测 macOS 的 meta 键或 Windows 的 ctrl 键
-  const hasModifier = computed(() => isMeta.value || isCtrl.value)
+  const { escape } = useMagicKeys()
 
   /**
    * 检查是否在输入框中
@@ -30,17 +27,21 @@ export function useSelectionKeyboard(
    * 全选/反选
    * Ctrl+A 触发
    */
-  const toggleSelectAll = () => {
-    const currentList = items()
-    const allIds = currentList.map(item => item.id)
-
-    if (selectionStore.isAllSelected(allIds.length)) {
-      selectionStore.clearSelection()
+  const handleToggleSelectAll = () => {
+    if (onToggleSelectAll) {
+      // 使用外部传入的全选逻辑
+      onToggleSelectAll()
     } else {
-      selectionStore.selectAll(allIds)
-    }
+      // 如果没有传入外部逻辑，则使用默认实现
+      const currentList = items()
+      const allIds = currentList.map(item => item.id)
 
-    onToggleSelectAll?.()
+      if (selectionStore.isAllSelected(allIds.length)) {
+        selectionStore.clearSelection()
+      } else {
+        selectionStore.selectAll(allIds)
+      }
+    }
   }
 
   /**
@@ -54,18 +55,24 @@ export function useSelectionKeyboard(
 
   // 监听快捷键
   // Ctrl+A: 全选/反选
-  const isCtrlOrMetaPressed = computed(() => isMeta.value || isCtrl.value)
-  watch([a, isCtrlOrMetaPressed], ([pressedA, pressedCtrl]) => {
-    if (pressedA && pressedCtrl) {
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // 检查 Ctrl+A 或 Cmd+A
+    if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
       // 检查是否在输入框或文本区域中，如果是则不处理快捷键
       const activeElement = document.activeElement
 
       // 只有在非输入框中才处理 Ctrl+A
       if (!isInputElement(activeElement)) {
-        toggleSelectAll()
+        // 阻止浏览器的默认全选行为
+        event.preventDefault()
+        // 执行列表全选
+        handleToggleSelectAll()
       }
     }
-  })
+  }
+
+  // 使用事件监听器而不是 watch，以便能够阻止默认事件
+  useEventListener(document, 'keydown', handleKeyDown)
 
   // Esc: 取消选择
   watch(escape, pressed => {
@@ -75,8 +82,7 @@ export function useSelectionKeyboard(
   })
 
   return {
-    toggleSelectAll,
-    cancelSelection,
-    hasModifier
+    toggleSelectAll: handleToggleSelectAll,
+    cancelSelection
   }
 }

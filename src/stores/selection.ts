@@ -47,7 +47,6 @@ export const useSelectionStore = defineStore('playlistSelection', () => {
   const clearSelection = () => {
     selectedIds.value.clear()
     lastSelectedIndex.value = -1
-    console.trace('clearSelection')
   }
 
   /**

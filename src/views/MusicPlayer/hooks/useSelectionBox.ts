@@ -70,6 +70,7 @@ export function useSelectionBox(
 
     const elementRect = element.getBoundingClientRect()
     const containerRect = containerRef.value.getBoundingClientRect()
+    const container = containerRef.value
 
     const { startX, startY, currentX, currentY } = selectionBox.value
     const boxLeft = Math.min(startX, currentX)
@@ -77,11 +78,11 @@ export function useSelectionBox(
     const boxRight = Math.max(startX, currentX)
     const boxBottom = Math.max(startY, currentY)
 
-    // 将元素坐标转换为相对于容器的坐标
-    const elementLeft = elementRect.left - containerRect.left
-    const elementTop = elementRect.top - containerRect.top
-    const elementRight = elementRect.right - containerRect.left
-    const elementBottom = elementRect.bottom - containerRect.top
+    // 将元素坐标转换为相对于容器的坐标，并考虑容器的滚动偏移量
+    const elementLeft = elementRect.left - containerRect.left + container.scrollLeft
+    const elementTop = elementRect.top - containerRect.top + container.scrollTop
+    const elementRight = elementRect.right - containerRect.left + container.scrollLeft
+    const elementBottom = elementRect.bottom - containerRect.top + container.scrollTop
 
     // 检测矩形相交
     return (
