@@ -3,6 +3,8 @@
  * 提供音频时间格式化和 MIME 类型获取功能
  */
 
+import { StrictDict } from '@/types/common'
+
 /**
  * 将秒数格式化为 MM:SS 格式
  * @param seconds 音频时间（秒）
@@ -23,7 +25,7 @@ export function formatTime(seconds: number): string {
  */
 export function getMimeType(filePath: string): string {
   const ext = filePath.split('.').pop()?.toLowerCase() || ''
-  const mimeTypes: Record<string, string> = {
+  const mimeTypes: StrictDict<string> = {
     mp3: 'audio/mpeg',
     wav: 'audio/wav',
     flac: 'audio/flac',
