@@ -1,6 +1,4 @@
 import { useSelectionStore } from '@/stores/selection'
-import { useMagicKeys } from '@vueuse/core'
-import { computed, Ref } from 'vue'
 
 /**
  * 基础选择功能 Hook

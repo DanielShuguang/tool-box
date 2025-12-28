@@ -117,7 +117,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
           await audioCore.preloadTrack(track)
 
           // 应用预加载的音轨到Audio元素
-          await audioCore.applyPreloadedTrack(track)
+          await audioCore.applyPreloadedTrack(track, audioCore.audio.value)
 
           // 设置播放列表和进度状态
           playlist.updateCurrentTrackId(trackId)
@@ -151,7 +151,7 @@ export function usePlayerCoordinator(options: UsePlayerCoordinatorOptions) {
     progress.saveProgress(trackId, savedProgress.time || 0)
 
     // 尝试使用预加载的音轨
-    const applied = await audioCore.applyPreloadedTrack(track)
+    const applied = await audioCore.applyPreloadedTrack(track, audioCore.audio.value)
     if (applied) {
       await audioCore.audio.value?.play()
       audioCore.isPlaying.value = true
