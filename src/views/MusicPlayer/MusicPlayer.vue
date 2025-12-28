@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onActivated, onDeactivated, onMounted, provide, watch, computed } from 'vue'
 import { useAudioCore } from './hooks/useAudioCore'
 import { usePlaylist } from './hooks/usePlaylist'
 import { usePlayMode } from './hooks/usePlayMode'
@@ -21,8 +20,17 @@ const playModeObj = usePlayMode()
 const musicPlayerStore = useMusicPlayerStore()
 const playbackProgressStore = usePlaybackProgressStore()
 
-const { isPlaying, isLoading, isPreloading, currentTime, duration, togglePlay, volume, setVolume, stop } =
-  audioCoreObj
+const {
+  isPlaying,
+  isLoading,
+  isPreloading,
+  currentTime,
+  duration,
+  togglePlay,
+  volume,
+  setVolume,
+  stop
+} = audioCoreObj
 
 const { currentTrack, currentTrackId, setSearchQuery } = playlistObj
 
@@ -81,9 +89,7 @@ const coordinator = usePlayerCoordinator({
 const { isInitializing } = coordinator
 
 // 组合的loading状态：初始化loading、播放loading或预加载loading
-const isAnyLoading = computed(() =>
-  isInitializing.value || isLoading.value || isPreloading.value
-)
+const isAnyLoading = computed(() => isInitializing.value || isLoading.value || isPreloading.value)
 
 const dragDrop = useDragDrop({ coordinator })
 
@@ -134,7 +140,9 @@ useEmitter('play-track', coordinator.playTrack, { instance: eventBus })
 
 useEmitter('play-next', coordinator.playNextTrack, { instance: eventBus })
 
-useEmitter('play-previous', coordinator.playPreviousTrack, { instance: eventBus })
+useEmitter('play-previous', coordinator.playPreviousTrack, {
+  instance: eventBus
+})
 
 useEmitter('seek', coordinator.seek, { instance: eventBus })
 
@@ -147,7 +155,14 @@ useEmitter('select-folder', coordinator.selectFolder, { instance: eventBus })
 useEmitter('clear-search', () => setSearchQuery(''), { instance: eventBus })
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.code === 'Space') {
+  // 检查是否在输入框或文本区域中，如果是则不处理快捷键
+  const activeElement = document.activeElement
+  const isInputElement =
+    activeElement instanceof HTMLElement &&
+    (['INPUT', 'TEXTAREA'].includes(activeElement.tagName) ||
+      activeElement.contentEditable === 'true')
+  // 如果在输入框中，不处理空格键快捷键
+  if (e.code === 'Space' && !isInputElement) {
     e.preventDefault()
     if (currentTrack.value) {
       togglePlay()
@@ -186,7 +201,7 @@ watchThrottled(
 )
 
 // 监听播放状态变化，更新进度存储
-watch(isPlaying, (playing) => {
+watch(isPlaying, playing => {
   if (!playing && currentTime.value > 0) {
     progressObj.pauseProgress()
   }

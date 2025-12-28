@@ -1,5 +1,3 @@
-import { storeToRefs } from 'pinia'
-import { useMessage } from 'naive-ui'
 import { useMusicPlayerStore, type PlayMode } from '@/stores/musicPlayer'
 
 /**

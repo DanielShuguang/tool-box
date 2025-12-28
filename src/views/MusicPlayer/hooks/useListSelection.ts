@@ -1,7 +1,4 @@
 import { useSelectionStore } from '@/stores/selection'
-import { useMagicKeys } from '@vueuse/core'
-import { computed, watch, ref } from 'vue'
-import { storeToRefs } from 'pinia'
 
 /**
  * 列表选择组合式函数
@@ -106,7 +103,17 @@ export function useListSelection<T extends { id: string }>(
   const isCtrlOrMetaPressed = computed(() => isMeta.value || isCtrl.value)
   watch([a, isCtrlOrMetaPressed], ([pressedA, pressedCtrl]) => {
     if (pressedA && pressedCtrl) {
-      toggleSelectAll()
+      // 检查是否在输入框或文本区域中，如果是则不处理快捷键
+      const activeElement = document.activeElement
+      const isInputElement =
+        activeElement instanceof HTMLElement &&
+        (['INPUT', 'TEXTAREA'].includes(activeElement.tagName) ||
+          activeElement.contentEditable === 'true')
+
+      // 只有在非输入框中才处理 Ctrl+A
+      if (!isInputElement) {
+        toggleSelectAll()
+      }
     }
   })
 

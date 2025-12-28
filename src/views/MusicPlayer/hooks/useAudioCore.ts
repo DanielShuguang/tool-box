@@ -1,7 +1,6 @@
 import { readAudioFile } from '@/backend-channel/music-player'
 import type { AudioFile } from './usePlaylist'
 import { throttle } from 'lodash-es'
-import { watch } from 'vue'
 import { useVolume } from './useVolume'
 
 interface PreloadedTrack {

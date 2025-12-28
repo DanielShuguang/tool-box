@@ -1,12 +1,5 @@
 <script setup lang="ts">
-const emit = defineEmits<{
-  drop: [event: DragEvent]
-  dragover: [event: DragEvent]
-  dragleave: [event: DragEvent]
-}>()
-
 import { Motion, AnimatePresence } from 'motion-v'
-import { NIcon, NSpin, NSlider } from 'naive-ui'
 import {
   PlayOutline,
   PauseOutline,
@@ -20,6 +13,12 @@ import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
 import { eventBus } from '../utils/eventBus'
 import { formatTime, getTrackTitle, getTrackArtist } from '../utils/musicUtils'
+
+const emit = defineEmits<{
+  drop: [event: DragEvent]
+  dragover: [event: DragEvent]
+  dragleave: [event: DragEvent]
+}>()
 
 const context = useMusicPlayerContext()
 const store = useMusicPlayerStore()

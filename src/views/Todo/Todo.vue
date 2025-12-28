@@ -12,7 +12,7 @@ const {
   remainingCount,
   filter,
   filteredTodos,
-  setFilter,
+  setFilter
 } = useTodoLogic()
 
 const deadline = ref<number | null>(null)
@@ -86,7 +86,11 @@ const handleAddTodo = () => {
               <div
                 v-if="todo.deadline"
                 class="text-xs mt-1"
-                :class="isDeadlineApproaching(todo.deadline, todo.completed) ? 'text-red-500 font-bold' : 'text-gray-500'">
+                :class="
+                  isDeadlineApproaching(todo.deadline, todo.completed)
+                    ? 'text-red-500 font-bold'
+                    : 'text-gray-500'
+                ">
                 截止日期: {{ new Date(todo.deadline).toLocaleDateString('zh-CN') }}
                 <span v-if="!todo.completed"> (剩余: {{ getRemainingTime(todo.deadline) }})</span>
                 <span v-if="isDeadlineApproaching(todo.deadline, todo.completed)">

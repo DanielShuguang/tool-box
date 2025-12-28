@@ -1,5 +1,4 @@
 import { usePlaybackProgressStore } from '@/stores/musicPlayer'
-import { storeToRefs } from 'pinia'
 
 /**
  * 播放进度 Hook
