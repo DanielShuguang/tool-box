@@ -8,6 +8,8 @@ import { usePlaylist } from '../hooks/usePlaylist'
 import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 import { eventBus } from '../utils/eventBus'
 import { useListSelection } from '../hooks/useListSelection'
+import { useSelectionStore } from 'src/stores/selection'
+import { StrictDict } from '@/types/common'
 
 const emit = defineEmits<{
   drop: [event: DragEvent]
@@ -20,6 +22,8 @@ const store = useMusicPlayerStore()
 const playlistObj = usePlaylist()
 const progressStore = usePlaybackProgressStore()
 const { currentTrackId } = storeToRefs(progressStore)
+const selectionStore = useSelectionStore()
+const { selectedCount, hasSelection } = storeToRefs(selectionStore)
 
 const { sortOption, sortOrder } = storeToRefs(store)
 
@@ -40,7 +44,7 @@ const actionOptions = [
 ]
 
 const sortLabel = computed(() => {
-  const labelMap: Record<SortOption, string> = {
+  const labelMap: StrictDict<string, SortOption> = {
     default: '默认',
     name: '文件名',
     title: '标题',
@@ -98,8 +102,6 @@ const { list, containerProps, wrapperProps } = useVirtualList(
 )
 
 const {
-  selectedCount,
-  hasSelection,
   isAllSelected,
   handleRowClick,
   handleRowDoubleClick,

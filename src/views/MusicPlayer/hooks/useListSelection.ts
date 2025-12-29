@@ -87,8 +87,6 @@ export function useListSelection<T extends { id: string }>(
   return {
     // 状态
     selectedItems: selectionCore.selectedItems,
-    selectedCount: selectionCore.selectedCount,
-    hasSelection: selectionCore.hasSelection,
     isAllSelected: selectionCore.isAllSelected,
     selectionBoxStyle: selectionBox.selectionBoxStyle,
     temporarilyHighlightedIds: selectionBox.temporarilyHighlightedIds,

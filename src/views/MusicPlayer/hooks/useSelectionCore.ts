@@ -94,20 +94,11 @@ export function useSelectionCore<T extends { id: string }>(
     return selectionStore.isSelected(id)
   }
 
-  /**
-   * 获取选中项
-   */
-  const { selectedIds } = storeToRefs(selectionStore)
-
   const selectedItems = computed(() => {
     const currentList = items()
     const selectedIdsArray = selectionStore.getSelectedIds()
     return currentList.filter(item => selectedIdsArray.includes(item.id))
   })
-
-  const selectedCount = computed(() => selectedIds.value.size)
-
-  const hasSelection = computed(() => selectedIds.value.size > 0)
 
   /**
    * 是否全选
@@ -117,8 +108,6 @@ export function useSelectionCore<T extends { id: string }>(
   return {
     // 状态
     selectedItems,
-    selectedCount,
-    hasSelection,
     isAllSelected,
     hasModifier,
     // 方法
