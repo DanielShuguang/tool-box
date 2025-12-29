@@ -144,7 +144,7 @@ export function useSelectionBox(
     selectionBeforeDrag.value = new Set(selectionStore.getSelectedIds())
 
     // 开始拖拽选择
-    isDragSelection.value = true
+    isDragSelection.value = false
 
     const containerRect = container.getBoundingClientRect()
     // 考虑容器的滚动偏移量
@@ -166,8 +166,18 @@ export function useSelectionBox(
     const container = containerRef.value
     if (!container) return
 
+    // 只有移动超过阈值才认为是拖拽选择（避免误判普通点击）
+    const dx = Math.abs(
+      event.clientX - (container.getBoundingClientRect().left + selectionBox.value.startX)
+    )
+    const dy = Math.abs(
+      event.clientY - (container.getBoundingClientRect().top + selectionBox.value.startY)
+    )
+    if (dx > 5 || dy > 5) {
+      isDragSelection.value = true
+    }
+
     const containerRect = container.getBoundingClientRect()
-    // 考虑容器的滚动偏移量
     selectionBox.value.currentX = event.clientX - containerRect.left + container.scrollLeft
     selectionBox.value.currentY = event.clientY - containerRect.top + container.scrollTop
 
