@@ -67,14 +67,10 @@ const contextMenuOptions = computed<DropdownMixedOption[]>(() => {
   }
 
   if (hasSel) {
-    options.push({ label: '批量播放', key: 'playSelected' })
+    options.push({ type: 'divider', key: 'd1' })
   } else {
     options.push({ label: '播放', key: 'play' })
-  }
-
-  options.push({ type: 'divider', key: 'd1' })
-
-  if (!hasSel) {
+    options.push({ type: 'divider', key: 'd1' })
     options.push({ label: '查看详情', key: 'info' })
   }
 
