@@ -1,25 +1,27 @@
 <script setup lang="ts">
+import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
+import type { SortOption, AudioFile } from '../hooks/usePlaylist'
+import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
+import { useMusicPlayerContext } from '../contexts/PlayerContext'
+import { useMusicPlayerStore, usePlaybackProgressStore } from '@/stores/musicPlayer'
+import { usePlaylist } from '../hooks/usePlaylist'
+import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
+import { eventBus } from '../utils/eventBus'
+import { useListSelection } from '../hooks/useListSelection'
+
 const emit = defineEmits<{
   drop: [event: DragEvent]
   dragover: [event: DragEvent]
   dragleave: [event: DragEvent]
 }>()
 
-import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
-import type { SortOption, AudioFile } from '../hooks/usePlaylist'
-import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
-import { useMusicPlayerContext } from '../contexts/PlayerContext'
-import { useMusicPlayerStore } from '@/stores/musicPlayer'
-import { usePlaylist } from '../hooks/usePlaylist'
-import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
-import { eventBus } from '../utils/eventBus'
-import { useListSelection } from '../hooks/useListSelection'
-
 const context = useMusicPlayerContext()
 const store = useMusicPlayerStore()
 const playlistObj = usePlaylist()
+const progressStore = usePlaybackProgressStore()
+const { currentTrackId } = storeToRefs(progressStore)
 
-const { currentTrackId, sortOption, sortOrder } = storeToRefs(store)
+const { sortOption, sortOrder } = storeToRefs(store)
 
 const { filteredPlaylist: playlist, setSearchQuery, searchQuery } = playlistObj
 

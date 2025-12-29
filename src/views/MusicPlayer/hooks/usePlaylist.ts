@@ -2,7 +2,8 @@ import {
   useMusicPlayerStore,
   type PlayMode,
   type SortOption,
-  type AudioFile
+  type AudioFile,
+  usePlaybackProgressStore
 } from '@/stores/musicPlayer'
 import Fuse, { IFuseOptions } from 'fuse.js'
 
@@ -19,8 +20,7 @@ export interface SortState {
 
 export function usePlaylist() {
   const musicPlayerStore = useMusicPlayerStore()
-  const { playlist, sortOption, sortOrder, currentTrackId, currentTrack } =
-    storeToRefs(musicPlayerStore)
+  const { playlist, sortOption, sortOrder, currentTrack } = storeToRefs(musicPlayerStore)
   const {
     setSortOption: storeSetSortOption,
     addToPlaylist: storeAddToPlaylist,
@@ -28,6 +28,8 @@ export function usePlaylist() {
     clearPlaylist: storeClearPlaylist,
     updatePlaylist: storeUpdatePlaylist
   } = musicPlayerStore
+  const progressStore = usePlaybackProgressStore()
+  const { currentTrackId } = storeToRefs(progressStore)
 
   const searchQuery = ref('')
   const searchQueryDbs = refDebounced(searchQuery, 500)
@@ -103,7 +105,7 @@ export function usePlaylist() {
   }
 
   function updateCurrentTrackId(trackId: string | null) {
-    musicPlayerStore.currentTrackId = trackId
+    currentTrackId.value = trackId
   }
 
   function setSortOption(option: SortOption) {
