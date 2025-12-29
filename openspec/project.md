@@ -149,6 +149,7 @@ tool-box/
 - **Hook 测试**: 位于 Hook 文件所在模块的 `__tests__` 目录中，命名为 `[hookname].test.ts`
 - **测试配置**: `vitest.config.ts` (根目录)
 - **测试环境配置**: `src/test/setup.ts`
+- **测试工具**: 使用 `@tauri-apps/api/mocks` 提供的工具来模拟后端行为
 
 #### 命名约定
 

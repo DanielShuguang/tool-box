@@ -133,3 +133,4 @@ pnpm check
 4. 新增 Tauri 命令时，同时更新前端和后端代码
 5. 使用 TypeScript 严格模式，确保类型安全
 6. 避免使用 `any` 类型，使用 `unknown` 或具体类型替代
+7. 编写前端测试代码时，如果调用了 Tauri 命令或者使用 invoke 与后端交互，可以通过 `@tauri-apps/api/mocks` 提供的工具来模拟后端行为，避免实际调用后端
