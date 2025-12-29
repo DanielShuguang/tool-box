@@ -82,7 +82,7 @@ export function createPiniaStorage(globalOptions?: PersistOptions): PiniaPlugin 
     loadState()
 
     watchDebounced(
-      context.store.$state,
+      () => context.store.$state,
       async state => {
         try {
           if (persistKeys) {
