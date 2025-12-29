@@ -8,7 +8,7 @@ import { usePlaylist } from '../hooks/usePlaylist'
 import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 import { eventBus } from '../utils/eventBus'
 import { useListSelection } from '../hooks/useListSelection'
-import { useSelectionStore } from 'src/stores/selection'
+import { useSelectionStore } from '@/stores/selection'
 import { StrictDict } from '@/types/common'
 
 const emit = defineEmits<{
@@ -23,7 +23,8 @@ const playlistObj = usePlaylist()
 const progressStore = usePlaybackProgressStore()
 const { currentTrackId } = storeToRefs(progressStore)
 const selectionStore = useSelectionStore()
-const { selectedCount, hasSelection } = storeToRefs(selectionStore)
+const { clearSelection } = selectionStore
+const { selectedCount, hasSelection, selectedIds } = storeToRefs(selectionStore)
 
 const { sortOption, sortOrder } = storeToRefs(store)
 
@@ -72,18 +73,25 @@ const contextMenuOptions = computed<DropdownMixedOption[]>(() => {
     options.push(header)
   }
 
-  if (hasSel) {
-    options.push({ type: 'divider', key: 'd1' })
-  } else {
+  // 仅当当前右键歌曲是唯一选中项时，才认为“仅选中当前”
+  const onlySelectedCurrent =
+    selectedIds.value.size === 1 && selectedIds.value.has(contextMenuTrack.value?.id || '')
+  // 当满足“仅选中当前”或“没有任何选中”时，视为“单条操作”场景
+  const isSingleAction = onlySelectedCurrent || !hasSel
+  if (isSingleAction) {
+    // 单条操作：显示“播放”与“查看详情”
     options.push({ label: '播放', key: 'play' })
     options.push({ type: 'divider', key: 'd1' })
     options.push({ label: '查看详情', key: 'info' })
+  } else {
+    // 多条操作：仅先插入分隔线，后续再插入“批量删除”
+    options.push({ type: 'divider', key: 'd1' })
   }
 
-  if (hasSel) {
-    options.push({ label: '批量删除', key: 'removeSelected' })
-  } else {
+  if (isSingleAction) {
     options.push({ label: '从列表中移除', key: 'remove' })
+  } else {
+    options.push({ label: '批量删除', key: 'removeSelected' })
   }
 
   return options
@@ -193,10 +201,9 @@ function handleRowClickWrapper(item: AudioFile, index: number, event: MouseEvent
 
 function handleContextMenu(event: MouseEvent, track: AudioFile) {
   event.preventDefault()
-  if (!isSelected(track.id) && !hasSelection.value) {
-    contextMenuTrack.value = track
-  } else {
-    contextMenuTrack.value = null
+  contextMenuTrack.value = track
+  if (!isSelected(track.id)) {
+    clearSelection()
   }
   contextMenuShow.value = true
   contextMenuX.value = event.clientX
