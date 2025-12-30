@@ -9,7 +9,8 @@ import {
   VolumeMuteOutline,
   FolderOutline,
   RepeatOutline,
-  ShuffleOutline
+  ShuffleOutline,
+  ChevronDownOutline
 } from '@vicons/ionicons5'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
@@ -20,7 +21,17 @@ const emit = defineEmits<{
   drop: [event: DragEvent]
   dragover: [event: DragEvent]
   dragleave: [event: DragEvent]
+  'toggle-full-screen': []
 }>()
+
+const props = withDefaults(
+  defineProps<{
+    isFullScreen?: boolean
+  }>(),
+  {
+    isFullScreen: false
+  }
+)
 
 const context = useMusicPlayerContext()
 const store = useMusicPlayerStore()
@@ -95,14 +106,37 @@ function handlePlayPrevious() {
 function handlePlayNext() {
   eventBus.emit('play-next')
 }
+
+function handleFullScreenToggle() {
+  emit('toggle-full-screen')
+}
 </script>
 
 <template>
   <div
-    class="w-full h-[80px] flex items-center px-[10px] border-t-(1px solid) border-[--borderColor] bg-[--bgColor]/95 backdrop-blur-sm relative"
+    class="w-full flex items-center justify-center px-[10px] border-t-(1px solid) border-[--borderColor] bg-[--bgColor]/95 backdrop-blur-sm relative transition-all duration-300 ease-in-out"
+    :class="{
+      'h-[80px]': !isFullScreen,
+      'h-screen min-h-0 flex-col': isFullScreen
+    }"
     @drop="emit('drop', $event)"
     @dragover="emit('dragover', $event)"
     @dragleave="emit('dragleave', $event)">
+    <!-- 收缩按钮 -->
+    <n-button
+      v-if="isFullScreen"
+      circle
+      size="small"
+      quaternary
+      @click="handleFullScreenToggle"
+      class="absolute top-[20px] right-[20px] z-10 transition-transform hover:scale-110">
+      <template #icon>
+        <n-icon size="18">
+          <ChevronDownOutline />
+        </n-icon>
+      </template>
+    </n-button>
+
     <div v-if="!currentTrack" class="flex items-center justify-center w-full text-[--textColor3]">
       <div class="flex items-center gap-[15px]">
         <n-icon size="32" :depth="3">
@@ -123,11 +157,23 @@ function handlePlayNext() {
       </div>
     </div>
 
-    <div v-else class="flex items-center w-full">
+    <div
+      v-else
+      class="flex items-center w-full h-full"
+      :class="{
+        'flex-col justify-center gap-[15px]': isFullScreen,
+        'flex-row': !isFullScreen
+      }">
       <!-- 专辑封面和歌曲信息 -->
-      <div class="flex items-center gap-[12px] min-w-[200px] max-w-[300px]">
+      <div
+        class="flex items-center gap-[12px] min-w-[200px] max-w-[300px]"
+        :class="{ 'flex-col': isFullScreen }">
         <div
-          class="size-[48px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-md relative overflow-hidden flex-shrink-0">
+          class="size-[48px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-md relative overflow-hidden flex-shrink-0 cursor-pointer transition-transform hover:scale-105"
+          :class="{
+            'h-[calc(100vh/3)] w-[calc(100vh/3)] max-h-[400px] max-w-[400px]': isFullScreen
+          }"
+          @click="!isFullScreen && handleFullScreenToggle()">
           <Motion
             v-if="isPlaying"
             class="absolute inset-0"
@@ -136,22 +182,25 @@ function handlePlayNext() {
             <div
               class="w-full h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-400 to-blue-700 relative">
               <div
-                class="absolute inset-[2px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
+                class="absolute inset-[3px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
               <div
-                class="absolute inset-[4px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
+                class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
               <div
-                class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
+                class="absolute inset-[9px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
             </div>
           </Motion>
 
           <div
-            class="relative z-10 size-[20px] rounded-full bg-blue-50 flex items-center justify-center shadow"></div>
+            class="relative z-10 size-[20px] rounded-full bg-blue-50 flex items-center justify-center shadow"
+            :class="{ 'size-[110px]': isFullScreen }"></div>
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-[14px] font-medium text-[--textColor1] truncate">
+        <div class="min-w-0 flex-1" :class="{ 'mt-6 text-center': isFullScreen }">
+          <h3
+            class="text-[14px] font-medium text-[--textColor1] truncate"
+            :class="{ 'text-[24px] font-bold': isFullScreen }">
             <AnimatePresence>
               <Motion
-                v-if="getTrackTitle(currentTrack).length > 20"
+                v-if="getTrackTitle(currentTrack).length > (isFullScreen ? 20 : 15)"
                 tag="span"
                 class="inline-block"
                 :animate="{ x: '-50%' }"
@@ -164,22 +213,25 @@ function handlePlayNext() {
               </span>
             </AnimatePresence>
           </h3>
-          <p class="text-[12px] text-[--textColor3] truncate">
+          <p
+            class="text-[12px] text-[--textColor3] truncate"
+            :class="{ 'text-[16px] mt-2': isFullScreen }">
             {{ getTrackArtist(currentTrack) }}
           </p>
         </div>
       </div>
 
       <!-- 播放控制 -->
-      <div class="flex items-center gap-[8px] mx-auto">
+      <div class="flex items-center gap-[8px] mx-auto" :class="{ 'gap-[20px]': isFullScreen }">
         <n-button
           circle
           size="small"
           quaternary
           @click="handlePlayPrevious"
-          class="transition-transform hover:scale-110">
+          class="transition-transform hover:scale-110"
+          :class="{ 'size-medium w-[50px] h-[50px]': isFullScreen }">
           <template #icon>
-            <n-icon size="18">
+            <n-icon :size="isFullScreen ? 24 : 18">
               <PlaySkipBackOutline />
             </n-icon>
           </template>
@@ -190,9 +242,10 @@ function handlePlayNext() {
           size="medium"
           type="primary"
           @click="handleTogglePlay"
-          class="w-[40px] h-[40px] shadow-lg transition-transform hover:scale-110">
+          class="shadow-lg transition-transform hover:scale-110"
+          :class="isFullScreen ? 'size-[50px]' : 'size-[40px]'">
           <template #icon>
-            <n-icon size="20">
+            <n-icon :size="isFullScreen ? 32 : 20">
               <PauseOutline v-if="isPlaying" />
               <PlayOutline v-else />
             </n-icon>
@@ -204,9 +257,10 @@ function handlePlayNext() {
           size="small"
           quaternary
           @click="handlePlayNext"
-          class="transition-transform hover:scale-110">
+          class="transition-transform hover:scale-110"
+          :class="{ 'w-[50px] h-[50px]': isFullScreen }">
           <template #icon>
-            <n-icon size="18">
+            <n-icon :size="isFullScreen ? 24 : 18">
               <PlaySkipForwardOutline />
             </n-icon>
           </template>
@@ -214,14 +268,19 @@ function handlePlayNext() {
       </div>
 
       <!-- 进度条 -->
-      <div class="flex-1 max-w-[300px] mx-[20px] relative">
+      <div
+        class="max-w-[300px] mx-[20px] relative"
+        :class="{ 'max-w-[800px] mx-[50px] w-full': isFullScreen, 'flex-1': !isFullScreen }">
         <n-slider
           :value="duration > 0 ? (currentTime / duration) * 100 : 0"
           :format-tooltip="() => formatTime(currentTime)"
           color="--primaryColor"
           @update:value="handleProgressChange"
-          :disabled="isAnyLoading" />
-        <div class="flex justify-between text-[10px] text-[--textColor3] mt-[2px]">
+          :disabled="isAnyLoading"
+          :class="{ 'h-2': isFullScreen }" />
+        <div
+          class="flex justify-between text-[10px] text-[--textColor3] mt-[2px]"
+          :class="{ 'text-[14px] mt-3': isFullScreen }">
           <span>{{ formatTime(currentTime) }}</span>
           <span>{{ formatTime(duration) }}</span>
         </div>
@@ -233,27 +292,35 @@ function handlePlayNext() {
       </div>
 
       <!-- 播放模式和音量控制 -->
-      <div class="flex items-center gap-[8px] min-w-[150px]">
-        <n-button quaternary @click="togglePlayMode" size="tiny" class="transition-colors">
+      <div
+        class="flex items-center gap-[8px] min-w-[150px]"
+        :class="{ 'min-w-[200px] gap-[15px]': isFullScreen }">
+        <n-button
+          quaternary
+          @click="togglePlayMode"
+          :size="isFullScreen ? 'small' : 'tiny'"
+          class="transition-colors">
           <template #icon>
-            <n-icon size="14">
+            <n-icon :size="isFullScreen ? 16 : 14">
               <component :is="currentPlayModeIcon" />
             </n-icon>
           </template>
-          <span class="text-[11px]">{{ playModeLabel }}</span>
+          <span class="text-[11px]" :class="{ 'text-[12px]': isFullScreen }">{{
+            playModeLabel
+          }}</span>
         </n-button>
 
-        <div class="flex items-center gap-[4px]">
+        <div class="flex items-center gap-[4px]" :class="{ 'gap-[10px]': isFullScreen }">
           <n-icon
-            size="14"
             class="text-[--textColor3] cursor-pointer hover:text-[--primaryColor] transition-colors"
+            :size="isFullScreen ? 18 : 14"
             @click="handleVolumeToggle">
             <VolumeHighOutline v-if="volume > 0" />
             <VolumeMuteOutline v-else />
           </n-icon>
           <n-slider
             :value="Math.round(volume * 100)"
-            class="w-[60px]"
+            :class="isFullScreen ? 'w-[120px]' : 'w-[60px]'"
             color="--primaryColor"
             @update:value="handleVolumeChange" />
         </div>

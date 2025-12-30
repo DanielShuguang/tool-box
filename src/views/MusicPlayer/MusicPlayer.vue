@@ -13,12 +13,16 @@ import { MusicPlayerContextKey, type PlayerContext } from './contexts/PlayerCont
 import { eventBus } from './utils/eventBus'
 import { useEmitter } from '../../utils/event'
 import { useMusicPlayerStore, usePlaybackProgressStore } from '@/stores/musicPlayer'
+import { Motion, AnimatePresence } from 'motion-v'
 
 const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
 const playModeObj = usePlayMode()
 const musicPlayerStore = useMusicPlayerStore()
 const playbackProgressStore = usePlaybackProgressStore()
+
+// 全屏状态管理
+const isFullScreen = ref(false)
 
 const {
   isPlaying,
@@ -31,13 +35,9 @@ const {
   setVolume,
   stop
 } = audioCoreObj
-
 const { currentTrack, currentTrackId, setSearchQuery } = playlistObj
-
 const { togglePlayMode } = playModeObj
-
 const progressObj = usePlaybackProgress()
-
 const { selectFolder, loadFilesFromFolder } = useFileLoader()
 
 function removeTrack(trackId: string) {
@@ -74,6 +74,11 @@ function clearPlaylist() {
   // 清空列表时停止播放
   stop()
   playlistObj.clearPlaylist()
+}
+
+// 全屏状态切换
+function toggleFullScreen() {
+  isFullScreen.value = !isFullScreen.value
 }
 
 const coordinator = usePlayerCoordinator({
@@ -137,21 +142,15 @@ useEmitter(
 )
 
 useEmitter('play-track', coordinator.playTrack, { instance: eventBus })
-
 useEmitter('play-next', coordinator.playNextTrack, { instance: eventBus })
-
 useEmitter('play-previous', coordinator.playPreviousTrack, {
   instance: eventBus
 })
 
 useEmitter('seek', coordinator.seek, { instance: eventBus })
-
 useEmitter('set-volume', setVolume, { instance: eventBus })
-
 useEmitter('toggle-play-mode', togglePlayMode, { instance: eventBus })
-
 useEmitter('select-folder', coordinator.selectFolder, { instance: eventBus })
-
 useEmitter('clear-search', () => setSearchQuery(''), { instance: eventBus })
 
 function handleKeydown(e: KeyboardEvent) {
@@ -226,7 +225,7 @@ function handleDragLeave(event: DragEvent) {
 <template>
   <div class="flex flex-col h-screen">
     <!-- 主要内容区域 -->
-    <div class="flex-1 overflow-hidden">
+    <div class="flex-1 overflow-hidden" v-if="!isFullScreen">
       <PlaylistPanel
         :class="{ 'bg-[--hoverColor]': isDragging }"
         @drop="handleDragDrop"
@@ -234,11 +233,36 @@ function handleDragLeave(event: DragEvent) {
         @dragleave="handleDragLeave" />
     </div>
 
-    <!-- 底部播放器横条 -->
+    <!-- 底部播放器横条（非全屏状态） -->
     <PlayerPanel
+      v-if="!isFullScreen"
       :class="{ 'bg-[--hoverColor]': isDragging }"
+      :is-full-screen="isFullScreen"
       @drop="handleDragDrop"
       @dragover="handleDragOver"
-      @dragleave="handleDragLeave" />
+      @dragleave="handleDragLeave"
+      @toggle-full-screen="toggleFullScreen" />
+
+    <!-- 全屏播放器（带动画） -->
+    <AnimatePresence>
+      <Motion
+        v-if="isFullScreen"
+        :initial="{ y: '100%' }"
+        :animate="{ y: '0%' }"
+        :exit="{ y: '100%' }"
+        :transition="{
+          duration: 0.3,
+          ease: 'easeOut'
+        }"
+        class="fixed bottom-0 left-0 w-full h-[calc(100vh-85px)] z-[1000] border-none">
+        <PlayerPanel
+          :class="{ 'bg-[--hoverColor]': isDragging }"
+          :is-full-screen="isFullScreen"
+          @drop="handleDragDrop"
+          @dragover="handleDragOver"
+          @dragleave="handleDragLeave"
+          @toggle-full-screen="toggleFullScreen" />
+      </Motion>
+    </AnimatePresence>
   </div>
 </template>
