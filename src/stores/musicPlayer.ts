@@ -249,6 +249,21 @@ export const useMusicPlayerStore = defineStore(
     }
 
     /**
+     * 将歌曲添加到指定播放列表
+     * @param files 要添加的音频文件列表
+     * @param playlistId 目标播放列表ID
+     */
+    function addToSpecificPlaylist(files: AudioFile[], playlistId: string) {
+      const targetPlaylist = playlists.value.find(p => p.id === playlistId)
+      if (targetPlaylist) {
+        // 过滤掉已经在目标播放列表中存在的歌曲（避免重复添加）
+        const existingIds = new Set(targetPlaylist.tracks.map(t => t.id))
+        const newFiles = files.filter(f => !existingIds.has(f.id))
+        targetPlaylist.tracks = [...targetPlaylist.tracks, ...newFiles]
+      }
+    }
+
+    /**
      * 重命名播放列表
      */
     function renamePlaylist(playlistId: string, newName: string): boolean {
@@ -315,6 +330,7 @@ export const useMusicPlayerStore = defineStore(
       deletePlaylist,
       renamePlaylist,
       switchPlaylist,
+      addToSpecificPlaylist,
       initializeDefaultPlaylist
     }
   },

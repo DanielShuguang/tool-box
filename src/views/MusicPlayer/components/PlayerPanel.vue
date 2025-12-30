@@ -37,6 +37,9 @@ const {
 
 const { currentTrack, volume, playMode } = storeToRefs(store)
 
+// 保存静音前的音量值
+const previousVolume = ref<number>(0.8)
+
 // 播放模式标签映射
 const playModeLabels: Record<string, string> = {
   sequence: '顺序播放',
@@ -68,6 +71,21 @@ function handleTogglePlay() {
 
 function handleVolumeChange(value: number) {
   eventBus.emit('set-volume', value)
+  // 如果音量大于 0，保存当前音量作为静音前的音量
+  if (value > 0) {
+    previousVolume.value = value / 100
+  }
+}
+
+function handleVolumeToggle() {
+  if (volume.value > 0) {
+    // 当前有音量，保存当前音量并静音
+    previousVolume.value = volume.value
+    eventBus.emit('set-volume', 0)
+  } else {
+    // 当前静音，恢复之前的音量
+    eventBus.emit('set-volume', previousVolume.value * 100)
+  }
 }
 
 function handlePlayPrevious() {
@@ -226,7 +244,10 @@ function handlePlayNext() {
         </n-button>
 
         <div class="flex items-center gap-[4px]">
-          <n-icon size="14" class="text-[--textColor3]">
+          <n-icon
+            size="14"
+            class="text-[--textColor3] cursor-pointer hover:text-[--primaryColor] transition-colors"
+            @click="handleVolumeToggle">
             <VolumeHighOutline v-if="volume > 0" />
             <VolumeMuteOutline v-else />
           </n-icon>

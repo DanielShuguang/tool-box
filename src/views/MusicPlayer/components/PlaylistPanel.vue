@@ -89,6 +89,33 @@ const contextMenuOptions = computed<DropdownMixedOption[]>(() => {
     options.push({ type: 'divider', key: 'd1' })
   }
 
+  // 添加到播放列表的二级菜单
+  const otherPlaylists = playlistObj.playlists.value.filter(
+    p => p.id !== playlistObj.currentPlaylistId.value
+  )
+  if (otherPlaylists.length > 0) {
+    // 获取当前要添加的歌曲列表
+    const tracksToAdd = isSingleAction
+      ? ([contextMenuTrack.value].filter(Boolean) as AudioFile[])
+      : playlist.value.filter(item => selectedIds.value.has(item.id))
+
+    options.push({
+      label: '添加到播放列表',
+      key: 'addToPlaylist',
+      children: otherPlaylists.map(playlist => {
+        // 检查目标播放列表中是否已存在要添加的歌曲
+        const existingIds = new Set(playlist.tracks.map(t => t.id))
+        const hasAllTracks = tracksToAdd.every(t => existingIds.has(t.id))
+
+        return {
+          label: playlist.name,
+          key: `addToPlaylist_${playlist.id}`,
+          disabled: hasAllTracks // 如果所有歌曲都已存在，则禁用该选项
+        }
+      })
+    })
+  }
+
   if (isSingleAction) {
     options.push({ label: '从列表中移除', key: 'remove' })
   } else {
@@ -184,6 +211,34 @@ function handleContextMenuSelect(key: string) {
         removedIds.forEach(id => removeTrack(id))
       }
       break
+    default:
+      // 处理添加到播放列表的二级菜单选项
+      if (key.startsWith('addToPlaylist_')) {
+        const targetPlaylistId = key.replace('addToPlaylist_', '')
+        // 获取要添加的歌曲列表
+        let tracksToAdd: AudioFile[] = []
+
+        // 仅当当前右键歌曲是唯一选中项时，才认为“仅选中当前”
+        const onlySelectedCurrent =
+          selectedIds.value.size === 1 && selectedIds.value.has(contextMenuTrack.value?.id || '')
+        // 当满足“仅选中当前”或“没有任何选中”时，视为“单条操作”场景
+        const isSingleAction = onlySelectedCurrent || !hasSelection.value
+
+        if (isSingleAction) {
+          // 单条操作：只添加当前右键点击的歌曲
+          if (contextMenuTrack.value) {
+            tracksToAdd = [contextMenuTrack.value]
+          }
+        } else {
+          // 多条操作：添加所有选中的歌曲
+          tracksToAdd = playlist.value.filter(item => selectedIds.value.has(item.id))
+        }
+
+        if (tracksToAdd.length > 0) {
+          store.addToSpecificPlaylist(tracksToAdd, targetPlaylistId)
+        }
+      }
+      break
   }
   handleContextMenuHide()
 }
@@ -241,6 +296,41 @@ watchDebounced(
   },
   { debounce: 300 }
 )
+
+/**
+ * 处理键盘事件
+ * @param event 键盘事件对象
+ */
+function handleKeyDown(event: KeyboardEvent) {
+  // 检查是否在输入框中（忽略搜索框输入时的 Delete 操作）
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+    return
+  }
+
+  // 处理 Delete 键删除选中歌曲
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    // 如果有选中的歌曲，则删除选中的歌曲
+    if (hasSelection.value) {
+      event.preventDefault()
+      if (removeTracks) {
+        const removedIds = removeSelected()
+        removeTracks(removedIds)
+      } else {
+        const removedIds = removeSelected()
+        removedIds.forEach(id => removeTrack(id))
+      }
+    }
+  }
+}
+
+// 为组件添加键盘事件监听器
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
