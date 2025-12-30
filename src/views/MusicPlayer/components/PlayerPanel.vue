@@ -81,7 +81,7 @@ function handlePlayNext() {
 
 <template>
   <div
-    class="w-full h-[80px] flex items-center px-[20px] border-t-(1px solid) border-[--borderColor] bg-[--bgColor]/95 backdrop-blur-sm relative"
+    class="w-full h-[80px] flex items-center px-[10px] border-t-(1px solid) border-[--borderColor] bg-[--bgColor]/95 backdrop-blur-sm relative"
     @drop="emit('drop', $event)"
     @dragover="emit('dragover', $event)"
     @dragleave="emit('dragleave', $event)">
