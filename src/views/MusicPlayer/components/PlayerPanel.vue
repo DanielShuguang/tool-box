@@ -81,35 +81,35 @@ function handlePlayNext() {
 
 <template>
   <div
-    class="w-full md:w-[400px] flex flex-col items-center justify-center p-[15px] border-(1px solid) border-[--borderColor] overflow-hidden relative flex-shrink-0"
+    class="w-full h-[80px] flex items-center px-[20px] border-t-(1px solid) border-[--borderColor] bg-[--bgColor]/95 backdrop-blur-sm relative"
     @drop="emit('drop', $event)"
     @dragover="emit('dragover', $event)"
     @dragleave="emit('dragleave', $event)">
-    <div v-if="!currentTrack" class="text-center text-[--textColor3]">
-      <div
-        class="mb-[20px] p-[25px] md:p-[30px] rounded-full bg-gradient-to-br from-[--hoverColor] to-[--borderColor] inline-block shadow-md">
-        <n-icon size="60" :depth="3">
+    <div v-if="!currentTrack" class="flex items-center justify-center w-full text-[--textColor3]">
+      <div class="flex items-center gap-[15px]">
+        <n-icon size="32" :depth="3">
           <FolderOutline />
         </n-icon>
+        <div class="flex flex-col">
+          <p class="text-[14px] font-medium">拖拽音频文件到此处</p>
+          <p class="text-[12px] text-[--textColor3]">支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式</p>
+        </div>
+        <n-button type="primary" size="medium" @click="selectFolder" class="shadow-lg">
+          <template #icon>
+            <n-icon>
+              <FolderOutline />
+            </n-icon>
+          </template>
+          选择文件夹
+        </n-button>
       </div>
-      <p class="text-[13px] md:text-[16px] mb-[8px] font-medium">拖拽音频文件到此处</p>
-      <p class="text-[13px] mb-[15px] text-[--textColor3]">
-        支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式
-      </p>
-      <n-button type="primary" size="medium" @click="selectFolder" class="shadow-lg">
-        <template #icon>
-          <n-icon>
-            <FolderOutline />
-          </n-icon>
-        </template>
-        选择文件夹
-      </n-button>
     </div>
 
-    <div v-else class="w-full max-w-[360px]">
-      <div class="flex flex-col items-center mb-[20px]">
+    <div v-else class="flex items-center w-full">
+      <!-- 专辑封面和歌曲信息 -->
+      <div class="flex items-center gap-[12px] min-w-[200px] max-w-[300px]">
         <div
-          class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105 relative overflow-hidden">
+          class="size-[48px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-md relative overflow-hidden flex-shrink-0">
           <Motion
             v-if="isPlaying"
             class="absolute inset-0"
@@ -118,82 +118,50 @@ function handlePlayNext() {
             <div
               class="w-full h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-400 to-blue-700 relative">
               <div
-                class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
+                class="absolute inset-[2px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
               <div
-                class="absolute inset-[12px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
+                class="absolute inset-[4px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
               <div
-                class="absolute inset-[18px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
-              <div
-                class="absolute inset-[24px] rounded-full bg-gradient-to-r from-blue-300 via-cyan-50 to-blue-300"></div>
-              <div
-                class="absolute inset-[30px] rounded-full bg-gradient-to-r from-blue-200 via-blue-50 to-blue-200"></div>
-              <div
-                class="absolute inset-[36px] rounded-full bg-gradient-to-r from-blue-100 via-cyan-50 to-blue-100"></div>
-              <div
-                class="absolute inset-[42px] rounded-full bg-gradient-to-r from-blue-50 via-cyan-50 to-blue-50"></div>
+                class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
             </div>
           </Motion>
 
           <div
-            class="relative z-10 w-[48px] h-[48px] rounded-full bg-blue-50 flex items-center justify-center shadow-lg">
-            <n-icon size="28" :depth="3" class="text-blue-900">
-              <PlayOutline v-if="!isPlaying" />
-              <PauseOutline v-else />
-            </n-icon>
-          </div>
+            class="relative z-10 size-[20px] rounded-full bg-blue-50 flex items-center justify-center shadow"></div>
         </div>
-        <h2
-          class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full">
-          <AnimatePresence>
-            <Motion
-              v-if="getTrackTitle(currentTrack).length > 15"
-              tag="span"
-              class="inline-block"
-              :animate="{ x: '-50%' }"
-              :transition="{ duration: 20, repeat: Infinity, ease: 'linear' }">
-              {{ getTrackTitle(currentTrack) }}
-              　　{{ getTrackTitle(currentTrack) }}
-            </Motion>
-            <span v-else>
-              {{ getTrackTitle(currentTrack) }}
-            </span>
-          </AnimatePresence>
-        </h2>
-        <p class="text-[--textColor3] text-[14px] mb-[3px] line-clamp-1">
-          {{ getTrackArtist(currentTrack) }}
-        </p>
-        <p v-if="currentTrack.album" class="text-[--textColor3] text-[12px] line-clamp-1">
-          {{ currentTrack.album }}
-        </p>
-      </div>
-
-      <div class="mb-[20px] px-[8px] relative">
-        <n-slider
-          :value="duration > 0 ? (currentTime / duration) * 100 : 0"
-          :format-tooltip="() => formatTime(currentTime)"
-          color="--primaryColor"
-          @update:value="handleProgressChange"
-          :disabled="isAnyLoading" />
-        <div class="flex justify-between text-[11px] text-[--textColor3] mt-[4px]">
-          <span>{{ formatTime(currentTime) }}</span>
-          <span>{{ formatTime(duration) }}</span>
-        </div>
-        <div
-          v-if="isAnyLoading"
-          class="absolute inset-0 bg-[--bgColor]/30 flex items-center justify-center rounded-lg">
-          <n-spin size="small" :radius="12" />
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14px] font-medium text-[--textColor1] truncate">
+            <AnimatePresence>
+              <Motion
+                v-if="getTrackTitle(currentTrack).length > 20"
+                tag="span"
+                class="inline-block"
+                :animate="{ x: '-50%' }"
+                :transition="{ duration: 15, repeat: Infinity, ease: 'linear' }">
+                {{ getTrackTitle(currentTrack) }}
+                　　{{ getTrackTitle(currentTrack) }}
+              </Motion>
+              <span v-else>
+                {{ getTrackTitle(currentTrack) }}
+              </span>
+            </AnimatePresence>
+          </h3>
+          <p class="text-[12px] text-[--textColor3] truncate">
+            {{ getTrackArtist(currentTrack) }}
+          </p>
         </div>
       </div>
 
-      <div class="flex justify-center items-center gap-[20px] mb-[18px]">
+      <!-- 播放控制 -->
+      <div class="flex items-center gap-[8px] mx-auto">
         <n-button
           circle
-          size="medium"
+          size="small"
           quaternary
           @click="handlePlayPrevious"
           class="transition-transform hover:scale-110">
           <template #icon>
-            <n-icon size="24">
+            <n-icon size="18">
               <PlaySkipBackOutline />
             </n-icon>
           </template>
@@ -204,9 +172,9 @@ function handlePlayNext() {
           size="medium"
           type="primary"
           @click="handleTogglePlay"
-          class="w-[52px] h-[52px] shadow-lg transition-transform hover:scale-110">
+          class="w-[40px] h-[40px] shadow-lg transition-transform hover:scale-110">
           <template #icon>
-            <n-icon size="32">
+            <n-icon size="20">
               <PauseOutline v-if="isPlaying" />
               <PlayOutline v-else />
             </n-icon>
@@ -215,39 +183,59 @@ function handlePlayNext() {
 
         <n-button
           circle
-          size="medium"
+          size="small"
           quaternary
           @click="handlePlayNext"
           class="transition-transform hover:scale-110">
           <template #icon>
-            <n-icon size="24">
+            <n-icon size="18">
               <PlaySkipForwardOutline />
             </n-icon>
           </template>
         </n-button>
       </div>
 
-      <div class="flex items-center gap-[8px] mb-[15px] px-[15px]">
-        <n-icon size="18" class="text-[--textColor3]">
-          <VolumeHighOutline v-if="volume > 0" />
-          <VolumeMuteOutline v-else />
-        </n-icon>
+      <!-- 进度条 -->
+      <div class="flex-1 max-w-[300px] mx-[20px] relative">
         <n-slider
-          :value="Math.round(volume * 100)"
-          class="flex-1"
+          :value="duration > 0 ? (currentTime / duration) * 100 : 0"
+          :format-tooltip="() => formatTime(currentTime)"
           color="--primaryColor"
-          @update:value="handleVolumeChange" />
+          @update:value="handleProgressChange"
+          :disabled="isAnyLoading" />
+        <div class="flex justify-between text-[10px] text-[--textColor3] mt-[2px]">
+          <span>{{ formatTime(currentTime) }}</span>
+          <span>{{ formatTime(duration) }}</span>
+        </div>
+        <div
+          v-if="isAnyLoading"
+          class="absolute inset-0 bg-[--bgColor]/50 flex items-center justify-center rounded">
+          <n-spin size="small" :radius="8" />
+        </div>
       </div>
 
-      <div class="flex justify-center gap-[8px]">
-        <n-button quaternary @click="togglePlayMode" size="small" class="transition-colors">
+      <!-- 播放模式和音量控制 -->
+      <div class="flex items-center gap-[8px] min-w-[150px]">
+        <n-button quaternary @click="togglePlayMode" size="tiny" class="transition-colors">
           <template #icon>
-            <n-icon size="16">
+            <n-icon size="14">
               <component :is="currentPlayModeIcon" />
             </n-icon>
           </template>
-          {{ playModeLabel }}
+          <span class="text-[11px]">{{ playModeLabel }}</span>
         </n-button>
+
+        <div class="flex items-center gap-[4px]">
+          <n-icon size="14" class="text-[--textColor3]">
+            <VolumeHighOutline v-if="volume > 0" />
+            <VolumeMuteOutline v-else />
+          </n-icon>
+          <n-slider
+            :value="Math.round(volume * 100)"
+            class="w-[60px]"
+            color="--primaryColor"
+            @update:value="handleVolumeChange" />
+        </div>
       </div>
     </div>
   </div>

@@ -221,14 +221,18 @@ function handleDragLeave(event: DragEvent) {
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row">
-    <PlayerPanel
-      :class="{ 'bg-[--hoverColor]': isDragging }"
-      @drop="handleDragDrop"
-      @dragover="handleDragOver"
-      @dragleave="handleDragLeave" />
+  <div class="flex flex-col h-screen">
+    <!-- 主要内容区域 -->
+    <div class="flex-1 overflow-hidden">
+      <PlaylistPanel
+        :class="{ 'bg-[--hoverColor]': isDragging }"
+        @drop="handleDragDrop"
+        @dragover="handleDragOver"
+        @dragleave="handleDragLeave" />
+    </div>
 
-    <PlaylistPanel
+    <!-- 底部播放器横条 -->
+    <PlayerPanel
       :class="{ 'bg-[--hoverColor]': isDragging }"
       @drop="handleDragDrop"
       @dragover="handleDragOver"
