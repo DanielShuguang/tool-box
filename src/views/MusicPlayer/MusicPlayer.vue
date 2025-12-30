@@ -177,6 +177,9 @@ onMounted(async () => {
     playbackProgressStore.$ready?.waitForReady?.()
   ])
 
+  // 确保默认播放列表已初始化（处理数据迁移）
+  musicPlayerStore.initializeDefaultPlaylist()
+
   // 初始化播放进度，预加载上次播放的音乐音轨
   await coordinator.initializeProgress()
 })

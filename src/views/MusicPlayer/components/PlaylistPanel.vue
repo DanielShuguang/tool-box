@@ -10,6 +10,7 @@ import { eventBus } from '../utils/eventBus'
 import { useListSelection } from '../hooks/useListSelection'
 import { useSelectionStore } from '@/stores/selection'
 import { StrictDict } from '@/types/common'
+import PlaylistList from './PlaylistList.vue'
 
 const emit = defineEmits<{
   drop: [event: DragEvent]
@@ -244,123 +245,128 @@ watchDebounced(
 
 <template>
   <div
-    class="flex-1 border-(1px solid) border-[--borderColor] flex flex-col min-h-0 relative min-w-0"
+    class="h-full border-(1px solid) border-[--borderColor] flex flex-row min-h-0 relative min-w-0"
     @drop="emit('drop', $event)"
     @dragover="emit('dragover', $event)"
     @dragleave="emit('dragleave', $event)">
-    <div
-      class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px]">
-      <div class="flex items-center gap-[8px]">
-        <span class="font-bold text-[14px]">
-          播放列表 ({{ playlist.length }})
-          <span v-if="hasSelection" class="text-[--primaryColor]">
-            - 已选择 {{ selectedCount }} 首
+    <!-- 播放列表列表 -->
+    <PlaylistList />
+    <!-- 播放列表内容 -->
+    <div class="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
+      <div
+        class="flex items-center justify-between p-[12px] border-b-(1px solid) border-[--borderColor] bg-[--hoverColor] gap-[8px] flex-shrink-0">
+        <div class="flex items-center gap-[8px]">
+          <span class="font-bold text-[14px]">
+            播放列表 ({{ playlist.length }})
+            <span v-if="hasSelection" class="text-[--primaryColor]">
+              - 已选择 {{ selectedCount }} 首
+            </span>
           </span>
-        </span>
-        <n-button
-          v-if="playlist.length > 0"
-          size="tiny"
-          quaternary
-          @click="toggleSelectAll"
-          class="cursor-pointer">
-          {{ isAllSelected ? '取消全选' : '全选' }}
-        </n-button>
-        <n-dropdown :options="sortOptions" @select="handleSortSelect" trigger="click">
-          <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
-            {{ sortLabel }}
-            <n-icon size="12">
-              <ArrowDownOutline v-if="sortOrder === 'asc'" />
-              <ArrowUpOutline v-else />
+          <n-button
+            v-if="playlist.length > 0"
+            size="tiny"
+            quaternary
+            @click="toggleSelectAll"
+            class="cursor-pointer">
+            {{ isAllSelected ? '取消全选' : '全选' }}
+          </n-button>
+          <n-dropdown :options="sortOptions" @select="handleSortSelect" trigger="click">
+            <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
+              {{ sortLabel }}
+              <n-icon size="12">
+                <ArrowDownOutline v-if="sortOrder === 'asc'" />
+                <ArrowUpOutline v-else />
+              </n-icon>
+            </n-button>
+          </n-dropdown>
+        </div>
+        <n-input
+          v-model:value="searchQuery"
+          :bordered="false"
+          placeholder="搜索歌曲..."
+          clearable
+          size="small"
+          class="flex-1!"
+          @clear="handleClearSearch">
+          <template #prefix>
+            <n-icon size="14">
+              <SearchOutline />
             </n-icon>
+          </template>
+        </n-input>
+        <n-dropdown :options="actionOptions" @select="handleActionSelect" :trigger="'click'">
+          <n-button size="tiny" quaternary class="cursor-pointer">
+            <template #icon>
+              <n-icon size="14">
+                <FolderOutline />
+              </n-icon>
+            </template>
+            操作
           </n-button>
         </n-dropdown>
       </div>
-      <n-input
-        v-model:value="searchQuery"
-        :bordered="false"
-        placeholder="搜索歌曲..."
-        clearable
-        size="small"
-        class="flex-1!"
-        @clear="handleClearSearch">
-        <template #prefix>
-          <n-icon size="14">
-            <SearchOutline />
-          </n-icon>
-        </template>
-      </n-input>
-      <n-dropdown :options="actionOptions" @select="handleActionSelect" :trigger="'click'">
-        <n-button size="tiny" quaternary class="cursor-pointer">
-          <template #icon>
-            <n-icon size="14">
-              <FolderOutline />
-            </n-icon>
-          </template>
-          操作
-        </n-button>
-      </n-dropdown>
-    </div>
 
-    <div
-      class="flex-1 overflow-auto relative"
-      v-bind="containerProps"
-      @click="handleBackgroundClick"
-      @mousedown="handleMouseDown"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseUp">
-      <div class="selection-box" :style="selectionBoxStyle"></div>
-      <div v-bind="wrapperProps">
-        <div
-          v-for="item in list"
-          :key="item.data.id"
-          :data-index="item.index"
-          class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] cursor-pointer h-[50px] select-none relative transition-all duration-200 ease-out"
-          :class="{
-            'border-l-[3px]': isSelected(item.data.id),
-            'border-l-transparent': !isSelected(item.data.id)
-          }"
-          :style="{
-            backgroundColor: getRowBackgroundColor(item.data),
-            borderColor: isSelected(item.data.id) ? 'var(--primaryColor)' : undefined
-          }"
-          @click.stop="handleRowClickWrapper(item.data, item.index, $event)"
-          @dblclick="handleDblClick(item.data)"
-          @contextmenu="handleContextMenu($event, item.data)">
+      <div
+        class="flex-1 relative min-h-0"
+        v-bind="containerProps"
+        @click="handleBackgroundClick"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseUp">
+        <div class="selection-box" :style="selectionBoxStyle"></div>
+        <div v-bind="wrapperProps">
           <div
-            class="flex-1 min-w-0 flex flex-col justify-around h-full transition-transform duration-200 ease-out"
+            v-for="item in list"
+            :key="item.data.id"
+            :data-index="item.index"
+            class="flex items-center px-[12px] border-b-(1px solid) border-[--borderColor] hover:bg-[--hoverColor] cursor-pointer h-[50px] select-none relative transition-all duration-200 ease-out"
+            :class="{
+              'border-l-[3px]': isSelected(item.data.id),
+              'border-l-transparent': !isSelected(item.data.id)
+            }"
             :style="{
-              transform: isSelected(item.data.id) ? 'translateX(2px)' : 'translateX(0)'
-            }">
-            <p
-              class="text-[14px] truncate transition-colors duration-200"
-              :class="{ 'font-medium text-[--primaryColor]': currentTrackId === item.data.id }">
-              {{ getTrackTitle(item.data) }}
-            </p>
-            <p class="text-[12px] text-[--textColor3] truncate transition-opacity duration-200">
-              {{ getTrackArtist(item.data) }}
-            </p>
+              backgroundColor: getRowBackgroundColor(item.data),
+              borderColor: isSelected(item.data.id) ? 'var(--primaryColor)' : undefined
+            }"
+            @click.stop="handleRowClickWrapper(item.data, item.index, $event)"
+            @dblclick="handleDblClick(item.data)"
+            @contextmenu="handleContextMenu($event, item.data)">
+            <div
+              class="flex-1 min-w-0 flex flex-col justify-around h-full transition-transform duration-200 ease-out"
+              :style="{
+                transform: isSelected(item.data.id) ? 'translateX(2px)' : 'translateX(0)'
+              }">
+              <p
+                class="text-[14px] truncate transition-colors duration-200"
+                :class="{ 'font-medium text-[--primaryColor]': currentTrackId === item.data.id }">
+                {{ getTrackTitle(item.data) }}
+              </p>
+              <p class="text-[12px] text-[--textColor3] truncate transition-opacity duration-200">
+                {{ getTrackArtist(item.data) }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
+      <n-dropdown
+        :show="contextMenuShow"
+        :x="contextMenuX"
+        :y="contextMenuY"
+        :options="contextMenuOptions"
+        @select="handleContextMenuSelect"
+        @clickoutside="handleContextMenuHide" />
+      <n-modal
+        v-model:show="infoModalShow"
+        preset="card"
+        :title="infoModalTitle"
+        style="width: 400px">
+        <n-descriptions :column="1" label-placement="left" v-if="infoModalData">
+          <n-descriptions-item v-for="(value, key) in infoModalData" :key="key" :label="key">
+            {{ value }}
+          </n-descriptions-item>
+        </n-descriptions>
+      </n-modal>
     </div>
-    <n-dropdown
-      :show="contextMenuShow"
-      :x="contextMenuX"
-      :y="contextMenuY"
-      :options="contextMenuOptions"
-      @select="handleContextMenuSelect"
-      @clickoutside="handleContextMenuHide" />
-    <n-modal
-      v-model:show="infoModalShow"
-      preset="card"
-      :title="infoModalTitle"
-      style="width: 400px">
-      <n-descriptions :column="1" label-placement="left" v-if="infoModalData">
-        <n-descriptions-item v-for="(value, key) in infoModalData" :key="key" :label="key">
-          {{ value }}
-        </n-descriptions-item>
-      </n-descriptions>
-    </n-modal>
   </div>
 </template>

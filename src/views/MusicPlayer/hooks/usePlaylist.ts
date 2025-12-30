@@ -3,12 +3,13 @@ import {
   type PlayMode,
   type SortOption,
   type AudioFile,
+  type Playlist,
   usePlaybackProgressStore
 } from '@/stores/musicPlayer'
 import Fuse, { IFuseOptions } from 'fuse.js'
 
 // 重新导出类型以保持向后兼容
-export type { PlayMode, SortOption, AudioFile }
+export type { PlayMode, SortOption, AudioFile, Playlist }
 
 /**
  * 排序状态
@@ -20,13 +21,25 @@ export interface SortState {
 
 export function usePlaylist() {
   const musicPlayerStore = useMusicPlayerStore()
-  const { playlist, sortOption, sortOrder, currentTrack } = storeToRefs(musicPlayerStore)
+  const {
+    playlist,
+    playlists,
+    currentPlaylistId,
+    currentPlaylist,
+    sortOption,
+    sortOrder,
+    currentTrack
+  } = storeToRefs(musicPlayerStore)
   const {
     setSortOption: storeSetSortOption,
     addToPlaylist: storeAddToPlaylist,
     removeFromPlaylist: storeRemoveFromPlaylist,
     clearPlaylist: storeClearPlaylist,
-    updatePlaylist: storeUpdatePlaylist
+    updatePlaylist: storeUpdatePlaylist,
+    createPlaylist: storeCreatePlaylist,
+    deletePlaylist: storeDeletePlaylist,
+    renamePlaylist: storeRenamePlaylist,
+    switchPlaylist: storeSwitchPlaylist
   } = musicPlayerStore
   const progressStore = usePlaybackProgressStore()
   const { currentTrackId } = storeToRefs(progressStore)
@@ -124,8 +137,41 @@ export function usePlaylist() {
     storeClearPlaylist()
   }
 
+  /**
+   * 创建新播放列表
+   */
+  function createPlaylist(name: string): string {
+    return storeCreatePlaylist(name)
+  }
+
+  /**
+   * 删除播放列表
+   */
+  function deletePlaylist(playlistId: string): boolean {
+    return storeDeletePlaylist(playlistId)
+  }
+
+  /**
+   * 重命名播放列表
+   */
+  function renamePlaylist(playlistId: string, newName: string): boolean {
+    return storeRenamePlaylist(playlistId, newName)
+  }
+
+  /**
+   * 切换播放列表
+   */
+  function switchPlaylist(playlistId: string): boolean {
+    // 切换播放列表时重置搜索
+    searchQuery.value = ''
+    return storeSwitchPlaylist(playlistId)
+  }
+
   return {
     playlist,
+    playlists,
+    currentPlaylistId,
+    currentPlaylist,
     sortedPlaylist,
     filteredPlaylist,
     currentTrack,
@@ -141,6 +187,10 @@ export function usePlaylist() {
     },
     addToPlaylist,
     removeFromPlaylist,
-    clearPlaylist
+    clearPlaylist,
+    createPlaylist,
+    deletePlaylist,
+    renamePlaylist,
+    switchPlaylist
   }
 }
