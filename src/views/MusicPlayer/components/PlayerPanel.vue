@@ -109,11 +109,38 @@ function handlePlayNext() {
     <div v-else class="w-full max-w-[360px]">
       <div class="flex flex-col items-center mb-[20px]">
         <div
-          class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-2xl bg-gradient-to-br from-[--primaryColor] to-[--primaryColorHover] flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105">
-          <n-icon size="64" :depth="3" class="text-white">
-            <PlayOutline v-if="!isPlaying" />
-            <PauseOutline v-else />
-          </n-icon>
+          class="w-[120px] sm:w-[140px] md:w-[160px] h-[120px] sm:h-[140px] md:h-[160px] mb-[15px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105 relative overflow-hidden">
+          <Motion
+            v-if="isPlaying"
+            class="absolute inset-0"
+            :animate="{ rotate: 360 }"
+            :transition="{ duration: 3, repeat: Infinity, ease: 'linear' }">
+            <div
+              class="w-full h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-400 to-blue-700 relative">
+              <div
+                class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
+              <div
+                class="absolute inset-[12px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
+              <div
+                class="absolute inset-[18px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
+              <div
+                class="absolute inset-[24px] rounded-full bg-gradient-to-r from-blue-300 via-cyan-50 to-blue-300"></div>
+              <div
+                class="absolute inset-[30px] rounded-full bg-gradient-to-r from-blue-200 via-blue-50 to-blue-200"></div>
+              <div
+                class="absolute inset-[36px] rounded-full bg-gradient-to-r from-blue-100 via-cyan-50 to-blue-100"></div>
+              <div
+                class="absolute inset-[42px] rounded-full bg-gradient-to-r from-blue-50 via-cyan-50 to-blue-50"></div>
+            </div>
+          </Motion>
+
+          <div
+            class="relative z-10 w-[48px] h-[48px] rounded-full bg-blue-50 flex items-center justify-center shadow-lg">
+            <n-icon size="28" :depth="3" class="text-blue-900">
+              <PlayOutline v-if="!isPlaying" />
+              <PauseOutline v-else />
+            </n-icon>
+          </div>
         </div>
         <h2
           class="text-[16px] sm:text-[18px] md:text-[20px] font-bold mb-[8px] text-center text-[--textColor1] overflow-hidden whitespace-nowrap w-full">
