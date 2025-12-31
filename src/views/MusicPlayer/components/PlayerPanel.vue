@@ -24,7 +24,7 @@ const emit = defineEmits<{
   'toggle-full-screen': []
 }>()
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     isFullScreen?: boolean
   }>(),

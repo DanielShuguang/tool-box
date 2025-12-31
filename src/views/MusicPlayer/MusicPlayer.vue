@@ -233,35 +233,23 @@ function handleDragLeave(event: DragEvent) {
         @dragleave="handleDragLeave" />
     </div>
 
-    <!-- 底部播放器横条（非全屏状态） -->
-    <PlayerPanel
-      v-if="!isFullScreen"
-      :class="{ 'bg-[--hoverColor]': isDragging }"
-      :is-full-screen="isFullScreen"
-      @drop="handleDragDrop"
-      @dragover="handleDragOver"
-      @dragleave="handleDragLeave"
-      @toggle-full-screen="toggleFullScreen" />
-
-    <!-- 全屏播放器（带动画） -->
-    <AnimatePresence>
+    <!-- 播放器面板（使用单个实例，根据全屏状态动态调整样式和动画） -->
+    <AnimatePresence mode="wait">
+      <!-- 主容器，用于处理拖拽事件和背景色 -->
       <Motion
-        v-if="isFullScreen"
-        :initial="{ y: '100%' }"
-        :animate="{ y: '0%' }"
-        :exit="{ y: '100%' }"
-        :transition="{
-          duration: 0.3,
-          ease: 'easeOut'
+        :key="isFullScreen ? 'fullscreen' : 'normal'"
+        :class="{
+          'bg-[--hoverColor]': isDragging,
+          'fixed bottom-0 left-0 w-full h-[calc(100vh-85px)] z-[1000] border-none': isFullScreen
         }"
-        class="fixed bottom-0 left-0 w-full h-[calc(100vh-85px)] z-[1000] border-none">
-        <PlayerPanel
-          :class="{ 'bg-[--hoverColor]': isDragging }"
-          :is-full-screen="isFullScreen"
-          @drop="handleDragDrop"
-          @dragover="handleDragOver"
-          @dragleave="handleDragLeave"
-          @toggle-full-screen="toggleFullScreen" />
+        :initial="isFullScreen ? { y: '100%' } : {}"
+        :animate="{ y: 0 }"
+        :exit="isFullScreen ? { y: '100%' } : {}"
+        :transition="{ duration: 0.3, ease: 'easeOut' }"
+        @drop="handleDragDrop"
+        @dragover="handleDragOver"
+        @dragleave="handleDragLeave">
+        <PlayerPanel :is-full-screen="isFullScreen" @toggle-full-screen="toggleFullScreen" />
       </Motion>
     </AnimatePresence>
   </div>
