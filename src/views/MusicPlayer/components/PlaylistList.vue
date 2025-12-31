@@ -5,6 +5,7 @@ import { usePlaylist } from '../hooks/usePlaylist'
 import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
 
 const message = useMessage()
+const dialog = useDialog()
 const playlistObj = usePlaylist()
 
 const {
@@ -153,7 +154,16 @@ function handleContextMenuSelect(key: string) {
       handleRenamePlaylist(playlist.id)
       break
     case 'delete':
-      handleDeletePlaylist(playlist.id)
+      dialog.info({
+        type: 'warning',
+        title: '确认删除',
+        content: `确定要删除播放列表 "${playlist.name}" 吗？`,
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: () => {
+          handleDeletePlaylist(playlist.id)
+        }
+      })
       break
   }
   handleContextMenuHide()
