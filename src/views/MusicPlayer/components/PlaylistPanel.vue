@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { FolderOutline, ArrowUpOutline, ArrowDownOutline, SearchOutline } from '@vicons/ionicons5'
+import {
+  FolderOutline,
+  ArrowUpOutline,
+  ArrowDownOutline,
+  SearchOutline,
+  LocationOutline
+} from '@vicons/ionicons5'
 import type { SortOption, AudioFile } from '../hooks/usePlaylist'
 import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
@@ -9,6 +15,7 @@ import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 import { eventBus } from '../utils/eventBus'
 import { useListSelection } from '../hooks/useListSelection'
 import { useSelectionStore } from '@/stores/selection'
+import { useTrackLocate } from '../hooks/useTrackLocate'
 import { StrictDict } from '@/types/common'
 import PlaylistList from './PlaylistList.vue'
 
@@ -129,7 +136,7 @@ const infoModalShow = ref(false)
 const infoModalTitle = ref('')
 const infoModalData = ref<Record<string, string> | null>(null)
 
-const { list, containerProps, wrapperProps } = useVirtualList(playlist, {
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(playlist, {
   itemHeight: 50,
   overscan: 10
 })
@@ -150,6 +157,13 @@ const {
   handleMouseUp
 } = useListSelection(() => playlist.value, {
   clearOnBackgroundClick: true,
+  containerRef: containerProps.ref
+})
+
+const { scrollToCurrentTrack, locateButtonVisible, debouncedUpdateVisibility } = useTrackLocate({
+  playlist,
+  currentTrackId,
+  scrollTo,
   containerRef: containerProps.ref
 })
 
@@ -318,6 +332,17 @@ function handleKeyDown(event: KeyboardEvent) {
       }
     }
   }
+
+  // 处理 Enter 键定位到当前播放的音乐
+  if (event.key === 'Enter' && !hasSelection.value && currentTrackId.value) {
+    event.preventDefault()
+    scrollToCurrentTrack()
+  }
+}
+
+const mergeScroll = () => {
+  containerProps.onScroll()
+  debouncedUpdateVisibility()
 }
 
 // 为组件添加键盘事件监听器
@@ -400,7 +425,8 @@ onUnmounted(() => {
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove"
         @mouseup="handleMouseUp"
-        @mouseleave="handleMouseUp">
+        @mouseleave="handleMouseUp"
+        @scroll="mergeScroll">
         <div class="selection-box" :style="selectionBoxStyle"></div>
         <div v-bind="wrapperProps">
           <div
@@ -435,6 +461,29 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
+      </div>
+      <!-- 悬浮定位按钮 - 只在音乐不在可视区域时显示 -->
+      <div
+        v-show="locateButtonVisible"
+        class="absolute bottom-4 right-4 z-50 transition-all duration-300 ease-out"
+        :class="{
+          'opacity-0 translate-y-2 pointer-events-none': !locateButtonVisible,
+          'opacity-100 translate-y-0': locateButtonVisible
+        }">
+        <n-button
+          circle
+          type="primary"
+          size="large"
+          @click="scrollToCurrentTrack"
+          :disabled="!currentTrackId"
+          title="定位到当前播放"
+          class="shadow-lg hover:shadow-xl transition-shadow duration-200">
+          <template #icon>
+            <n-icon size="20">
+              <LocationOutline />
+            </n-icon>
+          </template>
+        </n-button>
       </div>
       <n-dropdown
         :show="contextMenuShow"
