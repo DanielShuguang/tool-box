@@ -129,13 +129,10 @@ const infoModalShow = ref(false)
 const infoModalTitle = ref('')
 const infoModalData = ref<Record<string, string> | null>(null)
 
-const { list, containerProps, wrapperProps } = useVirtualList(
-  computed(() => playlist.value),
-  {
-    itemHeight: 50,
-    overscan: 10
-  }
-)
+const { list, containerProps, wrapperProps } = useVirtualList(playlist, {
+  itemHeight: 50,
+  overscan: 10
+})
 
 const {
   isAllSelected,
