@@ -1,5 +1,5 @@
 use autostart::{is_auto_start_enabled, set_auto_start};
-use download::download_file;
+use download::{download_file, download_file_with_config};
 use file_search::{cancel_search_task, search_disk_file_real_time};
 use music_player::{check_file_exists, read_audio_file, scan_audio_folder};
 use utils::os::{get_cpu_info, get_harddisk_info};
@@ -25,6 +25,7 @@ pub fn run() {
         .plugin(file_search::init())
         .invoke_handler(tauri::generate_handler![
             download_file,
+            download_file_with_config,
             get_cpu_info,
             get_harddisk_info,
             search_disk_file_real_time,
