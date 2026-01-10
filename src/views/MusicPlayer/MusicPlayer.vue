@@ -7,6 +7,7 @@ import { usePlaybackProgress } from './hooks/usePlaybackProgress'
 import { usePlayerCoordinator } from './hooks/usePlayerCoordinator'
 import { useDragDrop } from './hooks/useDragDrop'
 import { useTopActions } from './hooks/useTopActions'
+import { usePlaylistIO } from './hooks/usePlaylistIO'
 import PlayerPanel from './components/PlayerPanel.vue'
 import PlaylistPanel from './components/PlaylistPanel.vue'
 import { MusicPlayerContextKey, type PlayerContext } from './contexts/PlayerContext'
@@ -18,6 +19,7 @@ import { Motion, AnimatePresence } from 'motion-v'
 const audioCoreObj = useAudioCore()
 const playlistObj = usePlaylist()
 const playModeObj = usePlayMode()
+const playlistIO = usePlaylistIO()
 const musicPlayerStore = useMusicPlayerStore()
 const playbackProgressStore = usePlaybackProgressStore()
 
@@ -102,7 +104,8 @@ const topActions = useTopActions({
   playMode: playModeObj,
   audioCore: audioCoreObj,
   playlist: playlistObj,
-  coordinator
+  coordinator,
+  playlistIO
 })
 
 const isDragging = dragDrop.isDragging

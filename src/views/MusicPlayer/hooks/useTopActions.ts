@@ -5,16 +5,20 @@ import RepeatOutline from '@vicons/ionicons5/es/RepeatOutline'
 import ShuffleOutline from '@vicons/ionicons5/es/ShuffleOutline'
 import FolderOutline from '@vicons/ionicons5/es/FolderOutline'
 import TrashOutline from '@vicons/ionicons5/es/TrashOutline'
+import DownloadOutline from '@vicons/ionicons5/es/DownloadOutline'
+import CloudUploadOutline from '@vicons/ionicons5/es/CloudUploadOutline'
+import type { PlaylistFormat } from '../utils/playlistFormat'
 
 export type UseTopActionsOptions = {
   playMode: ReturnType<typeof import('./usePlayMode').usePlayMode>
   audioCore: ReturnType<typeof import('./useAudioCore').useAudioCore>
   playlist: ReturnType<typeof import('./usePlaylist').usePlaylist>
   coordinator: ReturnType<typeof import('./usePlayerCoordinator').usePlayerCoordinator>
+  playlistIO?: ReturnType<typeof import('./usePlaylistIO').usePlaylistIO>
 }
 
 export function useTopActions(options: UseTopActionsOptions) {
-  const { playMode, audioCore, playlist, coordinator } = options
+  const { playMode, audioCore, playlist, coordinator, playlistIO } = options
 
   const playModeIcons: Record<string, typeof RepeatOutline> = {
     sequence: RepeatOutline,
@@ -67,25 +71,52 @@ export function useTopActions(options: UseTopActionsOptions) {
     return sortLabels[option] || '默认'
   }
 
-  const actionOptions = computed<DropdownMixedOption[]>(() => [
+  const actionOptions: DropdownMixedOption[] = [
+    {
+      label: '导出播放列表',
+      key: 'export',
+      icon: () => h(NIcon, { size: 14 }, { default: () => h(DownloadOutline) }),
+      children: [
+        {
+          label: '导出当前播放列表',
+          key: 'exportCurrent',
+          children: [
+            { label: 'JSON格式', key: 'export-json' },
+            { label: 'M3U8格式', key: 'export-m3u8' },
+            { label: 'PLS格式', key: 'export-pls' }
+          ]
+        }
+      ]
+    },
+    {
+      label: '导入播放列表',
+      key: 'import',
+      icon: () => h(NIcon, { size: 14 }, { default: () => h(CloudUploadOutline) })
+    },
+    { type: 'divider', key: 'd1' },
     {
       label: '添加文件夹',
       key: 'addFolder',
       icon: () => h(NIcon, { size: 14 }, { default: () => h(FolderOutline) })
     },
-    { type: 'divider', key: 'd1' },
+    { type: 'divider', key: 'd2' },
     {
       label: '清空播放列表',
       key: 'clear',
       icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
     }
-  ])
+  ]
 
   function handleActionSelect(key: string) {
     if (key === 'addFolder') {
       coordinator.selectFolder()
     } else if (key === 'clear') {
       coordinator.clearPlaylist()
+    } else if (key.startsWith('export-')) {
+      const format = key.replace('export-', '') as PlaylistFormat
+      playlistIO?.exportPlaylist(format)
+    } else if (key === 'import') {
+      playlistIO?.importPlaylist()
     }
   }
 

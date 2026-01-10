@@ -128,3 +128,10 @@ pub async fn read_audio_file(file_path: String) -> Result<Vec<u8>, String> {
         }
     }
 }
+
+#[tauri::command]
+pub async fn check_file_exists(file_path: String) -> Result<bool, String> {
+    let path = Path::new(&file_path);
+    Ok(path.exists())
+}
+

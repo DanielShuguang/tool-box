@@ -1,7 +1,7 @@
 use autostart::{is_auto_start_enabled, set_auto_start};
 use download::download_file;
 use file_search::{cancel_search_task, search_disk_file_real_time};
-use music_player::{read_audio_file, scan_audio_folder};
+use music_player::{check_file_exists, read_audio_file, scan_audio_folder};
 use utils::os::{get_cpu_info, get_harddisk_info};
 
 mod autostart;
@@ -33,6 +33,7 @@ pub fn run() {
             is_auto_start_enabled,
             scan_audio_folder,
             read_audio_file,
+            check_file_exists,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

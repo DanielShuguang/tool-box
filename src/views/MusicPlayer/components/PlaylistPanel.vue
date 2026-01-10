@@ -11,12 +11,18 @@ import type { DropdownMixedOption } from 'naive-ui/es/dropdown/src/interface'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore, usePlaybackProgressStore } from '@/stores/musicPlayer'
 import { usePlaylist } from '../hooks/usePlaylist'
+import { useTopActions } from '../hooks/useTopActions'
+import { usePlaylistIO } from '../hooks/usePlaylistIO'
+import { useFileLoader } from '../hooks/useFileLoader'
+import { usePlayerCoordinator } from '../hooks/usePlayerCoordinator'
+import { useAudioCore } from '../hooks/useAudioCore'
+import { usePlayMode } from '../hooks/usePlayMode'
+import { usePlaybackProgress } from '../hooks/usePlaybackProgress'
 import { getTrackTitle, getTrackArtist } from '../utils/musicUtils'
 import { eventBus } from '../utils/eventBus'
 import { useListSelection } from '../hooks/useListSelection'
 import { useSelectionStore } from '@/stores/selection'
 import { useTrackLocate } from '../hooks/useTrackLocate'
-import { StrictDict } from '@/types/common'
 import PlaylistList from './PlaylistList.vue'
 
 const emit = defineEmits<{
@@ -38,30 +44,42 @@ const { sortOption, sortOrder } = storeToRefs(store)
 
 const { filteredPlaylist: playlist, setSearchQuery, searchQuery } = playlistObj
 
-const { removeTrack, removeTracks, clearPlaylist, selectFolder, playTrack } = context
+const { removeTrack, removeTracks, playTrack } = context
 
-const sortOptions = [
-  { label: '文件名', key: 'name' },
-  { label: '标题', key: 'title' },
-  { label: '艺术家', key: 'artist' },
-  { label: '专辑', key: 'album' }
-]
-
-const actionOptions = [
-  { label: '添加文件夹', key: 'addFolder' },
-  { label: '清空列表', key: 'clear' }
-]
-
-const sortLabel = computed(() => {
-  const labelMap: StrictDict<string, SortOption> = {
-    default: '默认',
-    name: '文件名',
-    title: '标题',
-    artist: '艺术家',
-    album: '专辑'
-  }
-  return labelMap[sortOption.value] || '默认'
+const audioCore = useAudioCore()
+const playMode = usePlayMode()
+const fileLoader = useFileLoader()
+const playbackProgress = usePlaybackProgress()
+const playlistIO = usePlaylistIO()
+const coordinator = usePlayerCoordinator({
+  playlist: playlistObj,
+  audioCore,
+  playMode,
+  fileLoader,
+  progress: playbackProgress,
+  isPlaying: audioCore.isPlaying,
+  currentTrack: computed(() => {
+    const id = currentTrackId.value
+    if (!id) return null
+    for (const p of store.playlists) {
+      const track = p.tracks.find(t => t.id === id)
+      if (track) return track
+    }
+    return null
+  })
 })
+
+const topActions = useTopActions({
+  playMode,
+  audioCore,
+  playlist: playlistObj,
+  coordinator,
+  playlistIO
+})
+
+const actionOptions = computed(() => topActions.actionOptions)
+
+const sortLabel = computed(() => topActions.getSortLabel(sortOption.value))
 
 const contextMenuShow = ref(false)
 const contextMenuX = ref(0)
@@ -172,14 +190,7 @@ function handleSortSelect(key: string) {
 }
 
 function handleActionSelect(key: string) {
-  switch (key) {
-    case 'addFolder':
-      selectFolder()
-      break
-    case 'clear':
-      clearPlaylist()
-      break
-  }
+  topActions.handleActionSelect(key)
 }
 
 function handleContextMenuSelect(key: string) {
@@ -382,7 +393,7 @@ onUnmounted(() => {
             class="cursor-pointer">
             {{ isAllSelected ? '取消全选' : '全选' }}
           </n-button>
-          <n-dropdown :options="sortOptions" @select="handleSortSelect" trigger="click">
+          <n-dropdown :options="topActions.sortOptions" @select="handleSortSelect" trigger="click">
             <n-button size="tiny" quaternary class="flex items-center gap-[4px] cursor-pointer">
               {{ sortLabel }}
               <n-icon size="12">

@@ -20,7 +20,7 @@ export function useContextMenu() {
     track: null
   })
 
-  const options = computed<DropdownMixedOption[]>(() => [
+  const options: DropdownMixedOption[] = [
     {
       label: '播放',
       key: 'play',
@@ -38,7 +38,7 @@ export function useContextMenu() {
       key: 'remove',
       icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
     }
-  ])
+  ]
 
   function show(e: MouseEvent, track: AudioFile) {
     e.preventDefault()
