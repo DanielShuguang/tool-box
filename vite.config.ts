@@ -8,6 +8,7 @@ import UnoCSS from 'unocss/vite'
 import legacy from 'vite-plugin-legacy-swc'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { vueMcpVitePlugin } from 'vue-mcp-next'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -36,7 +37,15 @@ export default defineConfig(({ command }) => {
         targets: ['defaults', 'not IE 11'],
         modernPolyfills: true
       }),
-      vueDevTools()
+      vueDevTools(),
+      vueMcpVitePlugin({
+        port: 8890, // MCP 服务器端口
+        inspector: {
+          enabled: true, // 启用 MCP Inspector
+          autoStart: true, // 自动启动
+          openBrowser: false // 是否自动打开浏览器
+        }
+      })
     ],
     resolve: {
       alias: {

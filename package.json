@@ -75,7 +75,9 @@
     "vite": "^7.3.0",
     "vite-plugin-legacy-swc": "^2.0.1",
     "vite-plugin-vue-devtools": "^8.0.5",
+    "vite-plugin-vue-mcp": "^0.3.2",
     "vitest": "^4.0.16",
+    "vue-mcp-next": "^0.8.2",
     "vue-tsc": "^3.1.4"
   },
   "volta": {
