@@ -22,6 +22,7 @@ use crate::utils::output::{Message, MessageSender};
 static SEARCH_STREAM_EVENT: &'static str = "search-disk-file-output";
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchDiskFilePayload {
     name: String,
     concurrent: usize,
@@ -29,6 +30,7 @@ pub struct SearchDiskFilePayload {
 }
 
 #[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResultModel {
     path: String,
     is_dir: bool,

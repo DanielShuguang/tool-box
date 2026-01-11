@@ -4,6 +4,7 @@ use serde::Serialize;
 use tauri::Emitter;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Message<T: Serialize> {
     pub code: usize,
     pub message: String,

@@ -55,7 +55,7 @@ export enum SearchStatus {
 interface ResultFileModel {
   path: string
   size: string
-  is_dir: boolean
+  isDir: boolean
 }
 
 export function useSearchFile(selectedPoint: Ref<string[]>) {
@@ -89,7 +89,7 @@ export function useSearchFile(selectedPoint: Ref<string[]>) {
       return
     }
 
-    const list = supportFolder.value ? payload : payload.filter(item => !item.is_dir)
+    const list = supportFolder.value ? payload : payload.filter(item => !item.isDir)
     // 兼容 windows 路径中盘符的双斜杠
     const formatData = list.map(el => ({ ...el, path: el.path.replaceAll('\\\\', '\\') }))
     searchResult.value.push(...formatData)
@@ -199,7 +199,7 @@ export function useViewFileInExplorer() {
   function linuxOpener(file: ResultFileModel) {
     try {
       // 判断是否为文件夹
-      if (file.is_dir) {
+      if (file.isDir) {
         // 直接使用xdg-open命令打开文件夹
         return Command.create('xdg-open', file.path).execute()
       }

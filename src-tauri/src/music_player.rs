@@ -4,6 +4,7 @@ use std::path::Path;
 static SUPPORTED_EXTENSIONS: &[&str] = &["mp3", "wav", "flac", "m4a", "ogg", "aac"];
 
 #[derive(serde::Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct AudioFile {
     pub id: String,
     pub name: String,

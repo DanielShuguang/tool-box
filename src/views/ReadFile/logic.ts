@@ -186,9 +186,9 @@ export function useManageDownloader(searched: Ref<string[]>, dirPath: Ref<string
 
       const downFn = downloadFile({
         concurrent: concurrentCount.value,
-        dir_path: dirPath.value,
+        dirPath: dirPath.value,
         url,
-        plugin_name: pluginName
+        pluginName: pluginName
       }).then(({ code }) => {
         if (code === 200) {
           downloadCount.value++

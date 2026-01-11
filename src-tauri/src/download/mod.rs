@@ -14,6 +14,7 @@ use crate::utils::{
 pub use core::{run, run_download};
 
 #[derive(Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DownloadPayload {
     pub url: String,
     pub dir_path: String,
@@ -22,6 +23,7 @@ pub struct DownloadPayload {
 }
 
 #[derive(Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DownloadConfig {
     pub url: String,
     pub dir_path: String,
@@ -33,6 +35,7 @@ pub struct DownloadConfig {
 }
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct DownloadProgress {
     pub current: u64,
     pub total: u64,
@@ -42,18 +45,13 @@ pub struct DownloadProgress {
 }
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub enum DownloadStatus {
-    #[serde(rename = "starting")]
     Starting,
-    #[serde(rename = "downloading")]
     Downloading,
-    #[serde(rename = "paused")]
     Paused,
-    #[serde(rename = "resumed")]
     Resumed,
-    #[serde(rename = "completed")]
     Completed,
-    #[serde(rename = "failed")]
     Failed(String),
 }
 

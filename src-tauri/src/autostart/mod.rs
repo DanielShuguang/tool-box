@@ -15,11 +15,13 @@ use winreg::RegKey;
 const APP_NAME: &str = "ToolBox";
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AutostartPayload {
     pub enable: bool,
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AutostartStatus {
     pub enabled: bool,
 }

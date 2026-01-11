@@ -105,11 +105,11 @@ async function handleCopy(path: string) {
             <n-tooltip>
               <template #trigger>
                 <n-icon :size="15">
-                  <FolderOpenOutline v-if="item.data.is_dir" />
+                  <FolderOpenOutline v-if="item.data.isDir" />
                   <DocumentTextOutline v-else />
                 </n-icon>
               </template>
-              {{ item.data.is_dir ? '文件夹' : '文件' }}
+              {{ item.data.isDir ? '文件夹' : '文件' }}
             </n-tooltip>
             <n-tooltip content-class="max-w-[70vw]" :delay="500">
               <template #trigger>
@@ -126,7 +126,7 @@ async function handleCopy(path: string) {
                 highlight-class="text-[--errorColor] underline bg-[transparent]"
                 :search="searchText" />
             </n-tooltip>
-            <span v-if="!item.data.is_dir" class="text-[--infoColor] text-nowrap">
+            <span v-if="!item.data.isDir" class="text-[--infoColor] text-nowrap">
               {{ getCorrectSize(item.data.size) }}
             </span>
             <n-tooltip>
