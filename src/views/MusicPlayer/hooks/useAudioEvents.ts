@@ -20,7 +20,7 @@ export function useAudioEvents() {
     currentTime: Ref<number>,
     duration: Ref<number>
   ) {
-    // 时间更新事件 - 限流处理
+    // 时间更新事件 - 限流处理（20ms精度）
     audio.addEventListener(
       'timeupdate',
       throttle(() => {
@@ -32,7 +32,7 @@ export function useAudioEvents() {
           onNearEndCallback()
           onNearEndCallback = null
         }
-      }, 1000)
+      }, 20)
     )
 
     // 加载元数据事件
