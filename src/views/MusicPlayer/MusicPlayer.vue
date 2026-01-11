@@ -226,7 +226,7 @@ function handleDragLeave(event: DragEvent) {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col">
     <!-- 主要内容区域 -->
     <div class="flex-1 overflow-hidden" v-if="!isFullScreen">
       <PlaylistPanel
