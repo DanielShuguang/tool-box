@@ -6,7 +6,7 @@ import { useLyricsCache } from '@/views/MusicPlayer/hooks/useLyricsCache'
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import { Command } from '@tauri-apps/plugin-shell'
 
-defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean }>()
 
 const appSettingsStore = useAppSettingsStore()
 const message = useMessage()
@@ -34,10 +34,18 @@ onMounted(async () => {
     appSettingsStore.autostart = false
     appSettingsStore.enableTrayIcon = false
   }
-
-  cacheSizeMB.value = Math.round(lyricsCacheSize.value / (1024 * 1024))
-  customCachePath.value = await getCachePath()
 })
+
+watch(
+  () => props.open,
+  async isOpen => {
+    if (isOpen) {
+      await handleRefreshCacheInfo()
+      cacheSizeMB.value = Math.round(lyricsCacheSize.value / (1024 * 1024))
+      customCachePath.value = await getCachePath()
+    }
+  }
+)
 
 const { toggleTrayIcon } = useGenerateTrayIcon(enableTrayIcon)
 
@@ -45,9 +53,9 @@ const { toggleAutostart } = useAppAutostart(autostart, () => {
   appSettingsStore.enableTrayIcon = true
 })
 
-async function handleCacheSizeChange(value: number) {
+async function handleCacheSizeChange(value: number | null) {
+  if (value === null) return
   await setCacheSizeLimit(value)
-  message.success('缓存大小已更新')
 }
 
 async function handleClearCache() {
@@ -73,7 +81,7 @@ async function handleClearCache() {
 async function handleOpenCacheFolder() {
   const path = await getCachePath()
   // 使用 Command 执行系统命令打开文件夹
-  const command = new Command('explorer', [path])
+  const command = Command.create('explorer', [path])
   await command.execute()
 }
 
@@ -134,14 +142,14 @@ async function handleRefreshCacheInfo() {
     <n-form label-placement="left" label-width="100">
       <n-form-item label="缓存大小">
         <div class="flex items-center gap-3">
-          <n-slider
+          <n-input-number
             v-model:value="cacheSizeMB"
             :min="10"
             :max="500"
-            :step="10"
+            :step="1"
             style="width: 200px"
             @update:value="handleCacheSizeChange" />
-          <span class="text-[--textColor2] w-[50px]">{{ cacheSizeMB }} MB</span>
+          <span class="text-[--textColor2]">MB</span>
         </div>
       </n-form-item>
 

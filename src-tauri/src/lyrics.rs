@@ -1,24 +1,5 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::fs;
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct LyricsLine {
-    pub time: f64,
-    pub text: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct LyricsData {
-    pub track_id: String,
-    pub song_name: String,
-    pub artist: String,
-    pub source: String,
-    pub format: String,
-    pub cached_at: String,
-    pub lyrics: Vec<LyricsLine>,
-}
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -40,7 +21,11 @@ fn get_lyrics_cache_dir() -> std::path::PathBuf {
     }
 
     let cache_dir = std::env::var("APPDATA")
-        .map(|appdata| std::path::PathBuf::from(appdata).join("tool-box").join("lyrics-cache"))
+        .map(|appdata| {
+            std::path::PathBuf::from(appdata)
+                .join("tool-box")
+                .join("lyrics-cache")
+        })
         .unwrap_or_else(|_| std::path::PathBuf::from(".").join("lyrics-cache"));
 
     if !cache_dir.exists() {
@@ -102,8 +87,7 @@ pub async fn read_lyrics_cache(track_id: String) -> Result<String, String> {
         return Err("Lyrics cache not found".to_string());
     }
 
-    fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read lyrics cache: {}", e))
+    fs::read_to_string(&file_path).map_err(|e| format!("Failed to read lyrics cache: {}", e))
 }
 
 #[tauri::command]
@@ -111,8 +95,7 @@ pub async fn delete_lyrics_cache(track_id: String) -> Result<(), String> {
     let file_path = get_lyrics_file_path(&track_id);
 
     if file_path.exists() {
-        fs::remove_file(&file_path)
-            .map_err(|e| format!("Failed to delete lyrics cache: {}", e))?;
+        fs::remove_file(&file_path).map_err(|e| format!("Failed to delete lyrics cache: {}", e))?;
     }
 
     Ok(())
@@ -167,6 +150,47 @@ pub async fn get_lyrics_cache_info(max_size: u64) -> Result<LyricsCacheInfo, Str
     })
 }
 
+fn is_json_file(path: &std::path::Path) -> bool {
+    path.is_file()
+        && path
+            .extension()
+            .map(|ext| ext == "json")
+            .unwrap_or(false)
+}
+
+fn collect_json_files_with_mtime(
+    cache_dir: &std::path::Path,
+) -> Result<Vec<(std::path::PathBuf, std::time::SystemTime)>, String> {
+    let mut files = Vec::new();
+
+    for entry in
+        fs::read_dir(cache_dir).map_err(|e| format!("Failed to read cache directory: {}", e))?
+    {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_) => continue,
+        };
+
+        if !is_json_file(&entry.path()) {
+            continue;
+        }
+
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
+
+        let modified = match metadata.modified() {
+            Ok(modified) => modified,
+            Err(_) => continue,
+        };
+
+        files.push((entry.path(), modified));
+    }
+
+    Ok(files)
+}
+
 #[tauri::command]
 pub async fn cleanup_lyrics_cache_by_lru(max_size: u64) -> Result<u64, String> {
     let cache_dir = get_lyrics_cache_dir();
@@ -175,26 +199,12 @@ pub async fn cleanup_lyrics_cache_by_lru(max_size: u64) -> Result<u64, String> {
         return Ok(0);
     }
 
-    let mut files: Vec<(std::path::PathBuf, std::time::SystemTime)> = Vec::new();
-
-    for entry in fs::read_dir(&cache_dir)
-        .map_err(|e| format!("Failed to read cache directory: {}", e))?
-    {
-        if let Ok(entry) = entry {
-            if entry.path().is_file() && entry.path().extension().map(|ext| ext == "json").unwrap_or(false) {
-                if let Ok(metadata) = entry.metadata() {
-                    if let Ok(modified) = metadata.modified() {
-                        files.push((entry.path(), modified));
-                    }
-                }
-            }
-        }
-    }
-
+    let mut files = collect_json_files_with_mtime(&cache_dir)?;
     files.sort_by(|a, b| a.1.cmp(&b.1));
 
     let mut deleted_count: u64 = 0;
-    let mut current_size: u64 = files.iter()
+    let mut current_size: u64 = files
+        .iter()
         .filter_map(|(path, _)| std::fs::metadata(path).ok().map(|m| m.len()))
         .sum();
 
@@ -203,11 +213,14 @@ pub async fn cleanup_lyrics_cache_by_lru(max_size: u64) -> Result<u64, String> {
             break;
         }
 
-        if let Ok(size) = std::fs::metadata(&path).map(|m| m.len()) {
-            current_size -= size;
-        }
+        let size = match std::fs::metadata(&path).map(|m| m.len()) {
+            Ok(size) => size,
+            Err(_) => continue,
+        };
 
-        if let Ok(_) = std::fs::remove_file(&path) {
+        current_size -= size;
+
+        if std::fs::remove_file(&path).is_ok() {
             deleted_count += 1;
         }
     }

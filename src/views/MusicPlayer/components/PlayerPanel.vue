@@ -1,29 +1,21 @@
 <script setup lang="ts">
-import { Motion, AnimatePresence } from 'motion-v'
-import {
-  PlayOutline,
-  PauseOutline,
-  PlaySkipBackOutline,
-  PlaySkipForwardOutline,
-  VolumeHighOutline,
-  VolumeMuteOutline,
-  FolderOutline,
-  RepeatOutline,
-  ShuffleOutline,
-  ChevronDownOutline,
-  TextOutline
-} from '@vicons/ionicons5'
+import { ChevronDownOutline, TextOutline } from '@vicons/ionicons5'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
 import { useLyrics } from '../hooks/useLyrics'
 import { useLyricsCache } from '../hooks/useLyricsCache'
+import { useLyricsDialog } from '../hooks/useLyricsDialog'
 import LyricsPanel from './LyricsPanel.vue'
 import EditLyricsDialog from './EditLyricsDialog.vue'
 import UploadLyricsDialog from './UploadLyricsDialog.vue'
+import PlayerControls from './PlayerControls.vue'
+import ProgressBar from './ProgressBar.vue'
+import VolumeControl from './VolumeControl.vue'
+import PlayModeButton from './PlayModeButton.vue'
+import AlbumCover from './AlbumCover.vue'
+import TrackInfo from './TrackInfo.vue'
+import EmptyPlayer from './EmptyPlayer.vue'
 import { eventBus } from '../utils/eventBus'
-import { formatTime, getTrackTitle, getTrackArtist } from '../utils/musicUtils'
-
-const message = useMessage()
 
 const emit = defineEmits<{
   drop: [event: DragEvent]
@@ -44,15 +36,8 @@ withDefaults(
 const context = useMusicPlayerContext()
 const store = useMusicPlayerStore()
 
-const {
-  isPlaying,
-  isAnyLoading,
-  currentTime,
-  duration,
-  togglePlayMode,
-  handleProgressChange,
-  selectFolder
-} = context
+const { isPlaying, isAnyLoading, currentTime, duration, handleProgressChange, selectFolder } =
+  context
 
 const { currentTrack, volume, playMode } = storeToRefs(store)
 
@@ -72,8 +57,14 @@ const {
 
 const { saveCache } = useLyricsCache()
 
-const editDialogShow = ref(false)
-const uploadDialogShow = ref(false)
+const {
+  editDialogShow,
+  uploadDialogShow,
+  handleEditLyrics,
+  handleUploadLyrics,
+  handleSaveEditedLyrics,
+  handleSaveUploadedLyrics
+} = useLyricsDialog(saveManualLyrics, saveCache)
 
 watch(currentTrack, async track => {
   if (track) {
@@ -97,26 +88,6 @@ const playModeLabels: Record<string, string> = {
   random: '随机播放'
 }
 
-const playModeIcons: Record<string, any> = {
-  sequence: RepeatOutline,
-  loop: RepeatOutline,
-  single: RepeatOutline,
-  random: ShuffleOutline
-}
-
-const playModeLabel = computed(() => {
-  if (currentTrack.value) {
-    return playModeLabels[playMode.value]
-  }
-  return ''
-})
-
-const currentPlayModeIcon = computed(() => playModeIcons[playMode.value])
-
-function handleTogglePlay() {
-  eventBus.emit('toggle-play')
-}
-
 function handleVolumeChange(value: number) {
   eventBus.emit('set-volume', value)
   if (value > 0) {
@@ -133,6 +104,10 @@ function handleVolumeToggle() {
   }
 }
 
+function handleTogglePlay() {
+  eventBus.emit('toggle-play')
+}
+
 function handlePlayPrevious() {
   eventBus.emit('play-previous')
 }
@@ -145,73 +120,31 @@ function handleFullScreenToggle() {
   emit('toggle-full-screen')
 }
 
-function handleEditLyrics() {
-  if (!currentTrack.value) {
-    message.warning('请先播放音乐')
-    return
-  }
-  editDialogShow.value = true
+function handleSaveEditedLyricsWrapper(lyrics: { time: number; text: string }[]) {
+  handleSaveEditedLyrics(currentTrack.value, lyrics)
 }
 
-function handleUploadLyrics() {
-  if (!currentTrack.value) {
-    message.warning('请先播放音乐')
-    return
-  }
-  uploadDialogShow.value = true
-}
-
-async function handleSaveEditedLyrics(lyrics: { time: number; text: string }[]) {
-  if (!currentTrack.value) return
-
-  try {
-    await saveManualLyrics(currentTrack.value.id, lyrics, {
-      title: getTrackTitle(currentTrack.value),
-      artist: getTrackArtist(currentTrack.value)
-    })
-
-    const lyricsData = {
-      trackId: currentTrack.value.id,
-      songName: getTrackTitle(currentTrack.value),
-      artist: getTrackArtist(currentTrack.value),
-      source: 'Manual' as const,
-      format: 'lrc' as const,
-      cachedAt: new Date().toISOString(),
-      lyrics
-    }
-
-    await saveCache(currentTrack.value.id, lyricsData)
-    message.success('歌词已保存')
-  } catch (error) {
-    message.error('保存歌词失败')
-    console.error('保存歌词失败:', error)
-  }
-}
-
-async function handleSaveUploadedLyrics(
+function handleSaveUploadedLyricsWrapper(
   lyrics: { time: number; text: string }[],
   _source: 'Upload'
 ) {
-  if (!currentTrack.value) return
-
-  try {
-    const lyricsData = {
-      trackId: currentTrack.value.id,
-      songName: getTrackTitle(currentTrack.value),
-      artist: getTrackArtist(currentTrack.value),
-      source: 'Upload' as const,
-      format: 'lrc' as const,
-      cachedAt: new Date().toISOString(),
-      lyrics
-    }
-
-    await saveCache(currentTrack.value.id, lyricsData)
-    message.success('歌词已上传并保存')
-  } catch (error) {
-    message.error('保存歌词失败')
-    console.error('保存歌词失败:', error)
-  }
+  handleSaveUploadedLyrics(currentTrack.value, lyrics)
 }
+
+function handleEditLyricsWrapper() {
+  handleEditLyrics(currentTrack.value)
+}
+
+function handleUploadLyricsWrapper() {
+  handleUploadLyrics(currentTrack.value)
+}
+
+const playModeLabel = computed(() => {
+  if (currentTrack.value) {
+    return playModeLabels[playMode.value]
+  }
+  return ''
+})
 </script>
 
 <template>
@@ -224,172 +157,37 @@ async function handleSaveUploadedLyrics(
     @drop="emit('drop', $event)"
     @dragover="emit('dragover', $event)"
     @dragleave="emit('dragleave', $event)">
-    <!-- 非全屏模式：原有布局 -->
     <template v-if="!isFullScreen">
       <div
         class="w-full flex items-center justify-center px-[10px] border-t-(1px solid) border-[--borderColor] bg-[--bgColor]/95 backdrop-blur-sm relative transition-all duration-300 ease-in-out h-full">
-        <!-- 收缩按钮 -->
-        <n-button
-          v-if="isFullScreen"
-          circle
-          size="small"
-          quaternary
-          @click="handleFullScreenToggle"
-          class="absolute top-[20px] right-[20px] z-10 transition-transform hover:scale-110">
-          <template #icon>
-            <n-icon size="18">
-              <ChevronDownOutline />
-            </n-icon>
-          </template>
-        </n-button>
+        <EmptyPlayer v-if="!currentTrack" :is-full-screen="false" @select-folder="selectFolder" />
 
-        <div
-          v-if="!currentTrack"
-          class="flex items-center justify-center w-full text-[--textColor3]">
-          <div class="flex items-center gap-[15px]">
-            <n-icon size="32" :depth="3">
-              <FolderOutline />
-            </n-icon>
-            <div class="flex flex-col">
-              <p class="text-[14px] font-medium">拖拽音频文件到此处</p>
-              <p class="text-[12px] text-[--textColor3]">支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式</p>
-            </div>
-            <n-button type="primary" size="medium" @click="selectFolder" class="shadow-lg">
-              <template #icon>
-                <n-icon>
-                  <FolderOutline />
-                </n-icon>
-              </template>
-              选择文件夹
-            </n-button>
-          </div>
-        </div>
+        <div v-else class="flex items-center w-full h-full gap-[12px]">
+          <AlbumCover :is-playing="isPlaying" size="small" @click="handleFullScreenToggle" />
 
-        <div v-else class="flex items-center w-full h-full">
-          <!-- 专辑封面和歌曲信息 -->
-          <div class="flex items-center gap-[12px] min-w-[200px] max-w-[300px]">
-            <div
-              class="size-[48px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-md relative overflow-hidden flex-shrink-0 cursor-pointer transition-transform hover:scale-105"
-              @click="handleFullScreenToggle()">
-              <Motion
-                v-if="isPlaying"
-                class="absolute inset-0"
-                :animate="{ rotate: 360 }"
-                :transition="{ duration: 3, repeat: Infinity, ease: 'linear' }">
-                <div
-                  class="w-full h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-400 to-blue-700 relative">
-                  <div
-                    class="absolute inset-[3px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
-                  <div
-                    class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
-                  <div
-                    class="absolute inset-[9px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
-                </div>
-              </Motion>
+          <TrackInfo :track="currentTrack" :is-full-screen="false" />
 
-              <div
-                class="relative z-10 size-[20px] rounded-full bg-blue-50 flex items-center justify-center shadow"></div>
-            </div>
-            <div class="min-w-0 flex-1">
-              <h3 class="text-[14px] font-medium text-[--textColor1] truncate">
-                <AnimatePresence>
-                  <Motion
-                    v-if="getTrackTitle(currentTrack).length > 15"
-                    tag="span"
-                    class="inline-block"
-                    :animate="{ x: '-50%' }"
-                    :transition="{ duration: 15, repeat: Infinity, ease: 'linear' }">
-                    {{ getTrackTitle(currentTrack) }}
-                    　　{{ getTrackTitle(currentTrack) }}
-                  </Motion>
-                  <span v-else>
-                    {{ getTrackTitle(currentTrack) }}
-                  </span>
-                </AnimatePresence>
-              </h3>
-              <p class="text-[12px] text-[--textColor3] truncate">
-                {{ getTrackArtist(currentTrack) }}
-              </p>
-            </div>
-          </div>
+          <PlayerControls
+            :is-playing="isPlaying"
+            size="small"
+            @play="handleTogglePlay"
+            @play-previous="handlePlayPrevious"
+            @play-next="handlePlayNext" />
 
-          <!-- 播放控制 -->
-          <div class="flex items-center gap-[8px] mx-auto">
-            <n-button
-              circle
-              size="small"
-              quaternary
-              @click="handlePlayPrevious"
-              class="transition-transform hover:scale-110">
-              <template #icon>
-                <n-icon size="18">
-                  <PlaySkipBackOutline />
-                </n-icon>
-              </template>
-            </n-button>
+          <ProgressBar
+            :current-time="currentTime"
+            :duration="duration"
+            :is-any-loading="isAnyLoading"
+            :is-full-screen="false"
+            :show-lyric-preview="isVisible && hasLyrics"
+            :current-lyric-text="currentLyricText"
+            @progress-change="handleProgressChange" />
 
-            <n-button
-              circle
-              size="medium"
-              type="primary"
-              @click="handleTogglePlay"
-              class="shadow-lg transition-transform hover:scale-110 size-[40px]">
-              <template #icon>
-                <n-icon size="20">
-                  <PauseOutline v-if="isPlaying" />
-                  <PlayOutline v-else />
-                </n-icon>
-              </template>
-            </n-button>
-
-            <n-button
-              circle
-              size="small"
-              quaternary
-              @click="handlePlayNext"
-              class="transition-transform hover:scale-110">
-              <template #icon>
-                <n-icon size="18">
-                  <PlaySkipForwardOutline />
-                </n-icon>
-              </template>
-            </n-button>
-          </div>
-
-          <!-- 进度条 -->
-          <div class="max-w-[300px] mx-[20px] relative flex-1 flex flex-col">
-            <n-slider
-              :value="duration > 0 ? (currentTime / duration) * 100 : 0"
-              :format-tooltip="() => formatTime(currentTime)"
-              color="--primaryColor"
-              @update:value="handleProgressChange"
-              :disabled="isAnyLoading" />
-            <div class="flex justify-between text-[10px] text-[--textColor3] mt-[2px]">
-              <span>{{ formatTime(currentTime) }}</span>
-              <span>{{ formatTime(duration) }}</span>
-            </div>
-            <div
-              v-if="isAnyLoading"
-              class="absolute inset-0 bg-[--bgColor]/50 flex items-center justify-center rounded">
-              <n-spin size="small" :radius="8" />
-            </div>
-            <div v-if="!isFullScreen && isVisible && hasLyrics" class="mt-1 text-center">
-              <p class="text-[12px] text-[--textColor1] truncate px-2">
-                {{ currentLyricText || '♪' }}
-              </p>
-            </div>
-          </div>
-
-          <!-- 播放模式和音量控制 -->
           <div class="flex items-center gap-[8px] min-w-[150px]">
-            <n-button quaternary @click="togglePlayMode" size="tiny" class="transition-colors">
-              <template #icon>
-                <n-icon size="14">
-                  <component :is="currentPlayModeIcon" />
-                </n-icon>
-              </template>
-              <span class="text-[11px]">{{ playModeLabel }}</span>
-            </n-button>
+            <PlayModeButton
+              :play-mode="playMode"
+              :label="playModeLabel"
+              @toggle-play-mode="context.togglePlayMode" />
 
             <n-tooltip trigger="hover">
               <template #trigger>
@@ -404,33 +202,21 @@ async function handleSaveUploadedLyrics(
               {{ isVisible ? '隐藏歌词' : '显示歌词' }}
             </n-tooltip>
 
-            <div class="flex items-center gap-[4px]">
-              <n-icon
-                class="text-[--textColor3] cursor-pointer hover:text-[--primaryColor] transition-colors"
-                size="14"
-                @click="handleVolumeToggle">
-                <VolumeHighOutline v-if="volume > 0" />
-                <VolumeMuteOutline v-else />
-              </n-icon>
-              <n-slider
-                :value="Math.round(volume * 100)"
-                class="w-[60px]"
-                color="--primaryColor"
-                @update:value="handleVolumeChange" />
-            </div>
+            <VolumeControl
+              :volume="volume"
+              size="small"
+              @volume-change="handleVolumeChange"
+              @volume-toggle="handleVolumeToggle" />
           </div>
         </div>
       </div>
     </template>
 
-    <!-- 全屏模式：左右布局 -->
     <template v-else>
       <div class="w-full h-full flex">
-        <!-- 左侧：播放内容区域 -->
         <div
           class="flex flex-col items-center justify-center px-[40px] border-r-(1px solid) border-[--borderColor]"
           style="width: 45%; min-width: 400px">
-          <!-- 收缩按钮 -->
           <n-button
             circle
             size="small"
@@ -444,182 +230,59 @@ async function handleSaveUploadedLyrics(
             </template>
           </n-button>
 
-          <div
-            v-if="!currentTrack"
-            class="flex items-center justify-center w-full text-[--textColor3]">
-            <div class="flex items-center gap-[15px]">
-              <n-icon size="32" :depth="3">
-                <FolderOutline />
-              </n-icon>
-              <div class="flex flex-col">
-                <p class="text-[14px] font-medium">拖拽音频文件到此处</p>
-                <p class="text-[12px] text-[--textColor3]">
-                  支持 MP3、WAV、FLAC、M4A、OGG、AAC 格式
-                </p>
-              </div>
-              <n-button type="primary" size="medium" @click="selectFolder" class="shadow-lg">
-                <template #icon>
-                  <n-icon>
-                    <FolderOutline />
-                  </n-icon>
-                </template>
-                选择文件夹
-              </n-button>
-            </div>
-          </div>
+          <EmptyPlayer v-if="!currentTrack" :is-full-screen="true" @select-folder="selectFolder" />
 
           <template v-else>
-            <!-- 专辑封面 -->
-            <div
-              class="size-[calc(100vh/3)] max-w-[400px] rounded-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center shadow-md relative overflow-hidden cursor-pointer transition-transform hover:scale-105">
-              <Motion
-                v-if="isPlaying"
-                class="absolute inset-0"
-                :animate="{ rotate: 360 }"
-                :transition="{ duration: 3, repeat: Infinity, ease: 'linear' }">
-                <div
-                  class="w-full h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-400 to-blue-700 relative">
-                  <div
-                    class="absolute inset-[3px] rounded-full bg-gradient-to-r from-blue-600 via-cyan-300 to-blue-600"></div>
-                  <div
-                    class="absolute inset-[6px] rounded-full bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500"></div>
-                  <div
-                    class="absolute inset-[9px] rounded-full bg-gradient-to-r from-blue-400 via-cyan-100 to-blue-400"></div>
-                </div>
-              </Motion>
+            <div class="flex flex-col items-center gap-[20px] w-full">
+              <AlbumCover :is-playing="isPlaying" size="large" @click="handleFullScreenToggle" />
 
-              <div
-                class="relative z-10 size-[110px] rounded-full bg-blue-50 flex items-center justify-center shadow"></div>
-            </div>
-
-            <!-- 歌曲信息 -->
-            <div class="mt-6 text-center w-full overflow-hidden">
-              <h3 class="text-[24px] font-bold text-[--textColor1]">
-                <AnimatePresence>
-                  <Motion
-                    v-if="getTrackTitle(currentTrack).length > 20"
-                    tag="span"
-                    class="inline-block text-nowrap"
-                    :animate="{ x: '-50%' }"
-                    :transition="{ duration: 15, repeat: Infinity, ease: 'linear' }">
-                    {{ getTrackTitle(currentTrack) }}
-                    　　{{ getTrackTitle(currentTrack) }}
-                  </Motion>
-                  <span v-else>
-                    {{ getTrackTitle(currentTrack) }}
-                  </span>
-                </AnimatePresence>
-              </h3>
-              <p class="text-[16px] text-[--textColor3] mt-2">
-                {{ getTrackArtist(currentTrack) }}
-              </p>
-            </div>
-
-            <!-- 播放控制 -->
-            <div class="flex items-center gap-[20px] mt-8">
-              <n-button
-                circle
-                size="medium"
-                quaternary
-                @click="handlePlayPrevious"
-                class="w-[50px] h-[50px] transition-transform hover:scale-110">
-                <template #icon>
-                  <n-icon size="24">
-                    <PlaySkipBackOutline />
-                  </n-icon>
-                </template>
-              </n-button>
-
-              <n-button
-                circle
-                type="primary"
-                @click="handleTogglePlay"
-                class="shadow-lg transition-transform hover:scale-110 size-[50px]">
-                <template #icon>
-                  <n-icon size="32">
-                    <PauseOutline v-if="isPlaying" />
-                    <PlayOutline v-else />
-                  </n-icon>
-                </template>
-              </n-button>
-
-              <n-button
-                circle
-                size="medium"
-                quaternary
-                @click="handlePlayNext"
-                class="w-[50px] h-[50px] transition-transform hover:scale-110">
-                <template #icon>
-                  <n-icon size="24">
-                    <PlaySkipForwardOutline />
-                  </n-icon>
-                </template>
-              </n-button>
-            </div>
-
-            <!-- 进度条 -->
-            <div class="max-w-[300px] mx-[50px] w-full mt-8 relative">
-              <n-slider
-                :value="duration > 0 ? (currentTime / duration) * 100 : 0"
-                :format-tooltip="() => formatTime(currentTime)"
-                color="--primaryColor"
-                @update:value="handleProgressChange"
-                :disabled="isAnyLoading"
-                class="h-2" />
-              <div class="flex justify-between text-[14px] text-[--textColor3] mt-3">
-                <span>{{ formatTime(currentTime) }}</span>
-                <span>{{ formatTime(duration) }}</span>
+              <div class="w-full overflow-hidden">
+                <TrackInfo :track="currentTrack" :is-full-screen="true" />
               </div>
-              <div
-                v-if="isAnyLoading"
-                class="absolute inset-0 bg-[--bgColor]/50 flex items-center justify-center rounded">
-                <n-spin size="small" :radius="8" />
-              </div>
-            </div>
 
-            <!-- 播放模式和音量控制 -->
-            <div class="flex items-center gap-[15px] mt-4 min-w-[200px] mb-[55px]">
-              <n-button quaternary size="small" @click="togglePlayMode" class="transition-colors">
-                <template #icon>
-                  <n-icon size="16">
-                    <component :is="currentPlayModeIcon" />
-                  </n-icon>
-                </template>
-                <span class="text-[12px]">{{ playModeLabel }}</span>
-              </n-button>
+              <PlayerControls
+                :is-playing="isPlaying"
+                size="medium"
+                @play="handleTogglePlay"
+                @play-previous="handlePlayPrevious"
+                @play-next="handlePlayNext" />
 
-              <n-tooltip trigger="hover">
-                <template #trigger>
-                  <n-button quaternary size="tiny" @click="toggleVisibility">
-                    <template #icon>
-                      <n-icon size="14">
-                        <TextOutline />
-                      </n-icon>
-                    </template>
-                  </n-button>
-                </template>
-                {{ isVisible ? '隐藏歌词' : '显示歌词' }}
-              </n-tooltip>
+              <ProgressBar
+                :current-time="currentTime"
+                :duration="duration"
+                :is-any-loading="isAnyLoading"
+                :is-full-screen="true"
+                @progress-change="handleProgressChange" />
 
-              <div class="flex items-center gap-[10px]">
-                <n-icon
-                  class="text-[--textColor3] cursor-pointer hover:text-[--primaryColor] transition-colors"
-                  size="18"
-                  @click="handleVolumeToggle">
-                  <VolumeHighOutline v-if="volume > 0" />
-                  <VolumeMuteOutline v-else />
-                </n-icon>
-                <n-slider
-                  :value="Math.round(volume * 100)"
-                  class="w-[120px]"
-                  color="--primaryColor"
-                  @update:value="handleVolumeChange" />
+              <div class="flex items-center gap-[15px] min-w-[200px]">
+                <PlayModeButton
+                  :play-mode="playMode"
+                  :label="playModeLabel"
+                  @toggle-play-mode="context.togglePlayMode" />
+
+                <n-tooltip trigger="hover">
+                  <template #trigger>
+                    <n-button quaternary size="tiny" @click="toggleVisibility">
+                      <template #icon>
+                        <n-icon size="14">
+                          <TextOutline />
+                        </n-icon>
+                      </template>
+                    </n-button>
+                  </template>
+                  {{ isVisible ? '隐藏歌词' : '显示歌词' }}
+                </n-tooltip>
+
+                <VolumeControl
+                  :volume="volume"
+                  size="large"
+                  @volume-change="handleVolumeChange"
+                  @volume-toggle="handleVolumeToggle" />
               </div>
             </div>
           </template>
         </div>
 
-        <!-- 右侧：歌词展示区域 -->
         <div class="flex-1 min-w-0 overflow-hidden" style="width: 55%">
           <LyricsPanel
             :is-full-screen="isFullScreen"
@@ -628,8 +291,8 @@ async function handleSaveUploadedLyrics(
             :current-line-index="currentLineIndex"
             :is-visible="isVisible"
             :error-message="errorMessage"
-            @edit-lyrics="handleEditLyrics"
-            @upload-lyrics="handleUploadLyrics" />
+            @edit-lyrics="handleEditLyricsWrapper"
+            @upload-lyrics="handleUploadLyricsWrapper" />
         </div>
       </div>
     </template>
@@ -637,14 +300,14 @@ async function handleSaveUploadedLyrics(
     <EditLyricsDialog
       v-model:show="editDialogShow"
       :lyrics="currentLyrics"
-      :song-name="getTrackTitle(currentTrack) || ''"
-      :artist="getTrackArtist(currentTrack) || ''"
-      @save="handleSaveEditedLyrics" />
+      song-name=""
+      artist=""
+      @save="handleSaveEditedLyricsWrapper" />
 
     <UploadLyricsDialog
       v-model:show="uploadDialogShow"
-      :song-name="getTrackTitle(currentTrack) || ''"
-      :artist="getTrackArtist(currentTrack) || ''"
-      @save="handleSaveUploadedLyrics" />
+      song-name=""
+      artist=""
+      @save="handleSaveUploadedLyricsWrapper" />
   </div>
 </template>
