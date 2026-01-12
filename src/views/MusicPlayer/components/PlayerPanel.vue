@@ -493,13 +493,13 @@ async function handleSaveUploadedLyrics(
             </div>
 
             <!-- 歌曲信息 -->
-            <div class="mt-6 text-center">
+            <div class="mt-6 text-center w-full overflow-hidden">
               <h3 class="text-[24px] font-bold text-[--textColor1]">
                 <AnimatePresence>
                   <Motion
                     v-if="getTrackTitle(currentTrack).length > 20"
                     tag="span"
-                    class="inline-block"
+                    class="inline-block text-nowrap"
                     :animate="{ x: '-50%' }"
                     :transition="{ duration: 15, repeat: Infinity, ease: 'linear' }">
                     {{ getTrackTitle(currentTrack) }}
