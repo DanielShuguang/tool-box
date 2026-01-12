@@ -3,8 +3,8 @@ import { isDevelopment } from '@/utils/development'
 import { useAppAutostart, useGenerateTrayIcon } from './logic'
 import { useAppSettingsStore } from '@/stores/appSettings'
 import { useLyricsCache } from '@/views/MusicPlayer/hooks/useLyricsCache'
-import { open as openPath } from '@tauri-apps/plugin-shell'
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
+import { Command } from '@tauri-apps/plugin-shell'
 
 defineProps<{ open: boolean }>()
 
@@ -72,7 +72,9 @@ async function handleClearCache() {
 
 async function handleOpenCacheFolder() {
   const path = await getCachePath()
-  await openPath(path)
+  // 使用 Command 执行系统命令打开文件夹
+  const command = new Command('explorer', [path])
+  await command.execute()
 }
 
 async function handleSelectCachePath() {

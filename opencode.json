@@ -4,6 +4,10 @@
     "vue-mcp": {
       "type": "remote",
       "url": "http://localhost:8890/mcp"
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp@latest"],
     }
   }
 }
