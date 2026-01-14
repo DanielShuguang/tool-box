@@ -12,12 +12,25 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Tool box",
         "minWidth": 1024,
         "minHeight": 768,
         "dragDropEnabled": false,
         "decorations": false,
         "transparent": false
+      },
+      {
+        "label": "lyrics-window",
+        "title": "桌面歌词",
+        "width": 600,
+        "height": 80,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "url": "lyrics.html"
       }
     ],
     "security": {

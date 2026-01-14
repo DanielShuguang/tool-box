@@ -56,6 +56,14 @@ export default defineConfig(({ command }) => {
     // 1. prevent vite from obscuring rust errors
     clearScreen: false,
     // 2. tauri expects a fixed port, fail if that port is not available
+    build: {
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          lyrics: path.resolve(__dirname, 'lyrics.html')
+        }
+      }
+    },
     server: {
       port: 3000,
       strictPort: true,

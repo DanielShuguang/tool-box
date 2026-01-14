@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ChevronDownOutline, TextOutline } from '@vicons/ionicons5'
+import { ChevronDownOutline, TextOutline, DesktopOutline } from '@vicons/ionicons5'
+import { onUnmounted } from 'vue'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
 import { useLyrics } from '../hooks/useLyrics'
 import { useLyricsCache } from '../hooks/useLyricsCache'
 import { useLyricsDialog } from '../hooks/useLyricsDialog'
+import { useDesktopLyrics } from '../hooks/useDesktopLyrics'
+import { listen } from '@tauri-apps/api/event'
 import LyricsPanel from './LyricsPanel.vue'
 import EditLyricsDialog from './EditLyricsDialog.vue'
 import UploadLyricsDialog from './UploadLyricsDialog.vue'
@@ -66,6 +69,15 @@ const {
   handleSaveUploadedLyrics
 } = useLyricsDialog(saveManualLyrics, saveCache)
 
+const {
+  isLyricsWindowOpen,
+  createLyricsWindow,
+  closeLyricsWindow,
+  sendLyricsToWindow,
+  checkLyricsWindowOpen,
+  clearLyricsWindow
+} = useDesktopLyrics()
+
 watch(currentTrack, async track => {
   if (track) {
     await loadLyrics(track.id, {
@@ -77,6 +89,26 @@ watch(currentTrack, async track => {
 
 watch(currentTime, time => {
   syncToTime(time)
+})
+
+watch(currentLyricText, text => {
+  if (text) {
+    sendLyricsToWindow(text)
+  } else {
+    clearLyricsWindow()
+  }
+})
+
+onMounted(async () => {
+  await checkLyricsWindowOpen()
+
+  const unlisten = await listen('lyrics-window-closed', () => {
+    isLyricsWindowOpen.value = false
+  })
+
+  onUnmounted(() => {
+    unlisten()
+  })
 })
 
 const previousVolume = ref<number>(0.8)
@@ -145,6 +177,17 @@ const playModeLabel = computed(() => {
   }
   return ''
 })
+
+async function handleToggleDesktopLyrics() {
+  if (isLyricsWindowOpen.value) {
+    await closeLyricsWindow()
+  } else {
+    await createLyricsWindow()
+    if (currentLyricText.value) {
+      sendLyricsToWindow(currentLyricText.value)
+    }
+  }
+}
 </script>
 
 <template>
@@ -200,6 +243,19 @@ const playModeLabel = computed(() => {
                 </n-button>
               </template>
               {{ isVisible ? '隐藏歌词' : '显示歌词' }}
+            </n-tooltip>
+
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button quaternary size="tiny" @click="handleToggleDesktopLyrics">
+                  <template #icon>
+                    <n-icon size="14">
+                      <DesktopOutline />
+                    </n-icon>
+                  </template>
+                </n-button>
+              </template>
+              {{ isLyricsWindowOpen ? '关闭桌面歌词' : '显示桌面歌词' }}
             </n-tooltip>
 
             <VolumeControl
@@ -271,6 +327,19 @@ const playModeLabel = computed(() => {
                     </n-button>
                   </template>
                   {{ isVisible ? '隐藏歌词' : '显示歌词' }}
+                </n-tooltip>
+
+                <n-tooltip trigger="hover">
+                  <template #trigger>
+                    <n-button quaternary size="tiny" @click="handleToggleDesktopLyrics">
+                      <template #icon>
+                        <n-icon size="14">
+                          <DesktopOutline />
+                        </n-icon>
+                      </template>
+                    </n-button>
+                  </template>
+                  {{ isLyricsWindowOpen ? '关闭桌面歌词' : '显示桌面歌词' }}
                 </n-tooltip>
 
                 <VolumeControl
