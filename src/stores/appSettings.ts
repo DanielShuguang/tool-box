@@ -18,6 +18,18 @@ export const useAppSettingsStore = defineStore(
     const themeAutoFollow = ref(false)
     const isDark = ref(false)
 
+    // 获取系统主题
+    function getSystemTheme() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+
+    // 当启用/禁用主题跟随系统时，同步主题
+    watch(themeAutoFollow, val => {
+      if (val) {
+        isDark.value = getSystemTheme()
+      }
+    })
+
     // 同步 isDark 状态到 DOM 和事件
     function updateTheme(val: boolean) {
       // 确保 DOM 已准备好
