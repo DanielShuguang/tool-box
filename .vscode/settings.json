@@ -1,12 +1,13 @@
 {
   "oxc.enable": true,
+  "oxc.fmt.experimental": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "[typescript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer"

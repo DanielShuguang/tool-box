@@ -5,6 +5,6 @@
   ],
   "*.vue": [
     "oxlint --fix --vue-plugin",
-    "prettier --write"
+    "oxfmt"
   ]
 }
