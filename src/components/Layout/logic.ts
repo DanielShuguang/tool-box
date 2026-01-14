@@ -37,10 +37,6 @@ export function useSystemTheme() {
         document.documentElement.classList.remove('dark')
       }
     }
-
-    if (themeAutoFollow.value) {
-      getThemeBySystem()
-    }
   })
 
   return { isDark, themeAutoFollow, handleChangeTheme, handleChangeThemeState }

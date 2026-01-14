@@ -24,11 +24,15 @@ export const useAppSettingsStore = defineStore(
     }
 
     // 当启用/禁用主题跟随系统时，同步主题
-    watch(themeAutoFollow, val => {
-      if (val) {
-        isDark.value = getSystemTheme()
-      }
-    })
+    watch(
+      themeAutoFollow,
+      val => {
+        if (val) {
+          isDark.value = getSystemTheme()
+        }
+      },
+      { immediate: true }
+    )
 
     // 同步 isDark 状态到 DOM 和事件
     function updateTheme(val: boolean) {
