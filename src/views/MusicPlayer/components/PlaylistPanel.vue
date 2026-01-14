@@ -430,7 +430,7 @@ onUnmounted(() => {
       </div>
 
       <div
-        class="flex-1 relative min-h-0"
+        class="flex-1 relative min-h-0 overflow-x-hidden"
         v-bind="containerProps"
         @click="handleBackgroundClick"
         @mousedown="handleMouseDown"
