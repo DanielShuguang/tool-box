@@ -75,7 +75,11 @@ export function useTopActions(options: UseTopActionsOptions) {
     {
       label: '导出播放列表',
       key: 'export',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(DownloadOutline) }),
+      icon: () => (
+        <NIcon size={14}>
+          <DownloadOutline />
+        </NIcon>
+      ),
       children: [
         {
           label: '导出当前播放列表',
@@ -91,19 +95,31 @@ export function useTopActions(options: UseTopActionsOptions) {
     {
       label: '导入播放列表',
       key: 'import',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(CloudUploadOutline) })
+      icon: () => (
+        <NIcon size={14}>
+          <CloudUploadOutline />
+        </NIcon>
+      )
     },
     { type: 'divider', key: 'd1' },
     {
       label: '添加文件夹',
       key: 'addFolder',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(FolderOutline) })
+      icon: () => (
+        <NIcon size={14}>
+          <FolderOutline />
+        </NIcon>
+      )
     },
     { type: 'divider', key: 'd2' },
     {
       label: '清空播放列表',
       key: 'clear',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
+      icon: () => (
+        <NIcon size={14}>
+          <TrashOutline />
+        </NIcon>
+      )
     }
   ]
 

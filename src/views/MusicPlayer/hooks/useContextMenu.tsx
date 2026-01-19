@@ -24,19 +24,31 @@ export function useContextMenu() {
     {
       label: '播放',
       key: 'play',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(PlayOutline) })
+      icon: () => (
+        <NIcon size={14}>
+          <PlayOutline />
+        </NIcon>
+      )
     },
     { type: 'divider', key: 'd1' },
     {
       label: '查看详情',
       key: 'info',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(InformationCircleOutline) })
+      icon: () => (
+        <NIcon size={14}>
+          <InformationCircleOutline />
+        </NIcon>
+      )
     },
     { type: 'divider', key: 'd2' },
     {
       label: '从列表中删除',
       key: 'remove',
-      icon: () => h(NIcon, { size: 14 }, { default: () => h(TrashOutline) })
+      icon: () => (
+        <NIcon size={14}>
+          <TrashOutline />
+        </NIcon>
+      )
     }
   ]
 
