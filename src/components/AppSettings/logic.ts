@@ -104,6 +104,17 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
     }
   }
 
+  // 监听 enableTrayIcon 变化，确保托盘图标状态与设置一致
+  watch(enableTrayIcon, async newValue => {
+    if (isDevelopment) return
+
+    if (newValue && !systemTray.value) {
+      await init()
+    } else if (!newValue && systemTray.value) {
+      await close()
+    }
+  })
+
   useEmitter(settingEmitter, {
     event: 'close-window',
     handler: () => {

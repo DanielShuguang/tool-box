@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use tauri::{Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WebviewWindow};
+use tauri::{Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tokio::sync::Mutex;
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Default)]
@@ -22,7 +22,9 @@ impl LyricsWindowPosition {
             let content = tokio::fs::read_to_string(&store_path)
                 .await
                 .map_err(|e| e.to_string())?;
-            if let Ok(json) = serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&content) {
+            if let Ok(json) =
+                serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&content)
+            {
                 settings = json;
             }
         }
@@ -32,9 +34,12 @@ impl LyricsWindowPosition {
             serde_json::to_value(position).map_err(|e| e.to_string())?,
         );
 
-        tokio::fs::write(&store_path, serde_json::to_string_pretty(&settings).unwrap())
-            .await
-            .map_err(|e| e.to_string())?;
+        tokio::fs::write(
+            &store_path,
+            serde_json::to_string_pretty(&settings).unwrap(),
+        )
+        .await
+        .map_err(|e| e.to_string())?;
 
         Ok(())
     }
@@ -51,8 +56,7 @@ impl LyricsWindowPosition {
             .await
             .map_err(|e| e.to_string())?;
 
-        let json: serde_json::Value = serde_json::from_str(&content)
-            .map_err(|e| e.to_string())?;
+        let json: serde_json::Value = serde_json::from_str(&content).map_err(|e| e.to_string())?;
 
         if let Some(pos) = json.get(Self::store_key()) {
             serde_json::from_value(pos.clone()).map_err(|e| e.to_string())
@@ -79,10 +83,66 @@ pub async fn create_lyrics_window(
 ) -> Result<(), String> {
     let mut state_guard = state.lock().await;
 
-    if state_guard.window.is_some() {
-        return Err("歌词窗口已存在".to_string());
+    // 首先检查状态中是否已有窗口引用
+    if let Some(window) = &state_guard.window {
+        // 如果窗口存在，尝试显示它
+        window.show().map_err(|e| e.to_string())?;
+        return Ok(());
     }
 
+    // 检查应用中是否已经存在该标签的窗口
+    if let Some(window) = app.get_webview_window("lyrics-window") {
+        // 如果窗口存在但状态中没有引用，更新状态并显示窗口
+        window.show().map_err(|e| e.to_string())?;
+
+        // 添加窗口事件监听
+        let app_handle = app.clone();
+        let state_clone = state.inner().clone();
+        let window_clone = window.clone();
+
+        window.on_window_event(move |event| {
+            match event {
+                tauri::WindowEvent::Moved(position) => {
+                    let app_handle_clone = app_handle.clone();
+                    let position_data = LyricsWindowPosition {
+                        x: Some(position.x as i32),
+                        y: Some(position.y as i32),
+                    };
+                    tauri::async_runtime::block_on(async move {
+                        let _ = LyricsWindowPosition::save(&app_handle_clone, &position_data).await;
+                    });
+                }
+                tauri::WindowEvent::CloseRequested { .. } => {
+                    // 保存当前窗口位置
+                    if let Ok(current_pos) = window_clone.outer_position() {
+                        let app_handle_clone = app_handle.clone();
+                        let position_data = LyricsWindowPosition {
+                            x: Some(current_pos.x),
+                            y: Some(current_pos.y),
+                        };
+                        tauri::async_runtime::block_on(async move {
+                            let _ =
+                                LyricsWindowPosition::save(&app_handle_clone, &position_data).await;
+                        });
+                    }
+
+                    let app_handle_clone = app_handle.clone();
+                    let state_clone_inner = state_clone.clone();
+                    tauri::async_runtime::block_on(async move {
+                        let mut state_guard = state_clone_inner.lock().await;
+                        state_guard.window = None;
+                        let _ = app_handle_clone.emit_to("main", "lyrics-window-closed", ());
+                    });
+                }
+                _ => {}
+            }
+        });
+
+        state_guard.window = Some(window);
+        return Ok(());
+    }
+
+    // 如果窗口不存在，创建新窗口
     // 加载保存的位置或计算默认位置
     let saved_position = LyricsWindowPosition::load(&app).await?;
 
@@ -103,21 +163,21 @@ pub async fn create_lyrics_window(
         }
     };
 
-    let window = WebviewWindowBuilder::new(
-        &app,
-        "lyrics-window",
-        WebviewUrl::App("lyrics.html".into())
-    )
-    .title("桌面歌词")
-    .position(x as f64, y as f64)
-    .inner_size(600.0, 80.0)
-    .resizable(false)
-    .decorations(false)
-    .transparent(true)
-    .always_on_top(true)
-    .skip_taskbar(true)
-    .build()
-    .map_err(|e| e.to_string())?;
+    let window =
+        WebviewWindowBuilder::new(&app, "lyrics-window", WebviewUrl::App("lyrics.html".into()))
+            .title("桌面歌词")
+            .position(x as f64, y as f64)
+            .inner_size(600.0, 80.0)
+            .resizable(false)
+            .decorations(false)
+            .transparent(true)
+            .always_on_top(true)
+            .skip_taskbar(true)
+            .build()
+            .map_err(|e| e.to_string())?;
+
+    // 显示窗口
+    window.show().map_err(|e| e.to_string())?;
 
     let app_handle = app.clone();
     let state_clone = state.inner().clone();
@@ -169,11 +229,11 @@ pub async fn close_lyrics_window(
     state: tauri::State<'_, Arc<Mutex<LyricsWindowState>>>,
 ) -> Result<(), String> {
     let mut state_guard = state.lock().await;
-    
+
     if let Some(window) = state_guard.window.take() {
         window.close().map_err(|e| e.to_string())?;
     }
-    
+
     Ok(())
 }
 
