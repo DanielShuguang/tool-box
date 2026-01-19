@@ -1,7 +1,6 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { ConfigFile } from '@/utils/storage'
-import { emitter } from '@/utils/event'
 
 export interface AppSettingsState {
   autostart: boolean
@@ -44,8 +43,6 @@ export const useAppSettingsStore = defineStore(
           document.documentElement.classList.remove('dark')
         }
       }
-      // 发送主题变更事件
-      emitter.emit('theme-change', val)
     }
 
     watch(

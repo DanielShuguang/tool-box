@@ -7,6 +7,13 @@ import { defaultWindowIcon } from '@tauri-apps/api/app'
 import { BackendRespCode, Nullable } from '@/types/common'
 import { isAutoStartEnabled, setAutoStart } from '@/backend-channel/autostart'
 import { getMatches } from '@tauri-apps/plugin-cli'
+import mitt from 'mitt'
+
+type SettingEventMap = {
+  'close-window': void
+}
+
+export const settingEmitter = mitt<SettingEventMap>()
 
 export async function handleShowMainWindow() {
   const main = getCurrentWindow()
@@ -97,14 +104,17 @@ export function useGenerateTrayIcon(enableTrayIcon: Ref<boolean>) {
     }
   }
 
-  useEmitter('close-window', () => {
-    if (enableTrayIcon.value) {
-      // 如果启用了托盘图标，则隐藏窗口
-      const win = getCurrentWindow()
-      win.hide()
-    } else {
-      // 否则直接关闭应用
-      handleExitApp()
+  useEmitter(settingEmitter, {
+    event: 'close-window',
+    handler: () => {
+      if (enableTrayIcon.value) {
+        // 如果启用了托盘图标，则隐藏窗口
+        const win = getCurrentWindow()
+        win.hide()
+      } else {
+        // 否则直接关闭应用
+        handleExitApp()
+      }
     }
   })
 

@@ -1,8 +1,8 @@
 import { storeToRefs } from 'pinia'
-import { emitter } from '@/utils/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useThemeVars } from 'naive-ui'
 import { useAppSettingsStore } from '@/stores/appSettings'
+import { settingEmitter } from '../AppSettings/logic'
 
 export function useSystemTheme() {
   const appSettingsStore = useAppSettingsStore()
@@ -75,7 +75,7 @@ export function useAppWindowOperation() {
   }
 
   function exitApp() {
-    emitter.emit('close-window')
+    settingEmitter.emit('close-window')
   }
 
   function handleMinimize() {

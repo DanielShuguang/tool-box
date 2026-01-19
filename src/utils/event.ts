@@ -1,27 +1,24 @@
-import mitt, { Emitter } from 'mitt'
+import { Emitter } from 'mitt'
 
-export type GlobalEventMap = {
-  'theme-change': boolean
-  'close-window': void
-}
-
-export const emitter = mitt<GlobalEventMap>()
-
-export interface UseEmitterOptions<T extends Record<string, unknown>> {
+export interface UseEmitterOptions<
+  TEvents extends Record<string, any>,
+  TEventType extends keyof TEvents
+> {
   once?: boolean
-  instance?: Emitter<T>
+  event: TEventType
+  handler: (arg: TEvents[TEventType]) => void
 }
 
-export function useEmitter<
-  Events extends Record<string, unknown> = GlobalEventMap,
-  Key extends keyof Events = keyof Events
->(event: Key, handler: (arg: Events[Key]) => void, options?: UseEmitterOptions<Events>) {
-  const { instance = emitter, once } = options || {}
+export function useEmitter<TEvents extends Record<string, any>, TEventType extends keyof TEvents>(
+  instance: Emitter<TEvents>,
+  options: UseEmitterOptions<TEvents, TEventType>
+) {
+  const { event, handler, once } = options || {}
 
   const currentInstance = instance as Emitter<any>
 
-  currentInstance.on(event, (...arg) => {
-    handler(...arg)
+  currentInstance.on(event, arg => {
+    handler(arg)
     if (once) {
       off()
     }

@@ -134,27 +134,48 @@ const playerContext: PlayerContext = {
 
 provide(MusicPlayerContextKey, playerContext)
 
-useEmitter(
-  'toggle-play',
-  () => {
+useEmitter(eventBus, {
+  event: 'toggle-play',
+  handler: () => {
     if (currentTrack.value) {
       togglePlay()
     }
-  },
-  { instance: eventBus }
-)
-
-useEmitter('play-track', coordinator.playTrack, { instance: eventBus })
-useEmitter('play-next', coordinator.playNextTrack, { instance: eventBus })
-useEmitter('play-previous', coordinator.playPreviousTrack, {
-  instance: eventBus
+  }
 })
 
-useEmitter('seek', coordinator.seek, { instance: eventBus })
-useEmitter('set-volume', setVolume, { instance: eventBus })
-useEmitter('toggle-play-mode', togglePlayMode, { instance: eventBus })
-useEmitter('select-folder', coordinator.selectFolder, { instance: eventBus })
-useEmitter('clear-search', () => setSearchQuery(''), { instance: eventBus })
+useEmitter(eventBus, {
+  event: 'play-track',
+  handler: coordinator.playTrack
+})
+useEmitter(eventBus, {
+  event: 'play-next',
+  handler: coordinator.playNextTrack
+})
+useEmitter(eventBus, {
+  event: 'play-previous',
+  handler: coordinator.playPreviousTrack
+})
+
+useEmitter(eventBus, {
+  event: 'seek',
+  handler: coordinator.seek
+})
+useEmitter(eventBus, {
+  event: 'set-volume',
+  handler: setVolume
+})
+useEmitter(eventBus, {
+  event: 'toggle-play-mode',
+  handler: togglePlayMode
+})
+useEmitter(eventBus, {
+  event: 'select-folder',
+  handler: coordinator.selectFolder
+})
+useEmitter(eventBus, {
+  event: 'clear-search',
+  handler: () => setSearchQuery('')
+})
 
 function handleKeydown(e: KeyboardEvent) {
   // 检查是否在输入框或文本区域中，如果是则不处理快捷键

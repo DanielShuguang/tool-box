@@ -6,7 +6,6 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from '@/router'
-import { emitter } from './utils/event'
 import { createPiniaStorage } from '@/plugins/pinia-storage-adapter'
 import { TimeUnits } from '@/utils/time'
 
@@ -17,7 +16,5 @@ pinia.use(createPiniaStorage({ debounce: TimeUnits.Second }))
 
 app.use(pinia)
 app.use(router)
-
-app.config.globalProperties.$bus = emitter
 
 app.mount('#app')
