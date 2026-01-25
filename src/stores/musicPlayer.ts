@@ -1,5 +1,3 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
 import { ConfigFile } from '@/utils/storage'
 
 /**

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import { ref } from 'vue'
+import { LyricsStyle } from '@/types/lyrics'
 
 export function useDesktopLyrics() {
   const isLyricsWindowOpen = ref(false)
@@ -58,11 +58,7 @@ export function useDesktopLyrics() {
     }
   }
 
-  async function updateLyricsStyle(style: {
-    backgroundColor?: string
-    fontSize?: number
-    fontColor?: string
-  }) {
+  async function updateLyricsStyle(style: LyricsStyle) {
     if (!isLyricsWindowOpen.value) return
 
     try {

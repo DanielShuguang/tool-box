@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-
 export interface LyricsLine {
   time: number
   text: string

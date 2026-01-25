@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ChevronDownOutline, TextOutline, DesktopOutline } from '@vicons/ionicons5'
-import { onUnmounted } from 'vue'
 import { useMusicPlayerContext } from '../contexts/PlayerContext'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
 import { useLyrics } from '../hooks/useLyrics'

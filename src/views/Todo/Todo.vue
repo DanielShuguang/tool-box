@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useTodoLogic } from './logic'
-import { ref } from 'vue'
 
 const {
   todos,

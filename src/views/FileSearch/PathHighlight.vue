@@ -2,7 +2,6 @@
 import { getSep } from '@/utils/system'
 import { omit } from 'lodash-es'
 import { highlightProps } from 'naive-ui'
-import { PropType } from 'vue'
 
 const props = defineProps({
   data: { type: String, required: true },

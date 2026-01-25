@@ -1,5 +1,3 @@
-import { ref, watch } from 'vue'
-import { defineStore } from 'pinia'
 import { ConfigFile } from '@/utils/storage'
 
 export interface AppSettingsState {

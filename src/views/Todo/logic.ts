@@ -1,4 +1,3 @@
-import { ref, computed } from 'vue'
 import { useTodoStore, type Todo, type FilterType } from '@/stores/todo'
 
 export type { Todo, FilterType }

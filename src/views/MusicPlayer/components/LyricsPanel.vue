@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { Motion } from 'motion-v'
 import { MusicalNotesOutline, CreateOutline, CloudUploadOutline } from '@vicons/ionicons5'
 

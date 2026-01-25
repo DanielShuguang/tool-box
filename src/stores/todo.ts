@@ -1,5 +1,3 @@
-import { ref } from 'vue'
-import { defineStore } from 'pinia'
 import { ConfigFile } from '@/utils/storage'
 
 export interface Todo {

@@ -1,6 +1,7 @@
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { invoke } from '@tauri-apps/api/core'
+import { LyricsStyle } from '@/types/lyrics'
 
 interface LyricsEvent {
   event_type: string
@@ -71,7 +72,7 @@ function updateLyricsText(text: string) {
   })
 }
 
-function updateStyle(style: any) {
+function updateStyle(style: LyricsStyle) {
   const body = document.body
   if (style.backgroundColor) {
     body.style.background = style.backgroundColor

@@ -1,4 +1,3 @@
-import { computed } from 'vue'
 import { lyricsService } from '@/services/lyricsService'
 import { lyricsParser } from '@/utils/lyricsParser'
 import { useLyricsCache } from './useLyricsCache'

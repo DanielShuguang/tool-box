@@ -1,4 +1,3 @@
-import { ref } from 'vue'
 import {
   saveLyricsCache,
   readLyricsCache,

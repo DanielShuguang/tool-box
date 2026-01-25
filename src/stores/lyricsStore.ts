@@ -1,6 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-
 export type LyricsState = 'idle' | 'loading' | 'success' | 'error' | 'empty'
 
 export interface LyricsLine {
