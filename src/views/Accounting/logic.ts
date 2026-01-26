@@ -1,7 +1,10 @@
-import { useAccountingStore } from '@/stores/accounting'
+import { AccountingRecordType, useAccountingStore } from '@/stores/accounting'
 import { ref, reactive } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDialog } from 'naive-ui'
+import { AccountingRecord } from './storage'
+
+type AccountSelectType = AccountingRecordType | 'all'
 
 // 导出记账页面逻辑
 export function useAccountingLogic() {
@@ -11,10 +14,10 @@ export function useAccountingLogic() {
     storeToRefs(accountingStore)
 
   // 筛选类型
-  const filterType = ref<'all' | 'income' | 'expense'>('all')
+  const filterType = ref<AccountSelectType>('all')
 
   // 设置筛选类型
-  const setFilterType = async (type: 'all' | 'income' | 'expense') => {
+  const setFilterType = async (type: AccountSelectType) => {
     filterType.value = type
     // 应用筛选条件
     if (type === 'all') {
@@ -25,9 +28,9 @@ export function useAccountingLogic() {
   }
 
   // 表单数据
-  const recordForm = reactive({
+  const recordForm = reactive<Omit<AccountingRecord, 'id'>>({
     amount: 0,
-    type: 'expense' as 'income' | 'expense',
+    type: 'expense',
     category: '',
     date: new Date().getTime(),
     note: ''
@@ -89,7 +92,7 @@ export function useAccountingLogic() {
   }
 
   // 根据ID获取分类名称
-  const getCategoryName = (categoryId: string, type: 'income' | 'expense') => {
+  const getCategoryName = (categoryId: string, type: AccountingRecordType) => {
     const category = categories.value.find(cat => cat.id === categoryId && cat.type === type)
     return category?.name || '未分类'
   }

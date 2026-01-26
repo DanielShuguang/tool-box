@@ -1,10 +1,11 @@
+import { AccountingRecordType } from 'src/stores/accounting'
 import { createStorageAdapter } from 'src/utils/sql'
 
 // 记账记录接口
 export interface AccountingRecord {
   id: string
   amount: number
-  type: 'income' | 'expense'
+  type: AccountingRecordType
   category: string
   date: number
   note?: string
@@ -12,7 +13,7 @@ export interface AccountingRecord {
 
 // 记账记录过滤条件
 export interface AccountingFilter {
-  type?: 'income' | 'expense'
+  type?: AccountingRecordType
   category?: string
   startDate?: number
   endDate?: number
