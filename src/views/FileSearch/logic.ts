@@ -35,11 +35,7 @@ export function useInitDisk() {
   watch(
     () => selectedPoint.value.length,
     length => {
-      if (length === diskMountPoints.value.length) {
-        selectAll.value = true
-      } else {
-        selectAll.value = false
-      }
+      selectAll.value = length === diskMountPoints.value.length
     }
   )
 
