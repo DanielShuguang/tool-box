@@ -1,27 +1,14 @@
 import { useAccountingStore } from '@/stores/accounting'
-import { ref, computed } from 'vue'
+import { ref, reactive } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useDialog } from 'naive-ui'
 
 // 导出记账页面逻辑
 export function useAccountingLogic() {
   const accountingStore = useAccountingStore()
-
-  // 获取所有分类
-  const categories = computed(() => accountingStore.categories)
-
-  // 获取当前页面记录
-  const records = computed(() => accountingStore.records)
-
-  // 获取总记录数
-  const totalRecords = computed(() => accountingStore.totalRecords)
-
-  // 获取当前页码
-  const currentPage = computed(() => accountingStore.currentPage)
-
-  // 获取每页大小
-  const pageSize = computed(() => accountingStore.pageSize)
-
-  // 获取加载状态
-  const loading = computed(() => accountingStore.loading)
+  const dialog = useDialog()
+  const { categories, records, totalRecords, currentPage, pageSize, loading } =
+    storeToRefs(accountingStore)
 
   // 筛选类型
   const filterType = ref<'all' | 'income' | 'expense'>('all')
@@ -78,8 +65,17 @@ export function useAccountingLogic() {
   }
 
   // 删除记录
-  const deleteRecord = async (id: string) => {
-    await accountingStore.deleteRecord(id)
+  const deleteRecord = (id: string) => {
+    // 显示确认对话框
+    dialog.warning({
+      title: '确认删除',
+      content: '确定要删除这条记录吗？此操作不可撤销。',
+      positiveText: '删除',
+      negativeText: '取消',
+      onPositiveClick: async () => {
+        await accountingStore.deleteRecord(id)
+      }
+    })
   }
 
   // 页面变化处理
