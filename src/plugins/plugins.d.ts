@@ -1,5 +1,6 @@
 import 'pinia'
 import { PersistOptions } from './pinia-storage-adapter'
+import { storage } from 'src/utils/sql/index'
 import { StoreReadyState } from '@/types/pinia-store'
 
 declare module 'pinia' {
@@ -8,5 +9,9 @@ declare module 'pinia' {
   }
   export interface PiniaCustomStateProperties {
     $ready?: StoreReadyState
+  }
+  export interface PiniaCustomProperties {
+    // 存储实例
+    $storage: typeof storage
   }
 }

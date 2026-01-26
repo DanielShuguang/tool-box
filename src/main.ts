@@ -12,6 +12,7 @@ import { TimeUnits } from '@/utils/time'
 const app = createApp(App)
 const pinia = createPinia()
 
+// 注册持久化插件
 pinia.use(createPiniaStorage({ debounce: TimeUnits.Second }))
 
 app.use(pinia)

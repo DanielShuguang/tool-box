@@ -1,4 +1,5 @@
 import { useAccountingStore } from '@/stores/accounting'
+import { ref, computed } from 'vue'
 
 // 导出记账页面逻辑
 export function useAccountingLogic() {
@@ -7,62 +8,38 @@ export function useAccountingLogic() {
   // 获取所有分类
   const categories = computed(() => accountingStore.categories)
 
-  // 获取所有记录
+  // 获取当前页面记录
   const records = computed(() => accountingStore.records)
+
+  // 获取总记录数
+  const totalRecords = computed(() => accountingStore.totalRecords)
+
+  // 获取当前页码
+  const currentPage = computed(() => accountingStore.currentPage)
+
+  // 获取每页大小
+  const pageSize = computed(() => accountingStore.pageSize)
+
+  // 获取加载状态
+  const loading = computed(() => accountingStore.loading)
 
   // 筛选类型
   const filterType = ref<'all' | 'income' | 'expense'>('all')
 
-  // 过滤后的记录
-  const filteredRecords = computed(() => {
-    if (filterType.value === 'all') {
-      return records.value
-    }
-    return records.value.filter(record => record.type === filterType.value)
-  })
-
   // 设置筛选类型
-  const setFilterType = (type: 'all' | 'income' | 'expense') => {
+  const setFilterType = async (type: 'all' | 'income' | 'expense') => {
     filterType.value = type
+    // 应用筛选条件
+    if (type === 'all') {
+      await accountingStore.applyFilters({})
+    } else {
+      await accountingStore.applyFilters({ type })
+    }
   }
-
-  // 本月收入
-  const totalIncome = computed(() => {
-    const currentMonth = new Date().getMonth()
-    const currentYear = new Date().getFullYear()
-
-    return records.value
-      .filter(record => {
-        const recordDate = new Date(record.date)
-        return (
-          record.type === 'income' &&
-          recordDate.getMonth() === currentMonth &&
-          recordDate.getFullYear() === currentYear
-        )
-      })
-      .reduce((sum, record) => sum + record.amount, 0)
-  })
-
-  // 本月支出
-  const totalExpense = computed(() => {
-    const currentMonth = new Date().getMonth()
-    const currentYear = new Date().getFullYear()
-
-    return records.value
-      .filter(record => {
-        const recordDate = new Date(record.date)
-        return (
-          record.type === 'expense' &&
-          recordDate.getMonth() === currentMonth &&
-          recordDate.getFullYear() === currentYear
-        )
-      })
-      .reduce((sum, record) => sum + record.amount, 0)
-  })
 
   // 表单数据
   const recordForm = reactive({
-    amount: '',
+    amount: 0,
     type: 'expense' as 'income' | 'expense',
     category: '',
     date: new Date().getTime(),
@@ -70,9 +47,9 @@ export function useAccountingLogic() {
   })
 
   // 添加记录
-  const addRecord = () => {
+  const addRecord = async () => {
     // 转换金额为数字
-    const amount = parseFloat(recordForm.amount)
+    const amount = recordForm.amount
 
     // 验证表单
     if (isNaN(amount) || amount <= 0) {
@@ -84,7 +61,7 @@ export function useAccountingLogic() {
     }
 
     // 调用store添加记录
-    accountingStore.addRecord({
+    await accountingStore.addRecord({
       amount,
       type: recordForm.type,
       category: recordForm.category,
@@ -93,7 +70,7 @@ export function useAccountingLogic() {
     })
 
     // 重置表单
-    recordForm.amount = ''
+    recordForm.amount = 0
     recordForm.type = 'expense'
     recordForm.category = ''
     recordForm.date = new Date().getTime()
@@ -101,8 +78,18 @@ export function useAccountingLogic() {
   }
 
   // 删除记录
-  const deleteRecord = (id: string) => {
-    accountingStore.deleteRecord(id)
+  const deleteRecord = async (id: string) => {
+    await accountingStore.deleteRecord(id)
+  }
+
+  // 页面变化处理
+  const handlePageChange = async (page: number) => {
+    await accountingStore.loadRecords(page, pageSize.value)
+  }
+
+  // 每页大小变化处理
+  const handlePageSizeChange = async (size: number) => {
+    await accountingStore.loadRecords(1, size)
   }
 
   // 根据ID获取分类名称
@@ -122,13 +109,14 @@ export function useAccountingLogic() {
 
     // 记录相关
     records,
+    totalRecords,
+    currentPage,
+    pageSize,
+    loading,
     filterType,
     setFilterType,
-    filteredRecords,
     deleteRecord,
-
-    // 统计相关
-    totalIncome,
-    totalExpense
+    handlePageChange,
+    handlePageSizeChange
   }
 }

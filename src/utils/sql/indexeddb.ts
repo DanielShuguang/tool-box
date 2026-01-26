@@ -12,24 +12,24 @@ class ToolBoxDB extends Dexie {
   // 定义存储表
   storage: Dexie.Table<StorageItem, string>
 
-  constructor() {
+  constructor(tableName: string = 'storage') {
     super('tool-box-db')
 
     // 定义数据库模式
     this.version(1).stores({
-      storage: 'key' // 主键为key
+      [tableName]: 'key' // 主键为key
     })
 
     // 初始化存储表
-    this.storage = this.table('storage')
+    this.storage = this.table(tableName)
   }
 }
 
 export class IndexedDBAdapter implements StorageAdapter {
   private db: ToolBoxDB
 
-  constructor() {
-    this.db = new ToolBoxDB()
+  constructor(tableName: string = 'storage') {
+    this.db = new ToolBoxDB(tableName)
   }
 
   // 初始化存储（Dexie会自动处理）

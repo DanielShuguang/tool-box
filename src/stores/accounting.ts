@@ -1,4 +1,5 @@
 import { ConfigFile } from '@/utils/storage'
+import { accountingStorage, AccountingFilter } from '@/views/Accounting/storage'
 
 // 分类接口
 export interface Category {
@@ -53,28 +54,130 @@ export const useAccountingStore = defineStore(
     // 分类列表
     const categories = ref<Category[]>(defaultCategories)
 
-    // 记账记录列表
-    const records = ref<AccountingRecord[]>([])
-
-    // 按时间倒序排列的记录
-    const sortedRecords = computed(() => {
-      return [...records.value].sort((a, b) => b.date - a.date)
-    })
+    // 当前页面的记账记录
+    const currentRecords = ref<AccountingRecord[]>([])
+    // 总记录数
+    const totalRecords = ref(0)
+    // 当前页码
+    const currentPage = ref(1)
+    // 每页大小
+    const pageSize = ref(20)
+    // 加载状态
+    const loading = ref(false)
+    // 当前过滤条件
+    const currentFilters = ref<AccountingFilter>({})
 
     // 添加记录
-    const addRecord = (record: NewAccountingRecord) => {
-      const newRecord: AccountingRecord = {
-        id: crypto.randomUUID(), // 生成唯一ID
-        ...record
+    const addRecord = async (record: NewAccountingRecord) => {
+      try {
+        loading.value = true
+        await accountingStorage.addAccountingRecord(record)
+        // 添加成功后重新加载当前页
+        await loadRecords(currentPage.value, pageSize.value, currentFilters.value)
+      } catch (error) {
+        console.error('Failed to add record:', error)
+        throw error
+      } finally {
+        loading.value = false
       }
-      records.value.push(newRecord)
     }
 
     // 删除记录
-    const deleteRecord = (id: string) => {
-      const index = records.value.findIndex(record => record.id === id)
-      if (index !== -1) {
-        records.value.splice(index, 1)
+    const deleteRecord = async (id: string) => {
+      try {
+        loading.value = true
+        await accountingStorage.deleteAccountingRecord(id)
+        // 删除成功后重新加载当前页
+        await loadRecords(currentPage.value, pageSize.value, currentFilters.value)
+      } catch (error) {
+        console.error('Failed to delete record:', error)
+        throw error
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // 更新记录
+    const updateRecord = async (id: string, updates: Partial<AccountingRecord>) => {
+      try {
+        loading.value = true
+        await accountingStorage.updateAccountingRecord(id, updates)
+        // 更新成功后重新加载当前页
+        await loadRecords(currentPage.value, pageSize.value, currentFilters.value)
+      } catch (error) {
+        console.error('Failed to update record:', error)
+        throw error
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // 加载记录
+    const loadRecords = async (page: number, size: number, filters?: AccountingFilter) => {
+      try {
+        loading.value = true
+        const result = await accountingStorage.getAccountingRecords(page, size, filters)
+        currentRecords.value = result.records
+        totalRecords.value = result.total
+        currentPage.value = page
+        pageSize.value = size
+        if (filters) {
+          currentFilters.value = filters
+        }
+      } catch (error) {
+        console.error('Failed to load records:', error)
+        throw error
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // 加载下一页
+    const loadNextPage = async () => {
+      const nextPage = currentPage.value + 1
+      await loadRecords(nextPage, pageSize.value, currentFilters.value)
+    }
+
+    // 加载上一页
+    const loadPreviousPage = async () => {
+      if (currentPage.value > 1) {
+        const previousPage = currentPage.value - 1
+        await loadRecords(previousPage, pageSize.value, currentFilters.value)
+      }
+    }
+
+    // 加载第一页
+    const loadFirstPage = async () => {
+      await loadRecords(1, pageSize.value, currentFilters.value)
+    }
+
+    // 应用过滤条件
+    const applyFilters = async (filters: AccountingFilter) => {
+      await loadRecords(1, pageSize.value, filters)
+    }
+
+    // 清除过滤条件
+    const clearFilters = async () => {
+      await loadRecords(1, pageSize.value, {})
+    }
+
+    // 获取记录详情
+    const getRecordById = async (id: string) => {
+      try {
+        return await accountingStorage.getAccountingRecord(id)
+      } catch (error) {
+        console.error('Failed to get record:', error)
+        throw error
+      }
+    }
+
+    // 获取统计数据
+    const getStats = async (filters?: AccountingFilter) => {
+      try {
+        return await accountingStorage.getAccountingStats(filters)
+      } catch (error) {
+        console.error('Failed to get stats:', error)
+        throw error
       }
     }
 
@@ -95,20 +198,38 @@ export const useAccountingStore = defineStore(
       }
     }
 
+    // 初始化加载第一页数据
+    loadRecords(1, pageSize.value)
+
     return {
       categories,
-      records: sortedRecords,
+      records: currentRecords,
+      totalRecords,
+      currentPage,
+      pageSize,
+      loading,
+      currentFilters,
       addRecord,
       deleteRecord,
+      updateRecord,
+      loadRecords,
+      loadNextPage,
+      loadPreviousPage,
+      loadFirstPage,
+      applyFilters,
+      clearFilters,
+      getRecordById,
+      getStats,
       addCategory,
       deleteCategory
     }
   },
   {
-    // 配置持久化
+    // 配置持久化（只持久化分类，记录使用IndexedDB存储）
     persist: {
       fileName: ConfigFile.Settings,
-      key: 'accounting'
+      key: 'accounting',
+      keys: ['categories']
     }
   }
 )

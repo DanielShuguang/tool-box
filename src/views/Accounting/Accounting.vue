@@ -1,5 +1,7 @@
-<script setup lang="ts">
+<script setup lang="tsx">
+import { NTag, NButton, DataTableColumn } from 'naive-ui'
 import { useAccountingLogic } from './logic'
+import { AccountingRecord } from './storage'
 
 // 使用记账逻辑
 const {
@@ -7,12 +9,66 @@ const {
   categories,
   addRecord,
   filterType,
-  filteredRecords,
+  setFilterType,
+  records,
+  totalRecords,
+  currentPage,
+  pageSize,
+  loading,
   deleteRecord,
-  getCategoryName,
-  totalIncome,
-  totalExpense
+  handlePageChange,
+  handlePageSizeChange,
+  getCategoryName
 } = useAccountingLogic()
+
+// 表格列配置
+const tableColumns: DataTableColumn<AccountingRecord>[] = [
+  {
+    title: '类型',
+    key: 'type',
+    render: row => (
+      <NTag type={row.type === 'income' ? 'success' : 'error'}>
+        {row.type === 'income' ? '收入' : '支出'}
+      </NTag>
+    )
+  },
+  {
+    title: '分类',
+    key: 'category',
+    render: row => getCategoryName(row.category, row.type)
+  },
+  {
+    title: '金额',
+    key: 'amount',
+    render: row => (
+      <span class={row.type === 'income' ? 'text-green-500 font-bold' : 'text-red-500 font-bold'}>
+        {row.type === 'income' ? '+' : '-'}
+        {'¥'}
+        {row.amount.toFixed(2)}
+      </span>
+    )
+  },
+  {
+    title: '日期',
+    key: 'date',
+    render: row => new Date(row.date).toLocaleDateString('zh-CN')
+  },
+  {
+    title: '备注',
+    key: 'note',
+    ellipsis: true,
+    render: row => row.note || '-'
+  },
+  {
+    title: '操作',
+    key: 'action',
+    render: row => (
+      <NButton type="error" quaternary onClick={() => deleteRecord(row.id)}>
+        删除
+      </NButton>
+    )
+  }
+]
 
 // 表单相关状态
 const showForm = ref(true)
@@ -28,22 +84,6 @@ const toggleForm = () => {
     <!-- 页面标题 -->
     <h1 class="text-2xl font-bold mb-6">记账工具</h1>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <n-card>
-        <div class="text-center">
-          <div class="text-sm text-gray-500 mb-1">本月收入</div>
-          <div class="text-2xl font-bold text-green-500">¥{{ totalIncome.toFixed(2) }}</div>
-        </div>
-      </n-card>
-      <n-card>
-        <div class="text-center">
-          <div class="text-sm text-gray-500 mb-1">本月支出</div>
-          <div class="text-2xl font-bold text-red-500">¥{{ totalExpense.toFixed(2) }}</div>
-        </div>
-      </n-card>
-    </div>
-
     <!-- 收支记录表单 -->
     <n-card v-if="showForm" class="mb-6">
       <template #header>
@@ -56,11 +96,7 @@ const toggleForm = () => {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- 金额输入 -->
         <div>
-          <n-input
-            v-model:value="recordForm.amount"
-            type="text"
-            placeholder="请输入金额"
-            prefix="¥" />
+          <n-input-number v-model:value="recordForm.amount" placeholder="请输入金额" prefix="¥" />
         </div>
 
         <!-- 收支类型选择 -->
@@ -111,14 +147,14 @@ const toggleForm = () => {
       </div>
     </n-card>
 
-    <!-- 收支记录列表 -->
+    <!-- 收支记录表格 -->
     <n-card>
       <template #header>
         <div class="flex justify-between items-center">
           <h2 class="text-lg font-semibold">收支记录</h2>
 
           <!-- 筛选器 -->
-          <n-radio-group v-model:value="filterType">
+          <n-radio-group v-model:value="filterType" @update:value="setFilterType">
             <n-space>
               <n-radio value="all">全部</n-radio>
               <n-radio value="income">收入</n-radio>
@@ -128,41 +164,22 @@ const toggleForm = () => {
         </div>
       </template>
 
-      <!-- 记录列表 -->
-      <n-list v-if="filteredRecords.length > 0">
-        <n-list-item v-for="record in filteredRecords" :key="record.id">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full">
-            <div class="flex items-center mb-2 sm:mb-0">
-              <!-- 记录类型标识 -->
-              <n-tag :type="record.type === 'income' ? 'success' : 'error'" class="mr-3">
-                {{ record.type === 'income' ? '收入' : '支出' }}
-              </n-tag>
+      <!-- 记录表格 -->
+      <div class="overflow-x-auto">
+        <n-data-table :columns="tableColumns" :data="records" :loading="loading" bordered />
+      </div>
 
-              <!-- 记录详情 -->
-              <div>
-                <div class="font-medium">{{ getCategoryName(record.category, record.type) }}</div>
-                <div class="text-sm text-gray-500">
-                  {{ new Date(record.date).toLocaleDateString('zh-CN') }}
-                  <span v-if="record.note" class="ml-2">{{ record.note }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 金额和操作 -->
-            <div class="flex items-center">
-              <div
-                class="text-lg font-bold mr-4"
-                :class="record.type === 'income' ? 'text-green-500' : 'text-red-500'">
-                {{ record.type === 'income' ? '+' : '-' }}¥{{ record.amount.toFixed(2) }}
-              </div>
-              <n-button type="error" quaternary @click="deleteRecord(record.id)">删除</n-button>
-            </div>
-          </div>
-        </n-list-item>
-      </n-list>
-
-      <!-- 空状态 -->
-      <div v-else class="text-center py-8 text-gray-500">暂无收支记录</div>
+      <!-- 分页 -->
+      <div class="flex justify-between items-center mt-4">
+        <div class="text-sm text-gray-500">共 {{ totalRecords }} 条记录</div>
+        <n-pagination
+          v-model:page="currentPage"
+          v-model:page-size="pageSize"
+          :page-size-options="[10, 20, 50]"
+          :item-count="totalRecords"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange" />
+      </div>
     </n-card>
   </div>
 </template>

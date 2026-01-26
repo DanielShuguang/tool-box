@@ -6,7 +6,7 @@ export class TauriStoreAdapter implements StorageAdapter {
   private store: Store | null = null
   private fileName: string
 
-  constructor(fileName: string = '.accounting.dat') {
+  constructor(fileName: string = '.storage.dat') {
     this.fileName = fileName
   }
 
