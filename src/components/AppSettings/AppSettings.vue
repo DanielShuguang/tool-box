@@ -5,6 +5,8 @@ import { useAppSettingsStore } from '@/stores/appSettings'
 import { useLyricsCache } from '@/views/MusicPlayer/hooks/useLyricsCache'
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import { Command } from '@tauri-apps/plugin-shell'
+import { downloadDir } from '@tauri-apps/api/path'
+import { load, save, ConfigFile } from '@/utils/storage'
 
 const props = defineProps<{ open: boolean }>()
 
@@ -29,11 +31,20 @@ const cacheSizeMB = ref(100)
 const customCachePath = ref('')
 const isRefreshing = ref(false)
 
+// 下载设置
+const downloadDefaultDir = ref('')
+const downloadDefaultSpeedLimit = ref<number | null>(null)
+const downloadMaxConcurrent = ref(3)
+const downloadOpenAfterComplete = ref(false)
+
 onMounted(async () => {
   if (isDevelopment) {
     appSettingsStore.autostart = false
     appSettingsStore.enableTrayIcon = false
   }
+
+  // 加载下载设置
+  await loadDownloadSettings()
 })
 
 watch(
@@ -115,6 +126,92 @@ async function handleRefreshCacheInfo() {
     isRefreshing.value = false
   }
 }
+
+// 下载设置相关函数
+async function loadDownloadSettings() {
+  try {
+    const settings = await load<{
+      defaultDir: string
+      defaultSpeedLimit: number | null
+      maxConcurrent: number
+      openAfterComplete: boolean
+    }>(
+      'download_settings',
+      {
+        defaultDir: '',
+        defaultSpeedLimit: null,
+        maxConcurrent: 3,
+        openAfterComplete: false
+      },
+      ConfigFile.Settings
+    )
+
+    downloadDefaultDir.value = settings.defaultDir
+    downloadDefaultSpeedLimit.value = settings.defaultSpeedLimit
+    downloadMaxConcurrent.value = settings.maxConcurrent
+    downloadOpenAfterComplete.value = settings.openAfterComplete
+  } catch (error) {
+    console.error('加载下载设置失败:', error)
+  }
+}
+
+async function handleSelectDownloadDir() {
+  try {
+    const selected = await openFileDialog({
+      title: '选择默认下载目录',
+      directory: true,
+      multiple: false
+    })
+
+    if (selected && typeof selected === 'string') {
+      downloadDefaultDir.value = selected
+      await saveDownloadSettings()
+      message.success('默认下载目录已更新')
+    }
+  } catch (error) {
+    console.error('选择目录失败:', error)
+  }
+}
+
+async function handleOpenDownloadDir() {
+  const dir = downloadDefaultDir.value || (await downloadDir())
+  const command = Command.create('explorer', [dir])
+  await command.execute()
+}
+
+async function handleSpeedLimitChange(value: number | null) {
+  downloadDefaultSpeedLimit.value = value
+  await saveDownloadSettings()
+}
+
+async function handleMaxConcurrentChange(value: number | null) {
+  if (value !== null) {
+    downloadMaxConcurrent.value = value
+    await saveDownloadSettings()
+  }
+}
+
+async function handleOpenAfterCompleteChange(value: boolean) {
+  downloadOpenAfterComplete.value = value
+  await saveDownloadSettings()
+}
+
+async function saveDownloadSettings() {
+  try {
+    await save(
+      'download_settings',
+      {
+        defaultDir: downloadDefaultDir.value,
+        defaultSpeedLimit: downloadDefaultSpeedLimit.value,
+        maxConcurrent: downloadMaxConcurrent.value,
+        openAfterComplete: downloadOpenAfterComplete.value
+      },
+      ConfigFile.Settings
+    )
+  } catch (error) {
+    console.error('保存下载设置失败:', error)
+  }
+}
 </script>
 
 <template>
@@ -182,6 +279,57 @@ async function handleRefreshCacheInfo() {
             清除全部
           </n-button>
         </div>
+      </n-form-item>
+    </n-form>
+
+    <n-divider />
+
+    <h2 class="text-[16px] font-medium mb-4">下载设置</h2>
+
+    <n-form label-placement="left" label-width="120">
+      <n-form-item label="默认下载目录">
+        <div class="flex items-center gap-2 w-full">
+          <n-input
+            v-model:value="downloadDefaultDir"
+            readonly
+            placeholder="默认下载保存目录"
+            class="flex-1" />
+          <n-button @click="handleSelectDownloadDir">选择</n-button>
+          <n-button @click="handleOpenDownloadDir">打开</n-button>
+        </div>
+      </n-form-item>
+
+      <n-form-item label="默认限速">
+        <n-select
+          v-model:value="downloadDefaultSpeedLimit"
+          :options="[
+            { label: '不限速', value: null as unknown as number },
+            { label: '100 KB/s', value: 102400 },
+            { label: '500 KB/s', value: 512000 },
+            { label: '1 MB/s', value: 1048576 },
+            { label: '5 MB/s', value: 5242880 },
+            { label: '10 MB/s', value: 10485760 }
+          ]"
+          style="width: 200px"
+          @update:value="handleSpeedLimitChange" />
+      </n-form-item>
+
+      <n-form-item label="最大并发数">
+        <n-input-number
+          v-model:value="downloadMaxConcurrent"
+          :min="1"
+          :max="10"
+          :step="1"
+          style="width: 150px"
+          @update:value="handleMaxConcurrentChange" />
+        <span class="ml-[10px] text-[--textColor2]">个任务同时下载</span>
+      </n-form-item>
+
+      <n-form-item label="下载完成后打开">
+        <n-switch
+          :value="downloadOpenAfterComplete"
+          @update:value="handleOpenAfterCompleteChange" />
+        <span class="ml-[15px] text-[--textColor2]">下载完成后自动打开文件</span>
       </n-form-item>
     </n-form>
   </div>

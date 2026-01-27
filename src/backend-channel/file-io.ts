@@ -93,6 +93,20 @@ export async function batchCheckPaths(filePaths: string[]): Promise<Map<string, 
 }
 
 /**
+ * 删除文件
+ * @param filePath 文件路径
+ * @returns 是否删除成功
+ */
+export async function deleteFile(filePath: string): Promise<boolean> {
+  try {
+    return await invoke('delete_file', { filePath })
+  } catch (err) {
+    console.error('删除文件失败:', err)
+    return false
+  }
+}
+
+/**
  * 读取二进制文件内容
  * @param filePath 文件路径
  * @returns 二进制文件内容

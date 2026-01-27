@@ -16,6 +16,11 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '文件搜索' }
   },
   {
+    path: '/download',
+    component: () => import('@/views/Download/Download.vue'),
+    meta: { title: '下载管理' }
+  },
+  {
     path: '/windowsActivatiion',
     component: () => import('@/views/WindowsActivatiion/WindowsActivatiion.vue'),
     meta: { title: 'Windows激活' }
