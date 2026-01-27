@@ -1,8 +1,11 @@
 import { useAccountingStore } from '@/stores/accounting'
-import { AccountingRecordType, AccountSelectType, NewAccountingRecord } from './types'
+import { AccountSelectType } from '../types'
+import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useDialog } from 'naive-ui'
 
-// 导出记账页面逻辑
-export function useAccountingLogic() {
+// 记录相关逻辑
+export function useAccountingRecords() {
   const accountingStore = useAccountingStore()
   const dialog = useDialog()
   const { categories, records, totalRecords, currentPage, pageSize, loading } =
@@ -20,46 +23,6 @@ export function useAccountingLogic() {
     } else {
       await accountingStore.applyFilters({ type })
     }
-  }
-
-  // 表单数据
-  const recordForm = reactive<NewAccountingRecord>({
-    amount: 0,
-    type: 'expense',
-    category: '',
-    date: new Date().getTime(),
-    note: ''
-  })
-
-  // 添加记录
-  const addRecord = async () => {
-    // 转换金额为数字
-    const amount = recordForm.amount
-
-    // 验证表单
-    if (isNaN(amount) || amount <= 0) {
-      return
-    }
-
-    if (!recordForm.category) {
-      return
-    }
-
-    // 调用store添加记录
-    await accountingStore.addRecord({
-      amount,
-      type: recordForm.type,
-      category: recordForm.category,
-      date: recordForm.date,
-      note: recordForm.note
-    })
-
-    // 重置表单
-    recordForm.amount = 0
-    recordForm.type = 'expense'
-    recordForm.category = ''
-    recordForm.date = new Date().getTime()
-    recordForm.note = ''
   }
 
   // 删除记录
@@ -87,30 +50,26 @@ export function useAccountingLogic() {
   }
 
   // 根据ID获取分类名称
-  const getCategoryName = (categoryId: string, type: AccountingRecordType) => {
-    const category = categories.value.find(cat => cat.id === categoryId && cat.type === type)
+  const getCategoryName = (categoryId: string, type: 'income' | 'expense') => {
+    const category = categories.value.find((cat: any) => cat.id === categoryId && cat.type === type)
     return category?.name || '未分类'
   }
 
   return {
-    // 表单相关
-    recordForm,
-    addRecord,
-
-    // 分类相关
+    // 状态
     categories,
-    getCategoryName,
-
-    // 记录相关
     records,
     totalRecords,
     currentPage,
     pageSize,
     loading,
     filterType,
+
+    // 方法
     setFilterType,
     deleteRecord,
     handlePageChange,
-    handlePageSizeChange
+    handlePageSizeChange,
+    getCategoryName
   }
 }

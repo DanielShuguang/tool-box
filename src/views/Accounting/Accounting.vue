@@ -2,24 +2,31 @@
 import { NTag, NButton, DataTableColumn } from 'naive-ui'
 import { useAccountingLogic } from './logic'
 import { AccountingRecord } from './types'
+import { useAccountingForm } from './hooks/useAccountingForm'
+import { useAccountingRecords } from './hooks/useAccountingRecords'
+import { useAccountingImportExport } from './hooks/useAccountingImportExport'
 
-// 使用记账逻辑
+// 表单相关逻辑
+const { recordForm, addRecord } = useAccountingForm()
+
+// 记录相关逻辑
 const {
-  recordForm,
   categories,
-  addRecord,
-  filterType,
-  setFilterType,
   records,
   totalRecords,
   currentPage,
   pageSize,
   loading,
+  filterType,
+  setFilterType,
   deleteRecord,
   handlePageChange,
   handlePageSizeChange,
   getCategoryName
-} = useAccountingLogic()
+} = useAccountingRecords()
+
+// 导入导出相关逻辑
+const { exportData, importData } = useAccountingImportExport()
 
 // 表格列配置
 const tableColumns: DataTableColumn<AccountingRecord>[] = [
@@ -150,17 +157,26 @@ const toggleForm = () => {
     <!-- 收支记录表格 -->
     <n-card>
       <template #header>
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 class="text-lg font-semibold">收支记录</h2>
 
-          <!-- 筛选器 -->
-          <n-radio-group v-model:value="filterType" @update:value="setFilterType">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <!-- 筛选器 -->
+            <n-radio-group v-model:value="filterType" @update:value="setFilterType" class="mr-4">
+              <n-space>
+                <n-radio value="all">全部</n-radio>
+                <n-radio value="income">收入</n-radio>
+                <n-radio value="expense">支出</n-radio>
+              </n-space>
+            </n-radio-group>
+
+            <!-- 导入导出按钮 -->
             <n-space>
-              <n-radio value="all">全部</n-radio>
-              <n-radio value="income">收入</n-radio>
-              <n-radio value="expense">支出</n-radio>
+              <n-button type="info" @click="exportData('json')">导出 JSON</n-button>
+              <n-button type="info" @click="exportData('xlsx')">导出 XLSX</n-button>
+              <n-button type="primary" @click="importData">导入数据</n-button>
             </n-space>
-          </n-radio-group>
+          </div>
         </div>
       </template>
 

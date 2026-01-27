@@ -91,3 +91,49 @@ export async function batchCheckPaths(filePaths: string[]): Promise<Map<string, 
 
   return result
 }
+
+/**
+ * 读取二进制文件内容
+ * @param filePath 文件路径
+ * @returns 二进制文件内容
+ */
+export async function readBinaryFile(filePath: string): Promise<Uint8Array> {
+  try {
+    const content = await readFile(filePath)
+    return content as Uint8Array
+  } catch (err: any) {
+    console.error('读取二进制文件失败:', err)
+    throw new Error(`读取二进制文件失败: ${err}`)
+  }
+}
+
+/**
+ * 保存二进制文件
+ * @param content 二进制文件内容
+ * @param defaultName 默认文件名
+ * @param filters 文件过滤器
+ * @returns 保存的文件路径
+ */
+export async function saveBinaryFile(
+  content: Uint8Array | ArrayBuffer,
+  defaultName: string,
+  filters: Array<{ name: string; extensions: string[] }>
+) {
+  try {
+    const filePath = await save({
+      defaultPath: defaultName,
+      filters
+    })
+
+    if (filePath) {
+      // 确保 content 是 Uint8Array 类型
+      const data = content instanceof ArrayBuffer ? new Uint8Array(content) : content
+      await writeFile(filePath, data)
+      return filePath
+    }
+    return null
+  } catch (err: any) {
+    console.error('保存二进制文件失败:', err)
+    throw new Error(`保存二进制文件失败: ${err}`)
+  }
+}
