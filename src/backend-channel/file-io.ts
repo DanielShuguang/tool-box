@@ -33,7 +33,7 @@ export async function saveFile(
       return filePath
     }
     return null
-  } catch (err) {
+  } catch (err: any) {
     console.error('保存文件失败:', err)
     throw new Error(`保存文件失败: ${err}`)
   }
@@ -44,7 +44,7 @@ export async function readFileContent(filePath: string): Promise<string> {
     const content = await readFile(filePath)
     const decoder = new TextDecoder('utf-8')
     return decoder.decode(content as Uint8Array)
-  } catch (err) {
+  } catch (err: any) {
     console.error('读取文件失败:', err)
     throw new Error(`读取文件失败: ${err}`)
   }
