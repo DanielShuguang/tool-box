@@ -8,6 +8,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "check": "vue-tsc --noEmit",
     "lint": "oxlint --fix --vue-plugin src --type-aware --type-check",
     "fmt": "oxfmt src",
     "prepare": "husky",
