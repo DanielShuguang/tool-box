@@ -1,7 +1,7 @@
 <script setup lang="tsx">
 import { NTag, NButton, DataTableColumn } from 'naive-ui'
 import { useAccountingLogic } from './logic'
-import { AccountingRecord } from './storage'
+import { AccountingRecord } from './types'
 
 // 使用记账逻辑
 const {

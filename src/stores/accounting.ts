@@ -1,7 +1,11 @@
 import { ConfigFile } from '@/utils/storage'
-import { accountingStorage, AccountingFilter } from '@/views/Accounting/storage'
-
-export type AccountingRecordType = 'income' | 'expense'
+import { accountingStorage } from '@/views/Accounting/storage'
+import {
+  AccountingFilter,
+  AccountingRecord,
+  AccountingRecordType,
+  NewAccountingRecord
+} from '@/views/Accounting/types'
 
 // 分类接口
 export interface Category {
@@ -9,25 +13,6 @@ export interface Category {
   name: string
   type: AccountingRecordType
   icon?: string
-}
-
-// 记账记录接口
-export interface AccountingRecord {
-  id: string
-  amount: number
-  type: AccountingRecordType
-  category: string
-  date: number
-  note?: string
-}
-
-// 新记录接口（用于添加记录）
-export interface NewAccountingRecord {
-  amount: number
-  type: AccountingRecordType
-  category: string
-  date: number
-  note?: string
 }
 
 export const useAccountingStore = defineStore(

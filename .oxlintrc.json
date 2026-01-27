@@ -121,7 +121,13 @@
       "warn",
       "never"
     ],
-    "no-unused-imports": "error"
+    "no-unused-imports": "error",
+    "max-params": [
+      "error",
+      {
+        "max": 3
+      }
+    ]
   },
   "settings": {
     "jsx-a11y": {

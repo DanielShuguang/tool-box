@@ -1,10 +1,5 @@
-import { AccountingRecordType, useAccountingStore } from '@/stores/accounting'
-import { ref, reactive } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useDialog } from 'naive-ui'
-import { AccountingRecord } from './storage'
-
-type AccountSelectType = AccountingRecordType | 'all'
+import { useAccountingStore } from '@/stores/accounting'
+import { AccountingRecordType, AccountSelectType, NewAccountingRecord } from './types'
 
 // 导出记账页面逻辑
 export function useAccountingLogic() {
@@ -28,7 +23,7 @@ export function useAccountingLogic() {
   }
 
   // 表单数据
-  const recordForm = reactive<Omit<AccountingRecord, 'id'>>({
+  const recordForm = reactive<NewAccountingRecord>({
     amount: 0,
     type: 'expense',
     category: '',

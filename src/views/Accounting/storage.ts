@@ -1,36 +1,11 @@
-import { AccountingRecordType } from 'src/stores/accounting'
 import { createStorageAdapter } from 'src/utils/sql'
-
-// 记账记录接口
-export interface AccountingRecord {
-  id: string
-  amount: number
-  type: AccountingRecordType
-  category: string
-  date: number
-  note?: string
-}
-
-// 记账记录过滤条件
-export interface AccountingFilter {
-  type?: AccountingRecordType
-  category?: string
-  startDate?: number
-  endDate?: number
-}
-
-// 记账记录查询结果
-export interface AccountingQueryResult {
-  records: AccountingRecord[]
-  total: number
-}
-
-// 记账统计结果
-export interface AccountingStats {
-  income: number
-  expense: number
-  balance: number
-}
+import {
+  AccountingFilter,
+  AccountingQueryResult,
+  AccountingRecord,
+  AccountingStats,
+  NewAccountingRecord
+} from './types'
 
 // 记账记录存储键前缀
 const RECORD_KEY_PREFIX = 'accounting_record_'
@@ -53,7 +28,7 @@ export const accountingStorage = {
   },
 
   // 添加记账记录
-  async addAccountingRecord(record: Omit<AccountingRecord, 'id'>): Promise<string> {
+  async addAccountingRecord(record: NewAccountingRecord): Promise<string> {
     const id = crypto.randomUUID()
     const newRecord: AccountingRecord = { id, ...record }
 
