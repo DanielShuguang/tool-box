@@ -102,14 +102,12 @@ export const accountingStorage = {
     // 获取索引
     const index = await storage.load<RecordsIndex>(RECORDS_INDEX_KEY, { ids: [], count: 0 })
 
-    // 获取所有记录
-    const allRecords: AccountingRecord[] = []
-    for (const id of index.ids) {
-      const record = await storage.load<AccountingRecord | null>(`${RECORD_KEY_PREFIX}${id}`, null)
-      if (record) {
-        allRecords.push(record)
-      }
-    }
+    // 并行获取所有记录
+    const recordPromises = index.ids.map(id =>
+      storage.load<AccountingRecord | null>(`${RECORD_KEY_PREFIX}${id}`, null)
+    )
+    const recordResults = await Promise.all(recordPromises)
+    const allRecords = recordResults.filter((record): record is AccountingRecord => record != null)
 
     // 应用过滤条件
     let filteredRecords = allRecords
@@ -155,14 +153,12 @@ export const accountingStorage = {
     // 获取索引
     const index = await storage.load<RecordsIndex>(RECORDS_INDEX_KEY, { ids: [], count: 0 })
 
-    // 获取所有记录
-    const allRecords: AccountingRecord[] = []
-    for (const id of index.ids) {
-      const record = await storage.load<AccountingRecord | null>(`${RECORD_KEY_PREFIX}${id}`, null)
-      if (record) {
-        allRecords.push(record)
-      }
-    }
+    // 并行获取所有记录
+    const recordPromises = index.ids.map(id =>
+      storage.load<AccountingRecord | null>(`${RECORD_KEY_PREFIX}${id}`, null)
+    )
+    const recordResults = await Promise.all(recordPromises)
+    const allRecords = recordResults.filter((record): record is AccountingRecord => record !== null)
 
     // 应用过滤条件
     let records = allRecords
