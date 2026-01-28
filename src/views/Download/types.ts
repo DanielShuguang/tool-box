@@ -99,3 +99,34 @@ export interface DownloadSettings {
   /** 是否监听剪贴板自动创建下载任务 */
   clipboardMonitor: boolean
 }
+
+/** 下载进度信息 */
+export interface DownloadProgressInfo {
+  downloadedBytes: number
+  totalBytes: number
+  speed: number
+  percentage: number
+  eta: number
+}
+
+/** 下载任务 */
+export interface DownloadTaskRecord {
+  id: string
+  url: string
+  fileName: string
+  saveDir: string
+  savePath: string
+  status: string
+  progress: DownloadProgressInfo
+  downloadedBytes: number
+  totalBytes: number
+  createdAt: number
+  startedAt: number | null
+  completedAt: number | null
+  errorMessage: string | null
+  speedLimit: number | null
+  retryCount: number
+  responseCode: number | null
+  etag: string | null
+  lastModified: string | null
+}

@@ -1,5 +1,5 @@
 import type { CreateDownloadInput } from '@/types/download'
-import { useDownloadStore } from './store'
+import { useDownloadStore } from '@/stores/download'
 
 export function useDownloadDialog() {
   const downloadStore = useDownloadStore()
@@ -8,12 +8,10 @@ export function useDownloadDialog() {
   const newDownloadUrl = ref('')
   const newDownloadDir = ref('')
   const newDownloadFileName = ref('')
-  const newDownloadSpeedLimit = ref<number | null>(null)
 
   async function openNewDownloadDialog() {
     newDownloadUrl.value = ''
     newDownloadFileName.value = ''
-    newDownloadSpeedLimit.value = downloadStore.settings.defaultSpeedLimit
 
     // 设置默认目录
     newDownloadDir.value = await downloadStore.getDefaultDir()
@@ -35,8 +33,7 @@ export function useDownloadDialog() {
     const input: CreateDownloadInput = {
       url: newDownloadUrl.value.trim(),
       saveDir: newDownloadDir.value || undefined,
-      fileName: newDownloadFileName.value.trim() || undefined,
-      speedLimit: newDownloadSpeedLimit.value
+      fileName: newDownloadFileName.value.trim() || undefined
     }
 
     await downloadStore.createTask(input)
@@ -56,7 +53,6 @@ export function useDownloadDialog() {
     newDownloadUrl,
     newDownloadDir,
     newDownloadFileName,
-    newDownloadSpeedLimit,
     openNewDownloadDialog,
     handleCreateDownload,
     handleSelectDir

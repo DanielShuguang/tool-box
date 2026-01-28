@@ -33,7 +33,8 @@ const isRefreshing = ref(false)
 
 // 下载设置
 const downloadDefaultDir = ref('')
-const downloadDefaultSpeedLimit = ref<number | null>(null)
+// 默认限速输入，单位 MB/s
+const downloadDefaultSpeedLimitMB = ref<string>('')
 const downloadMaxConcurrent = ref(3)
 const downloadOpenAfterComplete = ref(false)
 
@@ -147,7 +148,10 @@ async function loadDownloadSettings() {
     )
 
     downloadDefaultDir.value = settings.defaultDir
-    downloadDefaultSpeedLimit.value = settings.defaultSpeedLimit
+    // 将字节转换为 MB/s
+    downloadDefaultSpeedLimitMB.value = settings.defaultSpeedLimit
+      ? (settings.defaultSpeedLimit / (1024 * 1024)).toFixed(2)
+      : ''
     downloadMaxConcurrent.value = settings.maxConcurrent
     downloadOpenAfterComplete.value = settings.openAfterComplete
   } catch (error) {
@@ -179,9 +183,14 @@ async function handleOpenDownloadDir() {
   await command.execute()
 }
 
-async function handleSpeedLimitChange(value: number | null) {
-  downloadDefaultSpeedLimit.value = value
-  await saveDownloadSettings()
+async function handleSpeedLimitChange() {
+  // 将 MB/s 转换为字节，0 或空值表示不限速
+  const speedLimitBytes = (() => {
+    const val = parseFloat(downloadDefaultSpeedLimitMB.value)
+    if (!val || val <= 0) return null
+    return Math.round(val * 1024 * 1024)
+  })()
+  await saveDownloadSettings(speedLimitBytes)
 }
 
 async function handleMaxConcurrentChange(value: number | null) {
@@ -196,13 +205,13 @@ async function handleOpenAfterCompleteChange(value: boolean) {
   await saveDownloadSettings()
 }
 
-async function saveDownloadSettings() {
+async function saveDownloadSettings(speedLimit?: number | null) {
   try {
     await save(
       'download_settings',
       {
         defaultDir: downloadDefaultDir.value,
-        defaultSpeedLimit: downloadDefaultSpeedLimit.value,
+        defaultSpeedLimit: speedLimit ?? null,
         maxConcurrent: downloadMaxConcurrent.value,
         openAfterComplete: downloadOpenAfterComplete.value
       },
@@ -300,18 +309,14 @@ async function saveDownloadSettings() {
       </n-form-item>
 
       <n-form-item label="默认限速">
-        <n-select
-          v-model:value="downloadDefaultSpeedLimit"
-          :options="[
-            { label: '不限速', value: null as unknown as number },
-            { label: '100 KB/s', value: 102400 },
-            { label: '500 KB/s', value: 512000 },
-            { label: '1 MB/s', value: 1048576 },
-            { label: '5 MB/s', value: 5242880 },
-            { label: '10 MB/s', value: 10485760 }
-          ]"
-          style="width: 200px"
-          @update:value="handleSpeedLimitChange" />
+        <div class="flex items-center gap-2">
+          <n-input
+            v-model:value="downloadDefaultSpeedLimitMB"
+            placeholder="0 或留空表示不限速"
+            style="width: 150px"
+            @blur="handleSpeedLimitChange" />
+          <span class="text-[--textColor2]">MB/s</span>
+        </div>
       </n-form-item>
 
       <n-form-item label="最大并发数">

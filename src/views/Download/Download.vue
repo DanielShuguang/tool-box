@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
-import { useDownloadStore } from './store'
-import { useDownloadDialog } from './dialog'
+import { useDownloadStore } from '@/stores/download'
+import { useDownloadDialog } from './hooks/useDownloadDialog'
 import DownloadTaskItem from './components/DownloadTaskItem.vue'
 import NewDownloadDialog from './components/NewDownloadDialog.vue'
 import { AddOutline, TrashBinOutline, FolderOpenOutline } from '@vicons/ionicons5'
-import { NButton, NIcon, NSpace, NInput, NEmpty, NSpin } from 'naive-ui'
 
 const downloadStore = useDownloadStore()
 const { downloadingTasks, completedTasks, isSettingsLoaded } = storeToRefs(downloadStore)
@@ -35,9 +33,8 @@ const filteredCompletedTasks = computed(() => {
 const activeTab = ref<'downloading' | 'completed'>('downloading')
 
 onMounted(async () => {
-  await downloadStore.initStorage()
   await downloadStore.loadSettings()
-  await downloadStore.loadAllTasks()
+  downloadStore.loadTasksFromStorage()
 })
 
 async function handleClearCompleted() {

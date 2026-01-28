@@ -1,16 +1,5 @@
 <script lang="ts" setup>
-import { useDownloadDialog } from '../dialog'
-import {
-  NModal,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NButton,
-  NSpace,
-  NInputGroup,
-  NIcon
-} from 'naive-ui'
+import { useDownloadDialog } from '../hooks/useDownloadDialog'
 import { FolderOpenOutline } from '@vicons/ionicons5'
 
 const props = defineProps<{
@@ -26,7 +15,6 @@ const {
   newDownloadUrl,
   newDownloadDir,
   newDownloadFileName,
-  newDownloadSpeedLimit,
   handleCreateDownload,
   handleSelectDir
 } = useDownloadDialog()
@@ -83,17 +71,6 @@ function handleClose() {
 
       <n-form-item label="文件名">
         <n-input v-model:value="newDownloadFileName" placeholder="留空则自动获取文件名" />
-      </n-form-item>
-
-      <n-form-item label="下载限速">
-        <n-input-number
-          v-model:value="newDownloadSpeedLimit"
-          :min="0"
-          :step="1024"
-          placeholder="0 表示不限速"
-          style="width: 200px">
-          <template #suffix> Byte/s </template>
-        </n-input-number>
       </n-form-item>
     </n-form>
 

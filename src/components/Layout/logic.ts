@@ -1,4 +1,3 @@
-import { storeToRefs } from 'pinia'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useThemeVars } from 'naive-ui'
 import { useAppSettingsStore } from '@/stores/appSettings'

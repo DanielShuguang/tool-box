@@ -142,7 +142,7 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
     <transition name="fade" mode="out-in">
       <app-settings
         :open="openSettings"
-        class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] absolute top-[85px] left-0 z-10" />
+        class="w-full h-[calc(100%-85px)] p-[5px] box-border bg-[--actionColor] absolute top-[85px] left-0 z-10 overflow-auto" />
     </transition>
     <router-view
       v-show="!openSettings"

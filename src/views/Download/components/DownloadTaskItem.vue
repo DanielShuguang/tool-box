@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { DownloadTask } from '@/types/download'
-import { useDownloadStore } from '../store'
+import type { DownloadTask } from 'src/views/Download/types'
+import { useDownloadStore } from '@/stores/download'
 import {
   PlayOutline,
   PauseOutline,
@@ -10,7 +10,6 @@ import {
   FolderOpenOutline,
   OpenOutline
 } from '@vicons/ionicons5'
-import { NButton, NIcon, NProgress, NTag, NSpace, NTooltip, NPopconfirm } from 'naive-ui'
 import { format } from 'date-fns'
 
 const props = defineProps<{

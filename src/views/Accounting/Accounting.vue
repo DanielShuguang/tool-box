@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { NTag, NButton, DataTableColumn } from 'naive-ui'
+import { DataTableColumn } from 'naive-ui'
 import { AccountingRecord } from './types'
 import { useAccountingForm } from './hooks/useAccountingForm'
 import { useAccountingRecords } from './hooks/useAccountingRecords'
