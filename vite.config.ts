@@ -11,7 +11,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import { vueMcpVitePlugin } from 'vue-mcp-next'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   return {
     plugins: [
       vue(),
@@ -38,14 +38,15 @@ export default defineConfig(({ command }) => {
         modernPolyfills: true
       }),
       vueDevTools(),
-      vueMcpVitePlugin({
-        port: 8890, // MCP 服务器端口
-        inspector: {
-          enabled: true, // 启用 MCP Inspector
-          autoStart: true, // 自动启动
-          openBrowser: false // 是否自动打开浏览器
-        }
-      })
+      mode === 'development' &&
+        vueMcpVitePlugin({
+          port: 8890, // MCP 服务器端口
+          inspector: {
+            enabled: true, // 启用 MCP Inspector
+            autoStart: true, // 自动启动
+            openBrowser: false // 是否自动打开浏览器
+          }
+        })
     ],
     resolve: {
       alias: {
