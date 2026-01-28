@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DownloadTask } from 'src/views/Download/types'
+import type { DownloadTask } from '../types'
 import { useDownloadStore } from '@/stores/download'
 import {
   PlayOutline,
@@ -10,7 +10,15 @@ import {
   FolderOpenOutline,
   OpenOutline
 } from '@vicons/ionicons5'
-import { format } from 'date-fns'
+import {
+  formatFileSize,
+  formatSpeed,
+  formatTime,
+  formatDate,
+  getStatusType,
+  getStatusText,
+  formatSpeedLimitLabel
+} from '@/utils/download'
 
 const props = defineProps<{
   task: DownloadTask
@@ -18,74 +26,11 @@ const props = defineProps<{
 
 const downloadStore = useDownloadStore()
 
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
+const statusType = computed(() => getStatusType(props.task.status))
 
-function formatSpeed(bytesPerSecond: number): string {
-  return formatFileSize(bytesPerSecond) + '/s'
-}
+const statusText = computed(() => getStatusText(props.task.status))
 
-function formatTime(seconds: number): string {
-  if (seconds <= 0) return '--'
-  if (seconds < 60) return `${seconds}秒`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}分${seconds % 60}秒`
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  return `${hours}时${minutes}分`
-}
-
-function formatDate(timestamp: number | null): string {
-  if (!timestamp) return '--'
-  return format(new Date(timestamp), 'yyyy-MM-dd HH:mm')
-}
-
-const statusType = computed(() => {
-  switch (props.task.status) {
-    case 'downloading':
-      return 'info'
-    case 'completed':
-      return 'success'
-    case 'failed':
-      return 'error'
-    case 'paused':
-      return 'warning'
-    default:
-      return 'default'
-  }
-})
-
-const statusText = computed(() => {
-  switch (props.task.status) {
-    case 'pending':
-      return '等待中'
-    case 'downloading':
-      return '下载中'
-    case 'paused':
-      return '已暂停'
-    case 'completed':
-      return '已完成'
-    case 'failed':
-      return '下载失败'
-    case 'cancelled':
-      return '已取消'
-    default:
-      return props.task.status
-  }
-})
-
-const currentSpeedLimitLabel = computed(() => {
-  const limit = props.task.speedLimit
-  if (!limit) return '不限速'
-  if (limit >= 1024 * 1024) {
-    return `${(limit / (1024 * 1024)).toFixed(1)} MB/s`
-  }
-  return `${(limit / 1024).toFixed(0)} KB/s`
-})
+const currentSpeedLimitLabel = computed(() => formatSpeedLimitLabel(props.task.speedLimit))
 </script>
 
 <template>
