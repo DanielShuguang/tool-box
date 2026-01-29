@@ -14,10 +14,11 @@ Vue 3.5 introduced `deep: number` for watch depth control. This allows watching 
 
 ## Symptoms
 
-- TypeScript error: "Type 'number' is not assignable to type 'boolean'"
 - Array mutations not triggering watch callback
 - Deep watch causing performance issues on large nested objects
 - Unaware of new Vue 3.5 feature
+
+> **Note:** TypeScript error "Type 'number' is not assignable to type 'boolean'" no longer occurs with Vue 3.5+ and current TypeScript versions. The types now correctly support numeric `deep` values.
 
 ## The Feature
 
@@ -43,12 +44,7 @@ watch(items, (newVal) => {
 npm install vue@^3.5.0
 ```
 
-**Step 2: Update @vue/runtime-core types**
-```bash
-npm install -D @vue/runtime-core@latest
-```
-
-**Step 3: Use numeric depth**
+**Step 2: Use numeric depth**
 ```typescript
 import { watch, ref } from 'vue'
 
@@ -92,7 +88,7 @@ watchEffect(() => {
 
 If TypeScript complains about numeric deep, ensure:
 1. Vue version is 3.5+
-2. `@vue/runtime-core` types are updated
+2. TypeScript version is current (types are included with `vue` package)
 3. tsconfig targets correct node_modules types
 
 ## Reference
