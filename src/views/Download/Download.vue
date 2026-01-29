@@ -47,7 +47,7 @@ async function handlePasteFromClipboard() {
 </script>
 
 <template>
-  <div class="download-page h-full flex flex-col">
+  <div class="download-page flex flex-col">
     <!-- 顶部工具栏 -->
     <div class="toolbar flex items-center gap-4 p-4 border-b border-[--divider-color]">
       <n-button type="primary" @click="openNewDownloadDialog">
