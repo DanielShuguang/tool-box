@@ -1,4 +1,4 @@
-import type { CreateDownloadInput } from '@/types/download'
+import type { CreateDownloadInput } from '../types'
 import { useDownloadStore } from '@/stores/download'
 
 export function useDownloadDialog() {
