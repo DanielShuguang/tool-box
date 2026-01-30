@@ -1,6 +1,6 @@
 interface BaseOptions {
   max?: number
-  mode: 'race' | 'all'
+  mode?: 'race' | 'all'
 }
 
 export interface TotalPool<Resp> extends BaseOptions {

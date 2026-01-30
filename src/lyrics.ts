@@ -3,10 +3,19 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { invoke } from '@tauri-apps/api/core'
 import { LyricsStyle } from '@/types/lyrics'
 
-interface LyricsEvent {
-  event_type: string
-  data: any
-}
+type LyricsEvent =
+  | {
+      event_type: 'update-lyrics'
+      data: { text: string }
+    }
+  | {
+      event_type: 'clear-lyrics'
+      data: void
+    }
+  | {
+      event_type: 'update-style'
+      data: LyricsStyle
+    }
 
 const lyricsText = document.getElementById('lyrics-text') as HTMLElement
 const closeBtn = document.getElementById('close-btn') as HTMLElement
@@ -39,9 +48,7 @@ async function initLyricsWindow() {
 
     switch (event_type) {
       case 'update-lyrics':
-        if (data.text) {
-          updateLyricsText(data.text)
-        }
+        updateLyricsText(data.text)
         break
       case 'clear-lyrics':
         lyricsText.textContent = '等待歌词...'
