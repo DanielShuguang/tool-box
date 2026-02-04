@@ -50,6 +50,11 @@ const routes: RouteRecordRaw[] = [
     path: '/accounting',
     component: () => import('@/views/Accounting/Accounting.vue'),
     meta: { title: '记账工具' }
+  },
+  {
+    path: '/canvasBoard',
+    component: () => import('@/views/CanvasBoard/CanvasBoard.vue'),
+    meta: { title: '画板' }
   }
 ]
 

@@ -69,6 +69,28 @@ export async function selectImportFile(
   }
 }
 
+/**
+ * 选择导出目录
+ * @returns 选择的目录路径
+ */
+export async function selectExportDirectory(): Promise<string | null> {
+  try {
+    const dirPath = await open({
+      directory: true,
+      multiple: false,
+      title: '选择导出目录'
+    })
+
+    if (typeof dirPath === 'string') {
+      return dirPath
+    }
+    return null
+  } catch (err) {
+    console.error('选择目录失败:', err)
+    return null
+  }
+}
+
 export async function checkPathExists(filePath: string): Promise<boolean> {
   try {
     const normalizedPath = filePath.replace(/\\/g, '/')
