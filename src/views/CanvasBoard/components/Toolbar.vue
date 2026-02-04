@@ -13,7 +13,12 @@ import {
   TextOutline,
   LinkOutline,
   ExpandOutline,
-  ContractOutline
+  ContractOutline,
+  BrushOutline,
+  ImageOutline,
+  HandLeftOutline,
+  RemoveCircleOutline,
+  RefreshCircleOutline
 } from '@vicons/ionicons5'
 import type { ToolbarItem } from '../types'
 
@@ -47,7 +52,12 @@ const getIconComponent = (iconName: string | undefined) => {
     DownloadOutline,
     FolderOpenOutline,
     ExpandOutline,
-    ContractOutline
+    ContractOutline,
+    BrushOutline,
+    ImageOutline,
+    HandLeftOutline,
+    RemoveCircleOutline,
+    RefreshCircleOutline
   }
   return iconMap[iconName] || CreateOutline
 }

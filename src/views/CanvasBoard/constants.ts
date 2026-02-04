@@ -85,7 +85,7 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
   {
     id: 'select',
     type: 'tool',
-    icon: 'CreateOutline',
+    icon: 'HandLeftOutline',
     tooltip: '选择工具'
   },
   {
@@ -165,7 +165,7 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
   {
     id: 'clear',
     type: 'action',
-    icon: 'RefreshOutline',
+    icon: 'RemoveCircleOutline',
     tooltip: '清空画布'
   },
   {
@@ -187,7 +187,7 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
   {
     id: 'zoom-reset',
     type: 'action',
-    icon: 'RefreshOutline',
+    icon: 'RefreshCircleOutline',
     tooltip: '重置视图'
   },
   {
