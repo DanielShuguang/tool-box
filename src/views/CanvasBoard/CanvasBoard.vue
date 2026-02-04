@@ -12,7 +12,8 @@ import {
   useDrawingTools,
   useObjectOperations,
   useFileOperations,
-  useKeyboardShortcuts
+  useKeyboardShortcuts,
+  useImageOperations
 } from './hooks'
 import { CANVAS_TOOLBAR_ITEMS, SUPPORTED_EXPORT_FORMATS } from './constants'
 import type { ObjectProperties, ToolbarItem, ExportFormat } from './types'
@@ -24,6 +25,7 @@ const history = useHistory()
 const drawingTools = useDrawingTools()
 const objectOps = useObjectOperations()
 const fileOps = useFileOperations()
+const imageOps = useImageOperations()
 
 const { initCanvas, zoomIn, zoomOut, resetZoom, setPanning, handlePanWithDelta, getCanvas } =
   canvasCore
@@ -41,12 +43,68 @@ const { currentTool, setTool } = drawingTools
 const { objectProperties, deleteSelected, clearCanvas, updateObjectProperty } = objectOps
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const imageInputRef = ref<HTMLInputElement | null>(null)
 const showExportDialog = ref(false)
 const selectedExportFormat = ref<ExportFormat>('png')
 const isExporting = ref(false)
 
 const triggerFileInput = () => {
   fileInputRef.value?.click()
+}
+
+const triggerImageInput = () => {
+  imageInputRef.value?.click()
+}
+
+const handleImageInsert = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    try {
+      await imageOps.insertImageFromFile(getCanvas(), input.files[0])
+      saveToHistory()
+      message.success('图片插入成功')
+    } catch (error) {
+      message.error((error as Error).message)
+    }
+    input.value = ''
+  }
+}
+
+const handlePaste = async () => {
+  try {
+    await imageOps.insertImageFromClipboard(getCanvas())
+    saveToHistory()
+    message.success('图片粘贴成功')
+  } catch (error) {
+    console.error('粘贴失败:', error)
+  }
+}
+
+const handleDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  if (!event.dataTransfer?.files.length) return
+
+  const file = event.dataTransfer.files[0]
+  const canvas = getCanvas()
+  if (!canvas) return
+
+  const pointer = canvas.getPointer(event)
+  try {
+    await imageOps.insertImageFromDrop({
+      canvas,
+      file,
+      dropX: pointer.x,
+      dropY: pointer.y
+    })
+    saveToHistory()
+    message.success('图片插入成功')
+  } catch (error) {
+    message.error((error as Error).message)
+  }
+}
+
+const handleDragOver = (event: DragEvent) => {
+  event.preventDefault()
 }
 
 const handleFileImport = async (event: Event) => {
@@ -331,7 +389,8 @@ const handleToolbarAction = (item: ToolbarItem) => {
     'zoom-in': () => handleZoom(1),
     'zoom-reset': resetZoom,
     export: openExportDialog,
-    import: triggerFileInput
+    import: triggerFileInput,
+    image: triggerImageInput
   }
 
   const action = actionMap[item.id]
@@ -348,7 +407,11 @@ const handleToolbarAction = (item: ToolbarItem) => {
       :can-redo="canRedo"
       @action="handleToolbarAction" />
 
-    <div class="main-content flex-1 flex min-h-0">
+    <div
+      class="main-content flex-1 flex min-h-0"
+      @paste="handlePaste"
+      @drop="handleDrop"
+      @dragover="handleDragOver">
       <CanvasContainer
         @ready="handleCanvasReady"
         @pan-start="handlePanStart"
@@ -377,6 +440,13 @@ const handleToolbarAction = (item: ToolbarItem) => {
       accept="image/png,image/jpeg,image/svg+xml"
       class="hidden"
       @change="handleFileImport" />
+
+    <input
+      ref="imageInputRef"
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
+      class="hidden"
+      @change="handleImageInsert" />
   </div>
 </template>
 

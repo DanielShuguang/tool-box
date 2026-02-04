@@ -14,6 +14,7 @@ export type DrawingTool =
   | 'path'
   | 'polygon'
   | 'text'
+  | 'image'
 
 /**
  * 画布配置
@@ -97,4 +98,36 @@ export interface ShortcutDefinition {
 export interface StrokeDashOption {
   label: string
   value: number[]
+}
+
+/**
+ * 图片元素数据结构
+ */
+export interface ImageElement {
+  id: string
+  type: 'image'
+  src: string
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation: number
+  scaleX: number
+  scaleY: number
+  opacity: number
+}
+
+/**
+ * 支持的图片格式
+ */
+export type SupportedImageFormat = 'png' | 'jpeg' | 'jpg' | 'webp' | 'gif' | 'bmp'
+
+/**
+ * 图片插入选项
+ */
+export interface ImageInsertOptions {
+  x?: number
+  y?: number
+  maxWidth?: number
+  maxHeight?: number
 }

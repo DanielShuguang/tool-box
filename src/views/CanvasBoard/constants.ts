@@ -135,6 +135,12 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
     tooltip: '文字'
   },
   {
+    id: 'image',
+    type: 'tool',
+    icon: 'ImageOutline',
+    tooltip: '插入图片'
+  },
+  {
     id: 'separator-2',
     type: 'separator'
   },
