@@ -1,20 +1,135 @@
 schema: spec-driven
 
-# 项目上下文（可选）
+# 项目上下文
 # 在创建工件时向 AI 显示此信息。
 # 添加您的技术栈、约定、风格指南、领域知识等。
-# 示例：
-#   context: |
-#     技术栈：TypeScript, React, Node.js
-#     我们使用约定式提交
-#     领域：电商平台
+context: |
+  # 项目概述
+  基于 Tauri 2.x 的桌面应用，前端使用 Vue 3 + TypeScript，后端使用 Rust。
 
-# 每个工件的规则（可选）
+  # 技术栈
+  ## 前端
+  - Vue 3 (Composition API + TypeScript)
+  - Vite
+  - Naive UI (UI 组件库)
+  - UnoCSS (原子化 CSS)
+  - Vue Router
+  - VueUse
+  - Tauri API
+  - motion-v (动画库)
+
+  ## 后端
+  - Rust
+  - Tauri 2.x
+  - Tokio (异步运行时)
+  - reqwest (HTTP 客户端)
+
+  # 代码风格
+  ## TypeScript/JavaScript
+  - 使用单引号
+  - 不使用分号
+  - 2 空格缩进
+  - 行宽 100 字符
+  - 箭头函数参数不使用括号 (当只有一个参数时)
+  - 尾随逗号: 不使用
+  - 单个文件行数不超过 300 行
+  - 函数形参不超过 3 个，超过时考虑使用对象参数
+  - 注释: 必要时添加注释，保持代码可读性，语言为中文
+
+  ## Rust
+  - 使用 `cargo fmt` 格式化代码
+  - 使用 `cargo clippy` 检查代码
+
+  # 命名约定
+  ## TypeScript/JavaScript
+  - **组件**: PascalCase (如 `AppSettings.vue`)
+  - **文件**: kebab-case (如 `file-search.ts`)
+  - **变量/函数**: camelCase (如 `searchDiskFile`)
+  - **常量**: UPPER_SNAKE_CASE (如 `MAX_FILE_SIZE`)
+  - **类型/接口**: PascalCase (如 `SearchResult`)
+  - **枚举**: PascalCase (如 `FileStatus`)
+
+  ## Rust
+  - **模块**: snake_case (如 `file_search`)
+  - **函数/变量**: snake_case (如 `search_disk_file`)
+  - **结构体**: PascalCase (如 `SearchResult`)
+  - **枚举**: PascalCase (如 `FileStatus`)
+  - **常量**: UPPER_SNAKE_CASE (如 `MAX_FILE_SIZE`)
+
+  # 组件开发规范
+  ## Vue 组件
+  - 使用 `<script setup lang="ts">` 语法
+  - 使用 Composition API
+  - 使用 TypeScript 进行类型定义
+  - 使用 Naive UI 组件库
+
+  ## 组件拆分规则
+  ### 简单/小型组件
+  - 代码较少、逻辑简单
+  - 拆分为 2 个文件：`.vue` (模板) + `logic.ts` (逻辑)
+  - 单个文件不超过 400 行
+
+  ### 复杂组件
+  - 功能较多、逻辑复杂
+  - 拆分为多个 `.vue` 文件（按功能/区域划分）
+  - 逻辑封装到独立的 `.ts` 文件中
+  - 每个文件不超过 400 行
+
+  # Tauri 命令开发规范
+  ## 后端 (Rust)
+  - 在 `src-tauri/src/` 中创建对应模块
+  - 使用 `#[tauri::command]` 宏定义命令
+  - 在 `lib.rs` 的 `invoke_handler` 中注册命令
+  - 使用 `Result<T, String>` 作为返回类型
+
+  ## 前端 (TypeScript)
+  - 在 `src/backend-channel/` 中创建对应文件
+  - 使用 `invoke` 函数调用后端命令
+  - 定义 TypeScript 类型与 Rust 结构体对应
+
+  # Git 提交规范
+  - 使用 husky pre-commit hook
+  - 提交前会自动运行 lint
+  - 提交信息使用中文
+
+  # 必须运行的命令
+  ## 代码修改后必须运行
+  - `pnpm lint` - Lint 检查和自动修复
+  - `pnpm fmt` - 代码格式化
+  - `pnpm check` - 类型检查
+
+  # 环境要求
+  - Node.js >= 22.18.0 (使用 Volta 管理)
+  - Rust >= 1.88
+  - pnpm >= 10.4.1
+
+# 每个工件的规则
 # 为特定工件添加自定义规则。
-# 示例：
-#   rules:
-#     proposal:
-#       - 保持提案在500字以内
-#       - 始终包含"非目标"部分
-#     tasks:
-#       - 将任务分解为最多2小时的块
+rules:
+  proposal:
+    - 保持提案简洁，聚焦核心功能
+    - 明确说明非目标范围
+    - 包含技术决策和备选方案分析
+    - 涉及新依赖时说明引入理由和替代方案
+
+  tasks:
+    - 将任务分解为最多 2 小时的块
+    - 每个任务应有明确的验收标准
+    - 优先完成核心功能，再考虑优化
+    - 新增 Tauri 命令时需同步更新前端调用代码
+
+  implementation:
+    - 遵循项目代码风格规范
+    - 单个文件不超过 400 行
+    - 函数参数不超过 3 个，超出使用对象参数
+    - 避免使用 `any` 类型，使用 `unknown` 或具体类型替代
+    - 新增页面在 `src/views/` 中创建
+    - 新增组件按复杂度拆分：
+      - 简单组件：拆分为 `.vue` + `logic.ts`
+      - 复杂组件：拆分为多个 `.vue` 和逻辑封装文件
+
+  code-review:
+    - 检查是否运行了 lint、fmt 和 check 命令
+    - 验证 TypeScript 类型安全性
+    - 确认符合命名约定
+    - 检查是否修复了 IDE 问题缓冲区中的错误
