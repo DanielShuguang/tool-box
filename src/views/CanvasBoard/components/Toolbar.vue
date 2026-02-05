@@ -21,6 +21,7 @@ import {
   RefreshCircleOutline
 } from '@vicons/ionicons5'
 import type { ToolbarItem } from '../types'
+import { Component } from 'vue'
 
 interface Props {
   toolbarItems: ToolbarItem[]
@@ -38,7 +39,7 @@ const emit = defineEmits<Emits>()
 
 const getIconComponent = (iconName: string | undefined) => {
   if (!iconName) return CreateOutline
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, Component> = {
     CreateOutline,
     SquareOutline,
     RadioButtonOnOutline,

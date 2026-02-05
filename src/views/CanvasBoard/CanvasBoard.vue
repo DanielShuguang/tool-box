@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useMessage } from 'naive-ui'
-import { selectExportDirectory } from '../../backend-channel/file-io'
 import Toolbar from './components/Toolbar.vue'
 import PropertyPanel from './components/PropertyPanel.vue'
 import ExportDialog from './components/ExportDialog.vue'
@@ -12,10 +11,14 @@ import {
   useDrawingTools,
   useObjectOperations,
   useFileOperations,
+  useImageOperations,
   useKeyboardShortcuts,
-  useImageOperations
+  useCanvasExport,
+  useCanvasImport,
+  useCanvasToolbar,
+  useCanvasImage
 } from './hooks'
-import { CANVAS_TOOLBAR_ITEMS, SUPPORTED_EXPORT_FORMATS } from './constants'
+import { SUPPORTED_EXPORT_FORMATS } from './constants'
 import type { ObjectProperties, ToolbarItem, ExportFormat } from './types'
 
 const message = useMessage()
@@ -25,7 +28,9 @@ const history = useHistory()
 const drawingTools = useDrawingTools()
 const objectOps = useObjectOperations()
 const fileOps = useFileOperations()
-const imageOps = useImageOperations()
+const canvasExport = useCanvasExport()
+const canvasImport = useCanvasImport()
+const canvasImage = useCanvasImage()
 
 const { initCanvas, zoomIn, zoomOut, resetZoom, setPanning, handlePanWithDelta, getCanvas } =
   canvasCore
@@ -41,141 +46,46 @@ const {
 } = history
 const { currentTool, setTool } = drawingTools
 const { objectProperties, deleteSelected, clearCanvas, updateObjectProperty } = objectOps
+const { importFromFile, getCanvasDataURL, getCanvasSVG } = fileOps
+const imageOps = useImageOperations()
+const { insertImageFromFile, insertImageFromClipboard, insertImageFromDrop } = imageOps
 
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const imageInputRef = ref<HTMLInputElement | null>(null)
-const showExportDialog = ref(false)
-const selectedExportFormat = ref<ExportFormat>('png')
-const isExporting = ref(false)
+const {
+  showExportDialog,
+  selectedExportFormat,
+  isExporting,
+  openExportDialog,
+  closeExportDialog,
+  handleExport
+} = canvasExport
+const { fileInputRef, triggerFileInput, handleFileImport } = canvasImport
+const {
+  imageInputRef,
+  triggerImageInput,
+  handleImageInsert,
+  handlePaste,
+  handleDrop,
+  handleDragOver
+} = canvasImage
 
-const triggerFileInput = () => {
-  fileInputRef.value?.click()
+const handleExportWrapper = () => {
+  handleExport(getCanvas, getCanvasDataURL, getCanvasSVG)
 }
 
-const triggerImageInput = () => {
-  imageInputRef.value?.click()
+const handleFileImportWrapper = (event: Event) => {
+  handleFileImport(event, { getCanvas, importFromFile, saveToHistory })
 }
 
-const handleImageInsert = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files[0]) {
-    try {
-      await imageOps.insertImageFromFile(getCanvas(), input.files[0])
-      saveToHistory()
-      message.success('图片插入成功')
-    } catch (error) {
-      message.error((error as Error).message)
-    }
-    input.value = ''
-  }
+const handleImageInsertWrapper = (event: Event) => {
+  handleImageInsert(event, { getCanvas, insertImageFromFile, saveToHistory })
 }
 
-const handlePaste = async () => {
-  try {
-    await imageOps.insertImageFromClipboard(getCanvas())
-    saveToHistory()
-    message.success('图片粘贴成功')
-  } catch (error) {
-    console.error('粘贴失败:', error)
-  }
+const handlePasteWrapper = () => {
+  handlePaste({ getCanvas, insertImageFromClipboard, saveToHistory })
 }
 
-const handleDrop = async (event: DragEvent) => {
-  event.preventDefault()
-  if (!event.dataTransfer?.files.length) return
-
-  const file = event.dataTransfer.files[0]
-  const canvas = getCanvas()
-  if (!canvas) return
-
-  const pointer = canvas.getPointer(event)
-  try {
-    await imageOps.insertImageFromDrop({
-      canvas,
-      file,
-      dropX: pointer.x,
-      dropY: pointer.y
-    })
-    saveToHistory()
-    message.success('图片插入成功')
-  } catch (error) {
-    message.error((error as Error).message)
-  }
-}
-
-const handleDragOver = (event: DragEvent) => {
-  event.preventDefault()
-}
-
-const handleFileImport = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files[0]) {
-    const result = await fileOps.importFromFile(getCanvas(), input.files[0], () => {
-      saveToHistory()
-      message.success('导入成功')
-    })
-    if (result) {
-      message.success('导入成功')
-    }
-    input.value = ''
-  }
-}
-
-const openExportDialog = () => {
-  showExportDialog.value = true
-  selectedExportFormat.value = 'png'
-}
-
-const closeExportDialog = () => {
-  showExportDialog.value = false
-  selectedExportFormat.value = 'png'
-}
-
-const handleExport = async () => {
-  isExporting.value = true
-
-  try {
-    message.info('请选择导出目录...')
-    const dirPath = await selectExportDirectory()
-
-    if (!dirPath) {
-      message.info('已取消导出')
-      return
-    }
-
-    const canvas = getCanvas()
-    if (!canvas) {
-      message.error('画布未初始化')
-      return
-    }
-
-    const format = selectedExportFormat.value
-    const timestamp = Date.now()
-    const filename = `canvas_export_${timestamp}.${format}`
-
-    let data: string
-    if (format === 'svg') {
-      data = fileOps.getCanvasSVG(canvas)
-      data = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(data)
-    } else {
-      data = fileOps.getCanvasDataURL(canvas, format, 0.92)
-    }
-
-    const link = document.createElement('a')
-    link.download = filename
-    link.href = data
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    message.success(`已导出到: ${dirPath}/${filename}`)
-    closeExportDialog()
-  } catch (error) {
-    console.error('导出失败:', error)
-    message.error('导出失败，请重试')
-  } finally {
-    isExporting.value = false
-  }
+const handleDropWrapper = (event: DragEvent) => {
+  handleDrop(event, { getCanvas, insertImageFromDrop, saveToHistory })
 }
 
 const handleUndo = () => {
@@ -324,6 +234,27 @@ const handleCanvasReady = (refs: { canvas: HTMLCanvasElement; container: HTMLDiv
   handleRestore()
 }
 
+const canvasToolbar = useCanvasToolbar({
+  currentTool,
+  canUndo,
+  canRedo,
+  setTool,
+  handleUndo,
+  handleRedo,
+  handleDelete,
+  getCanvas,
+  saveToHistory,
+  clearCanvas,
+  deleteSelected,
+  handleZoom,
+  resetZoom,
+  openExportDialog,
+  triggerFileInput,
+  triggerImageInput
+})
+
+const { toolbarItems, handleToolbarAction } = canvasToolbar
+
 onMounted(() => {})
 
 onUnmounted(() => {
@@ -340,62 +271,6 @@ onUnmounted(() => {
   destroy()
   canvasCore.dispose()
 })
-
-const toolbarItems = computed(() =>
-  CANVAS_TOOLBAR_ITEMS.map(item => {
-    if (item.type === 'separator') return item
-
-    if (item.type === 'tool') {
-      return {
-        ...item,
-        buttonType: 'primary' as const,
-        disabled: false
-      }
-    }
-
-    if (item.type === 'action') {
-      const disabledMap: Record<string, boolean> = {
-        undo: !canUndo.value,
-        redo: !canRedo.value
-      }
-      return {
-        ...item,
-        disabled: disabledMap[item.id] ?? false
-      }
-    }
-
-    return item
-  })
-)
-
-const handleToolbarAction = (item: ToolbarItem) => {
-  if (item.disabled || item.type === 'separator') return
-
-  if (item.type === 'tool') {
-    setTool(item.id as any)
-    return
-  }
-
-  const actionMap: Record<string, () => void> = {
-    undo: handleUndo,
-    redo: handleRedo,
-    delete: handleDelete,
-    clear: () => {
-      clearCanvas(getCanvas())
-      saveToHistory()
-      message.success('画布已清空')
-    },
-    'zoom-out': () => handleZoom(-1),
-    'zoom-in': () => handleZoom(1),
-    'zoom-reset': resetZoom,
-    export: openExportDialog,
-    import: triggerFileInput,
-    image: triggerImageInput
-  }
-
-  const action = actionMap[item.id]
-  if (action) action()
-}
 </script>
 
 <template>
@@ -409,8 +284,8 @@ const handleToolbarAction = (item: ToolbarItem) => {
 
     <div
       class="main-content flex-1 flex min-h-0"
-      @paste="handlePaste"
-      @drop="handleDrop"
+      @paste="handlePasteWrapper"
+      @drop="handleDropWrapper"
       @dragover="handleDragOver">
       <CanvasContainer
         @ready="handleCanvasReady"
@@ -431,7 +306,7 @@ const handleToolbarAction = (item: ToolbarItem) => {
       :export-formats="SUPPORTED_EXPORT_FORMATS"
       @update:show="(v: boolean) => (showExportDialog = v)"
       @update:format="(v: ExportFormat) => (selectedExportFormat = v)"
-      @confirm="handleExport"
+      @confirm="handleExportWrapper"
       @cancel="closeExportDialog" />
 
     <input
@@ -439,14 +314,14 @@ const handleToolbarAction = (item: ToolbarItem) => {
       type="file"
       accept="image/png,image/jpeg,image/svg+xml"
       class="hidden"
-      @change="handleFileImport" />
+      @change="handleFileImportWrapper" />
 
     <input
       ref="imageInputRef"
       type="file"
       accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
       class="hidden"
-      @change="handleImageInsert" />
+      @change="handleImageInsertWrapper" />
   </div>
 </template>
 
