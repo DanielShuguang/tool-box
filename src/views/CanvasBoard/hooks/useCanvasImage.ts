@@ -1,22 +1,23 @@
 import { ref } from 'vue'
 import { useMessage } from 'naive-ui'
+import type { Canvas } from 'fabric'
 
 interface ImageInsertOptions {
-  getCanvas: () => any
-  insertImageFromFile: (canvas: any, file: File) => Promise<void>
+  getCanvas: () => Canvas | null
+  insertImageFromFile: (canvas: Canvas, file: File) => Promise<void>
   saveToHistory: () => void
 }
 
 interface ImagePasteOptions {
-  getCanvas: () => any
-  insertImageFromClipboard: (canvas: any) => Promise<void>
+  getCanvas: () => Canvas | null
+  insertImageFromClipboard: (canvas: Canvas) => Promise<void>
   saveToHistory: () => void
 }
 
 interface ImageDropOptions {
-  getCanvas: () => any
+  getCanvas: () => Canvas | null
   insertImageFromDrop: (options: {
-    canvas: any
+    canvas: Canvas
     file: File
     dropX: number
     dropY: number
@@ -35,8 +36,10 @@ export function useCanvasImage() {
   const handleImageInsert = async (event: Event, options: ImageInsertOptions) => {
     const input = event.target as HTMLInputElement
     if (input.files && input.files[0]) {
+      const canvas = options.getCanvas()
+      if (!canvas) return
       try {
-        await options.insertImageFromFile(options.getCanvas(), input.files[0])
+        await options.insertImageFromFile(canvas, input.files[0])
         options.saveToHistory()
         message.success('图片插入成功')
       } catch (error) {
@@ -47,8 +50,10 @@ export function useCanvasImage() {
   }
 
   const handlePaste = async (options: ImagePasteOptions) => {
+    const canvas = options.getCanvas()
+    if (!canvas) return
     try {
-      await options.insertImageFromClipboard(options.getCanvas())
+      await options.insertImageFromClipboard(canvas)
       options.saveToHistory()
       message.success('图片粘贴成功')
     } catch (error) {
@@ -64,7 +69,7 @@ export function useCanvasImage() {
     const canvas = options.getCanvas()
     if (!canvas) return
 
-    const pointer = canvas.getPointer(event)
+    const pointer = canvas.getScenePoint(event as unknown as MouseEvent)
     try {
       await options.insertImageFromDrop({
         canvas,

@@ -1,9 +1,8 @@
-import { ref } from 'vue'
-import { useMessage } from 'naive-ui'
+import type { Canvas } from 'fabric'
 
 interface FileImportOptions {
-  getCanvas: () => any
-  importFromFile: (canvas: any, file: File, callback: () => void) => Promise<boolean>
+  getCanvas: () => Canvas | null
+  importFromFile: (canvas: Canvas, file: File, callback: () => void) => Promise<boolean>
   saveToHistory: () => void
 }
 
@@ -18,7 +17,9 @@ export function useCanvasImport() {
   const handleFileImport = async (event: Event, options: FileImportOptions) => {
     const input = event.target as HTMLInputElement
     if (input.files && input.files[0]) {
-      const result = await options.importFromFile(options.getCanvas(), input.files[0], () => {
+      const canvas = options.getCanvas()
+      if (!canvas) return
+      const result = await options.importFromFile(canvas, input.files[0], () => {
         options.saveToHistory()
         message.success('导入成功')
       })

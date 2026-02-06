@@ -3,9 +3,9 @@
  *
  * 处理撤销、恢复功能和状态保存
  */
-import { ref, computed } from 'vue'
 import type { HistoryState } from '../types'
 import { MAX_HISTORY_SIZE, AUTO_SAVE_INTERVAL } from '../constants'
+import { Canvas } from 'fabric'
 
 export function useHistory() {
   const historyStack = ref<HistoryState[]>([])
@@ -16,11 +16,11 @@ export function useHistory() {
   const canRedo = computed(() => historyIndex.value < historyStack.value.length - 1)
 
   let autoSaveTimer: ReturnType<typeof setInterval> | null = null
-  let canvasInstance: any = null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let canvasInstance: Canvas | null = null
   let messageHandler: ((msg: string) => void) | null = null
 
-  const initHistory = (canvas: any, onMessage?: (msg: string) => void) => {
+  const initHistory = (canvas: Canvas | null, onMessage?: (msg: string) => void) => {
+    if (!canvas) return
     canvasInstance = canvas
     messageHandler = onMessage || null
     startAutoSave()
@@ -55,9 +55,10 @@ export function useHistory() {
 
     historyIndex.value--
     const state = historyStack.value[historyIndex.value]
+    const instance = canvasInstance
 
-    canvasInstance.loadFromJSON(state.json, () => {
-      canvasInstance.renderAll()
+    instance.loadFromJSON(state.json, () => {
+      instance.renderAll()
       messageHandler?.('撤销成功')
     })
   }
@@ -67,9 +68,10 @@ export function useHistory() {
 
     historyIndex.value++
     const state = historyStack.value[historyIndex.value]
+    const instance = canvasInstance
 
-    canvasInstance.loadFromJSON(state.json, () => {
-      canvasInstance.renderAll()
+    instance.loadFromJSON(state.json, () => {
+      instance.renderAll()
       messageHandler?.('恢复成功')
     })
   }
@@ -120,8 +122,9 @@ export function useHistory() {
 
     historyIndex.value = 0
     historyStack.value = [state]
-    canvasInstance.loadFromJSON(state.json, () => {
-      canvasInstance.renderAll()
+    const instance = canvasInstance
+    instance.loadFromJSON(state.json, () => {
+      instance.renderAll()
       onComplete?.()
     })
   }

@@ -3,14 +3,13 @@
  *
  * 处理对象选择、属性更新、删除等操作
  */
-import { ref, shallowRef } from 'vue'
 import { DEFAULT_OBJECT_PROPERTIES } from '../constants'
 import type { ObjectProperties } from '../types'
+import { Canvas, FabricObject } from 'fabric'
 
 export function useObjectOperations() {
   const objectProperties = ref<ObjectProperties>({ ...DEFAULT_OBJECT_PROPERTIES })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectedObject = shallowRef<any>(null)
+  const selectedObject = shallowRef<FabricObject | null>(null)
 
   const getSelectedObject = () => selectedObject.value
 
@@ -35,38 +34,42 @@ export function useObjectOperations() {
     }
   }
 
-  const updateObjectProperty = (property: keyof ObjectProperties, value: unknown, canvas: any) => {
+  const updateObjectProperty = (
+    property: keyof ObjectProperties,
+    value: unknown,
+    canvas: Canvas
+  ) => {
     objectProperties.value[property] = value as never
 
     const activeObject = canvas?.getActiveObject()
     if (activeObject) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(activeObject as any)[property] = value
+      ;(activeObject as FabricObject)[property] = value as never
       activeObject.setCoords()
       canvas.renderAll()
     }
   }
 
-  const deleteSelected = (canvas: any, onDeleteComplete?: () => void) => {
+  const deleteSelected = (canvas: Canvas | null, onDeleteComplete?: () => void) => {
+    if (!canvas) return
     const activeObjects = canvas?.getActiveObjects()
     if (activeObjects?.length) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      activeObjects.forEach((obj: any) => canvas.remove(obj))
+      activeObjects.forEach((obj: FabricObject) => canvas.remove(obj))
       canvas.discardActiveObject()
       canvas.renderAll()
       onDeleteComplete?.()
     }
   }
 
-  const clearCanvas = (canvas: any) => {
+  const clearCanvas = (canvas: Canvas | null) => {
     if (!canvas) return
     canvas.clear()
     canvas.backgroundColor = '#ffffff'
     canvas.renderAll()
   }
 
-  const applyPropertiesToSelected = (canvas: any) => {
-    const activeObject = canvas?.getActiveObject()
+  const applyPropertiesToSelected = (canvas: Canvas | null) => {
+    if (!canvas) return
+    const activeObject = canvas.getActiveObject()
     if (activeObject) {
       activeObject.set({
         fill: objectProperties.value.fill,

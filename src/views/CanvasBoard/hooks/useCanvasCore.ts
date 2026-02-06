@@ -48,7 +48,14 @@ export function useCanvasCore() {
     window.addEventListener('resize', handleResize)
   }
 
-  const handleWheel = (opt: any) => {
+  /**
+   * 画布事件数据
+   */
+  interface CanvasWheelEvent {
+    e: WheelEvent
+  }
+
+  const handleWheel = (opt: CanvasWheelEvent) => {
     const delta = opt.e.deltaY
     if (delta > 0) {
       zoomOut()

@@ -3,7 +3,7 @@
  *
  * 处理图片的插入、渲染和操作
  */
-import { FabricImage } from 'fabric'
+import { FabricImage, Canvas } from 'fabric'
 import type { ImageInsertOptions, SupportedImageFormat } from '../types'
 
 export function useImageOperations() {
@@ -86,10 +86,10 @@ export function useImageOperations() {
   }
 
   const insertImage = async (
-    canvas: any,
+    canvas: Canvas,
     src: string,
     options: ImageInsertOptions = {}
-  ): Promise<any> => {
+  ): Promise<void> => {
     const resizedSrc = await resizeImageIfNeeded(src, options.maxWidth, options.maxHeight)
     const img = await loadImage(resizedSrc)
 
@@ -109,28 +109,26 @@ export function useImageOperations() {
     canvas.add(fabricImage)
     canvas.setActiveObject(fabricImage)
     canvas.renderAll()
-
-    return fabricImage
   }
 
   const insertImageFromFile = async (
-    canvas: any,
+    canvas: Canvas,
     file: File,
     options: ImageInsertOptions = {}
-  ): Promise<any> => {
+  ): Promise<void> => {
     const validation = validateImageFile(file)
     if (!validation.valid) {
       throw new Error(validation.error)
     }
 
     const base64 = await readFileAsBase64(file)
-    return insertImage(canvas, base64, options)
+    await insertImage(canvas, base64, options)
   }
 
   const insertImageFromClipboard = async (
-    canvas: any,
+    canvas: Canvas,
     options: ImageInsertOptions = {}
-  ): Promise<any> => {
+  ): Promise<void> => {
     try {
       const clipboardItems = await navigator.clipboard.read()
       for (const item of clipboardItems) {
@@ -138,7 +136,8 @@ export function useImageOperations() {
           if (type.startsWith('image/')) {
             const blob = await item.getType(type)
             const file = new File([blob], 'clipboard-image.png', { type })
-            return insertImageFromFile(canvas, file, options)
+            await insertImageFromFile(canvas, file, options)
+            return
           }
         }
       }
@@ -149,12 +148,12 @@ export function useImageOperations() {
   }
 
   const insertImageFromDrop = async (params: {
-    canvas: any
+    canvas: Canvas
     file: File
     dropX: number
     dropY: number
     options?: ImageInsertOptions
-  }): Promise<any> => {
+  }): Promise<void> => {
     const { canvas, file, dropX, dropY, options = {} } = params
     const validation = validateImageFile(file)
     if (!validation.valid) {
@@ -162,7 +161,7 @@ export function useImageOperations() {
     }
 
     const base64 = await readFileAsBase64(file)
-    return insertImage(canvas, base64, {
+    await insertImage(canvas, base64, {
       ...options,
       x: dropX,
       y: dropY

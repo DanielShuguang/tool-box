@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted } from 'vue'
-import { useMessage } from 'naive-ui'
 import Toolbar from './components/Toolbar.vue'
 import PropertyPanel from './components/PropertyPanel.vue'
 import ExportDialog from './components/ExportDialog.vue'
@@ -101,7 +99,9 @@ const handleRedo = () => {
 }
 
 const handleDelete = () => {
-  deleteSelected(getCanvas(), () => {
+  const canvas = getCanvas()
+  if (!canvas) return
+  deleteSelected(canvas, () => {
     saveToHistory()
     message.success('删除成功')
   })
@@ -116,7 +116,9 @@ const handleZoom = (delta: number) => {
 }
 
 const handlePropertyUpdate = (property: keyof ObjectProperties, value: unknown) => {
-  updateObjectProperty(property, value, getCanvas())
+  const canvas = getCanvas()
+  if (!canvas) return
+  updateObjectProperty(property, value, canvas)
 }
 
 const setupEvents = () => {
@@ -132,10 +134,13 @@ const setupEvents = () => {
   canvas.on('path:created', handlePathCreated)
 }
 
-const handleMouseDown = (opt: any) => {
+const handleMouseDown = (opt: unknown) => {
   if (canvasCore.isPanning.value) return
 
-  const pointer = getCanvas()?.getScenePoint(opt.e)
+  const canvas = getCanvas()
+  if (!canvas) return
+
+  const pointer = canvas.getScenePoint((opt as { e: MouseEvent }).e)
   if (!pointer) return
 
   if (drawingTools.currentTool.value === 'select') {
@@ -145,24 +150,29 @@ const handleMouseDown = (opt: any) => {
   drawingTools.startDrawing({
     x: pointer.x,
     y: pointer.y,
-    canvas: getCanvas(),
+    canvas,
     properties: objectProperties.value
   })
 }
 
-const handleMouseMove = (opt: any) => {
+const handleMouseMove = (opt: unknown) => {
   if (canvasCore.isPanning.value) return
 
-  const pointer = getCanvas()?.getScenePoint(opt.e)
+  const canvas = getCanvas()
+  if (!canvas) return
+
+  const pointer = canvas.getScenePoint((opt as { e: MouseEvent }).e)
   if (!pointer) return
 
-  drawingTools.updateDrawing(pointer.x, pointer.y, getCanvas())
+  drawingTools.updateDrawing(pointer.x, pointer.y, canvas)
 }
 
 const handleMouseUp = () => {
   if (canvasCore.isPanning.value) return
 
-  drawingTools.stopDrawing(getCanvas(), objectProperties.value)
+  const canvas = getCanvas()
+  if (!canvas) return
+  drawingTools.stopDrawing(canvas, objectProperties.value)
 }
 
 const handleObjectModified = () => {
@@ -171,8 +181,12 @@ const handleObjectModified = () => {
   }
 }
 
-const handleObjectSelected = (opt: any) => {
-  objectOps.setSelectedObject(opt.target)
+const handleObjectSelected = (opt: { selected: unknown[] }) => {
+  if (Array.isArray(opt.selected) && opt.selected.length > 0) {
+    objectOps.setSelectedObject(opt.selected[0])
+  } else {
+    objectOps.setSelectedObject(null)
+  }
 }
 
 const handleSelectionCleared = () => {

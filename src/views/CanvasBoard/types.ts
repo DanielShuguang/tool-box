@@ -2,6 +2,8 @@
  * 画板应用核心类型定义
  */
 
+import { FabricObject } from 'fabric'
+
 /**
  * 绘图工具类型
  */
@@ -56,7 +58,7 @@ export interface ExportOptions {
 /**
  * 导出格式类型
  */
-export type ExportFormat = 'png' | 'jpg' | 'svg'
+export type ExportFormat = 'png' | 'jpeg' | 'svg'
 
 /**
  * 工具栏项目类型
@@ -130,4 +132,39 @@ export interface ImageInsertOptions {
   y?: number
   maxWidth?: number
   maxHeight?: number
+}
+
+/**
+ * Fabric.js 指针事件类型
+ */
+export type TPointerEvent = MouseEvent | TouchEvent | PointerEvent
+
+/**
+ * 画布事件数据基础接口
+ */
+export interface CanvasEventData<E extends Event = TPointerEvent> {
+  e: E
+}
+
+/**
+ * 鼠标按下事件数据
+ */
+export interface MouseDownEventData extends CanvasEventData<TPointerEvent> {
+  target?: FabricObject | null
+}
+
+/**
+ * 鼠标移动事件数据
+ */
+export interface MouseMoveEventData extends CanvasEventData<TPointerEvent> {
+  target?: FabricObject | null
+}
+
+/**
+ * 对象选择事件数据
+ */
+export interface ObjectSelectedEventData {
+  target: FabricObject
+  deselected?: FabricObject[]
+  selected?: FabricObject[]
 }

@@ -3,16 +3,8 @@
  *
  * 处理各种图形工具的创建和绘制逻辑
  */
-import { ref } from 'vue'
-import { Circle, Ellipse, FabricText, Line, Polygon, Rect } from 'fabric'
+import { Circle, Ellipse, FabricText, Line, Polygon, Rect, FabricObject, Canvas } from 'fabric'
 import type { DrawingTool, ObjectProperties } from '../types'
-
-interface StartDrawingParams {
-  x: number
-  y: number
-  canvas: any
-  properties: ObjectProperties
-}
 
 interface CreateShapeParams {
   tool: DrawingTool
@@ -22,12 +14,19 @@ interface CreateShapeParams {
 }
 
 interface UpdateShapeParams {
-  shape: any
+  shape: FabricObject
   tool: DrawingTool
   left: number
   top: number
   width: number
   height: number
+}
+
+interface StartDrawingParams {
+  x: number
+  y: number
+  canvas: Canvas | null
+  properties: ObjectProperties
 }
 
 export function useDrawingTools() {
@@ -40,13 +39,17 @@ export function useDrawingTools() {
   }
 
   const startDrawing = ({ x, y, canvas, properties }: StartDrawingParams) => {
+    if (!canvas) return
+
     isDrawing.value = true
     startPoint.value = { x, y }
 
     if (toolRequiresDrawingMode(currentTool.value)) {
       canvas.isDrawingMode = true
-      canvas.freeDrawingBrush.color = properties.stroke
-      canvas.freeDrawingBrush.width = properties.strokeWidth
+      if (canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush.color = properties.stroke
+        canvas.freeDrawingBrush.width = properties.strokeWidth
+      }
       return
     }
 
@@ -62,7 +65,9 @@ export function useDrawingTools() {
     }
   }
 
-  const stopDrawing = (canvas: any, properties: ObjectProperties) => {
+  const stopDrawing = (canvas: Canvas | null, properties: ObjectProperties) => {
+    if (!canvas) return
+
     if (toolRequiresDrawingMode(currentTool.value)) {
       canvas.isDrawingMode = false
       isDrawing.value = false
@@ -90,7 +95,9 @@ export function useDrawingTools() {
     }
   }
 
-  const updateDrawing = (x: number, y: number, canvas: any) => {
+  const updateDrawing = (x: number, y: number, canvas: Canvas | null) => {
+    if (!canvas) return
+
     if (!isDrawing.value || !startPoint.value) return
 
     const activeObject = canvas.getActiveObject()
@@ -121,9 +128,8 @@ export function useDrawingTools() {
     return tool === 'path'
   }
 
-  const createShape = ({ tool, x, y, properties }: CreateShapeParams): any => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let shape: any = null
+  const createShape = ({ tool, x, y, properties }: CreateShapeParams): FabricObject | null => {
+    let shape: FabricObject | null = null
 
     switch (tool) {
       case 'rect':

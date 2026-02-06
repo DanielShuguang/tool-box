@@ -1,7 +1,6 @@
-import { ref } from 'vue'
-import { useMessage } from 'naive-ui'
-import { selectExportDirectory } from '../../../backend-channel/file-io'
+import { selectExportDirectory } from '@/backend-channel/file-io'
 import type { ExportFormat } from '../types'
+import type { Canvas, ImageFormat } from 'fabric'
 
 export function useCanvasExport() {
   const message = useMessage()
@@ -20,9 +19,9 @@ export function useCanvasExport() {
   }
 
   const handleExport = async (
-    getCanvas: () => any,
-    getCanvasDataURL: (canvas: any, format: 'png' | 'jpg' | 'svg', quality: number) => string,
-    getCanvasSVG: (canvas: any) => string
+    getCanvas: () => Canvas | null,
+    getCanvasDataURL: (canvas: Canvas, format: ImageFormat, quality: number) => string,
+    getCanvasSVG: (canvas: Canvas) => string
   ) => {
     isExporting.value = true
 
@@ -43,14 +42,15 @@ export function useCanvasExport() {
 
       const format = selectedExportFormat.value
       const timestamp = Date.now()
-      const filename = `canvas_export_${timestamp}.${format}`
+      const extension = format === 'jpeg' ? 'jpg' : format
+      const filename = `canvas_export_${timestamp}.${extension}`
 
       let data: string
       if (format === 'svg') {
         data = getCanvasSVG(canvas)
         data = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(data)
       } else {
-        data = getCanvasDataURL(canvas, format, 0.92)
+        data = getCanvasDataURL(canvas, format as 'png' | 'jpeg', 0.92)
       }
 
       const link = document.createElement('a')

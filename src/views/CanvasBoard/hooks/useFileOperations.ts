@@ -3,14 +3,10 @@
  *
  * 处理文件导入导出功能
  */
-import { FabricImage, loadSVGFromString, util } from 'fabric'
+import { FabricImage, loadSVGFromString, util, type Canvas, type ImageFormat } from 'fabric'
 
 export function useFileOperations() {
-  const getCanvasDataURL = (
-    canvas: any,
-    format: 'png' | 'jpg' | 'svg' = 'png',
-    quality = 1
-  ): string => {
+  const getCanvasDataURL = (canvas: Canvas, format: ImageFormat = 'png', quality = 1): string => {
     if (!canvas) return ''
     return canvas.toDataURL({
       format,
@@ -19,12 +15,12 @@ export function useFileOperations() {
     })
   }
 
-  const getCanvasSVG = (canvas: any): string => {
+  const getCanvasSVG = (canvas: Canvas): string => {
     if (!canvas) return ''
     return canvas.toSVG()
   }
 
-  const loadFromJSON = (canvas: any, json: string, onComplete?: () => void) => {
+  const loadFromJSON = (canvas: Canvas, json: string, onComplete?: () => void) => {
     if (!canvas) return
     try {
       const data = JSON.parse(json)
@@ -38,8 +34,8 @@ export function useFileOperations() {
   }
 
   const exportToFile = async (
-    canvas: any,
-    format: 'png' | 'jpg' | 'svg',
+    canvas: Canvas | null,
+    format: ImageFormat | 'svg',
     onComplete?: () => void
   ) => {
     if (!canvas) return
@@ -53,7 +49,7 @@ export function useFileOperations() {
         extension = 'svg'
       } else {
         dataURL = getCanvasDataURL(canvas, format, 0.92)
-        extension = format
+        extension = format === 'jpeg' ? 'jpg' : format
       }
 
       const link = document.createElement('a')
@@ -70,7 +66,7 @@ export function useFileOperations() {
   }
 
   const importFromFile = async (
-    canvas: any,
+    canvas: Canvas | null,
     file: File,
     onComplete?: () => void
   ): Promise<boolean> => {

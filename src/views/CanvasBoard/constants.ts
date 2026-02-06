@@ -42,7 +42,7 @@ export const SUPPORTED_IMPORT_FORMATS = ['png', 'jpg', 'jpeg', 'svg'] as const
  */
 export const SUPPORTED_EXPORT_FORMATS = [
   { label: 'PNG', value: 'png' },
-  { label: 'JPG', value: 'jpg' },
+  { label: 'JPG', value: 'jpeg' },
   { label: 'SVG', value: 'svg' }
 ] as const
 

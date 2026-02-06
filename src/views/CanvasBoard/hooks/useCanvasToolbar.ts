@@ -1,20 +1,21 @@
-import { computed } from 'vue'
+import { computed, type ComputedRef, type Ref } from 'vue'
 import { useMessage } from 'naive-ui'
 import { CANVAS_TOOLBAR_ITEMS } from '../constants'
 import type { ToolbarItem, DrawingTool } from '../types'
+import { Canvas } from 'fabric'
 
 interface ToolbarOptions {
-  currentTool: any
-  canUndo: any
-  canRedo: any
+  currentTool: Ref<DrawingTool>
+  canUndo: ComputedRef<boolean>
+  canRedo: ComputedRef<boolean>
   setTool: (tool: DrawingTool) => void
   handleUndo: () => void
   handleRedo: () => void
   handleDelete: () => void
-  getCanvas: () => any
+  getCanvas: () => Canvas | null
   saveToHistory: () => void
-  clearCanvas: (canvas: any) => void
-  deleteSelected: (canvas: any, callback: () => void) => void
+  clearCanvas: (canvas: Canvas | null) => void
+  deleteSelected: (canvas: Canvas | null, callback: () => void) => void
   handleZoom: (delta: number) => void
   resetZoom: () => void
   openExportDialog: () => void
@@ -56,7 +57,7 @@ export function useCanvasToolbar(options: ToolbarOptions) {
     if (item.disabled || item.type === 'separator') return
 
     if (item.type === 'tool') {
-      options.setTool(item.id as any)
+      options.setTool(item.id as DrawingTool)
       return
     }
 
@@ -65,9 +66,12 @@ export function useCanvasToolbar(options: ToolbarOptions) {
       redo: options.handleRedo,
       delete: options.handleDelete,
       clear: () => {
-        options.clearCanvas(options.getCanvas())
-        options.saveToHistory()
-        message.success('画布已清空')
+        const canvas = options.getCanvas()
+        if (canvas) {
+          options.clearCanvas(canvas)
+          options.saveToHistory()
+          message.success('画布已清空')
+        }
       },
       'zoom-out': () => options.handleZoom(-1),
       'zoom-in': () => options.handleZoom(1),
