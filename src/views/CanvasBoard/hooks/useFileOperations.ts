@@ -88,7 +88,7 @@ export function useFileOperations() {
             const validObjects = objects.filter(
               (obj): obj is NonNullable<typeof obj> => obj !== null
             )
-            const group = await util.groupSVGElements(validObjects)
+            const group = util.groupSVGElements(validObjects)
             canvas.add(group)
             canvas.renderAll()
             onComplete?.()

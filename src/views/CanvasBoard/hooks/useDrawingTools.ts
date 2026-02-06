@@ -3,7 +3,7 @@
  *
  * 处理各种图形工具的创建和绘制逻辑
  */
-import { Circle, Ellipse, FabricText, Line, Polygon, Rect, FabricObject, Canvas } from 'fabric'
+import { Circle, Ellipse, FabricText, Polygon, Rect, FabricObject, Canvas, Polyline } from 'fabric'
 import type { DrawingTool, ObjectProperties } from '../types'
 
 interface CreateShapeParams {
@@ -104,7 +104,13 @@ export function useDrawingTools() {
     if (!activeObject || currentTool.value === 'path') return
 
     if (currentTool.value === 'line') {
-      activeObject.set({ x2: x, y2: y })
+      const polyline = activeObject as unknown as Polyline & {
+        points: Array<{ x: number; y: number }>
+      }
+      if (polyline.points) {
+        polyline.points[1] = { x, y }
+        polyline.setCoords()
+      }
     } else {
       const width = Math.abs(x - startPoint.value.x)
       const height = Math.abs(y - startPoint.value.y)
@@ -178,12 +184,19 @@ export function useDrawingTools() {
         break
 
       case 'line':
-        shape = new Line([x, y, x, y], {
-          stroke: properties.stroke,
-          strokeWidth: properties.strokeWidth,
-          strokeDashArray: [...properties.strokeDashArray],
-          opacity: properties.opacity
-        })
+        shape = new Polyline(
+          [
+            { x, y },
+            { x, y }
+          ],
+          {
+            stroke: properties.stroke,
+            strokeWidth: properties.strokeWidth,
+            strokeDashArray: [...properties.strokeDashArray],
+            opacity: properties.opacity,
+            fill: undefined
+          }
+        )
         break
 
       case 'polygon':
