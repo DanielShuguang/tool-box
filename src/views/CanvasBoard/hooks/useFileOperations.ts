@@ -3,8 +3,7 @@
  *
  * 处理文件导入导出功能
  */
-// @ts-expect-error Fabric.js 类型声明
-import { fabric } from 'fabric'
+import { FabricImage, loadSVGFromString, util } from 'fabric'
 
 export function useFileOperations() {
   const getCanvasDataURL = (
@@ -89,21 +88,21 @@ export function useFileOperations() {
           }
 
           if (file.type.includes('svg') || file.name.endsWith('.svg')) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const objects = await (fabric as any).loadSVGFromString(result as string)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const group = await (fabric as any).util.groupSVGElements(objects)
+            const { objects } = await loadSVGFromString(result as string)
+            const validObjects = objects.filter(
+              (obj): obj is NonNullable<typeof obj> => obj !== null
+            )
+            const group = await util.groupSVGElements(validObjects)
             canvas.add(group)
             canvas.renderAll()
             onComplete?.()
             resolve(true)
           } else {
-            fabric.Image.fromURL(result as string, (img: any) => {
-              canvas.add(img)
-              canvas.renderAll()
-              onComplete?.()
-              resolve(true)
-            })
+            const img = await FabricImage.fromURL(result as string)
+            canvas.add(img)
+            canvas.renderAll()
+            onComplete?.()
+            resolve(true)
           }
         } catch {
           resolve(false)

@@ -4,13 +4,12 @@
  * 处理画布初始化、事件绑定、缩放和平移等基础功能
  */
 import { ref, shallowRef, onUnmounted } from 'vue'
-// @ts-expect-error Fabric.js 类型声明
-import { fabric } from 'fabric'
+import { Canvas } from 'fabric'
 import type { CanvasConfig } from '../types'
 
 export function useCanvasCore() {
   const canvasRef = shallowRef<HTMLCanvasElement | null>(null)
-  const canvasInstance = shallowRef<any>(null)
+  const canvasInstance = shallowRef<Canvas | null>(null)
   const containerRef = shallowRef<HTMLDivElement | null>(null)
 
   const zoom = ref(1)
@@ -30,8 +29,7 @@ export function useCanvasCore() {
       backgroundColor: '#ffffff'
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const canvas = new (fabric as any).Canvas(canvasElement, {
+    const canvas = new Canvas(canvasElement, {
       width: config.width,
       height: config.height,
       backgroundColor: '#ffffff',
@@ -90,8 +88,7 @@ export function useCanvasCore() {
     zoom.value = 1
     panOffset.value = { x: 0, y: 0 }
     canvasInstance.value?.setZoom(1)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    canvasInstance.value?.setPan(new (fabric as any).Point(0, 0))
+    canvasInstance.value?.setViewportTransform([1, 0, 0, 1, 0, 0])
     canvasInstance.value?.renderAll()
   }
 
@@ -104,8 +101,12 @@ export function useCanvasCore() {
 
     panOffset.value.x += dx
     panOffset.value.y += dy
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    canvasInstance.value?.relativePan(new (fabric as any).Point(dx, dy))
+    const vpt = canvasInstance.value?.viewportTransform
+    if (vpt) {
+      vpt[4] += dx
+      vpt[5] += dy
+      canvasInstance.value?.setViewportTransform(vpt)
+    }
   }
 
   const setInternalChange = (value: boolean) => {

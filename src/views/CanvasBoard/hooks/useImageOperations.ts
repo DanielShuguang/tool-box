@@ -3,8 +3,7 @@
  *
  * 处理图片的插入、渲染和操作
  */
-// @ts-expect-error Fabric Fabric.js 类型声明
-import { fabric } from 'fabric'
+import { FabricImage } from 'fabric'
 import type { ImageInsertOptions, SupportedImageFormat } from '../types'
 
 export function useImageOperations() {
@@ -94,7 +93,7 @@ export function useImageOperations() {
     const resizedSrc = await resizeImageIfNeeded(src, options.maxWidth, options.maxHeight)
     const img = await loadImage(resizedSrc)
 
-    const fabricImage = new (fabric as any).Image(img, {
+    const fabricImage = new FabricImage(img, {
       left: options.x ?? canvas.width / 2 - img.width / 2,
       top: options.y ?? canvas.height / 2 - img.height / 2,
       width: img.width,

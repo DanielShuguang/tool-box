@@ -4,8 +4,7 @@
  * 处理各种图形工具的创建和绘制逻辑
  */
 import { ref } from 'vue'
-// @ts-expect-error Fabric.js 类型声明
-import { fabric } from 'fabric'
+import { Circle, Ellipse, FabricText, Line, Polygon, Rect } from 'fabric'
 import type { DrawingTool, ObjectProperties } from '../types'
 
 interface StartDrawingParams {
@@ -128,7 +127,7 @@ export function useDrawingTools() {
 
     switch (tool) {
       case 'rect':
-        shape = new (fabric as any).Rect({
+        shape = new Rect({
           left: x,
           top: y,
           width: 0,
@@ -137,12 +136,12 @@ export function useDrawingTools() {
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
-          strokeDashArray: properties.strokeDashArray
+          strokeDashArray: [...properties.strokeDashArray]
         })
         break
 
       case 'circle':
-        shape = new (fabric as any).Circle({
+        shape = new Circle({
           left: x,
           top: y,
           radius: 0,
@@ -150,14 +149,14 @@ export function useDrawingTools() {
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
-          strokeDashArray: properties.strokeDashArray,
+          strokeDashArray: [...properties.strokeDashArray],
           originX: 'center',
           originY: 'center'
         })
         break
 
       case 'ellipse':
-        shape = new (fabric as any).Ellipse({
+        shape = new Ellipse({
           left: x,
           top: y,
           rx: 0,
@@ -166,40 +165,40 @@ export function useDrawingTools() {
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
-          strokeDashArray: properties.strokeDashArray,
+          strokeDashArray: [...properties.strokeDashArray],
           originX: 'center',
           originY: 'center'
         })
         break
 
       case 'line':
-        shape = new (fabric as any).Line([x, y, x, y], {
+        shape = new Line([x, y, x, y], {
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
-          strokeDashArray: properties.strokeDashArray,
+          strokeDashArray: [...properties.strokeDashArray],
           opacity: properties.opacity
         })
         break
 
       case 'polygon':
         const sideCount = 6
-        const points: any[] = []
+        const points: { x: number; y: number }[] = []
         for (let i = 0; i < sideCount; i++) {
           points.push({ x, y })
         }
-        shape = new (fabric as any).Polygon(points, {
+        shape = new Polygon(points, {
           left: x,
           top: y,
           fill: properties.fill,
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
-          strokeDashArray: properties.strokeDashArray
+          strokeDashArray: [...properties.strokeDashArray]
         })
         break
 
       case 'text':
-        shape = new (fabric as any).IText('双击编辑文字', {
+        shape = new FabricText('双击编辑文字', {
           left: x,
           top: y,
           fontSize: 20,
@@ -240,7 +239,7 @@ export function useDrawingTools() {
 
       case 'polygon':
         const sideCount = 6
-        const points: any[] = []
+        const points: { x: number; y: number }[] = []
         const centerX = left + width / 2
         const centerY = top + height / 2
         const maxRadius = Math.min(width, height) / 2

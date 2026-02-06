@@ -127,7 +127,7 @@ const setupEvents = () => {
   canvas.on('mouse:move', handleMouseMove)
   canvas.on('mouse:up', handleMouseUp)
   canvas.on('object:modified', handleObjectModified)
-  canvas.on('object:selected', handleObjectSelected)
+  canvas.on('selection:created', handleObjectSelected)
   canvas.on('selection:cleared', handleSelectionCleared)
   canvas.on('path:created', handlePathCreated)
 }
@@ -135,7 +135,7 @@ const setupEvents = () => {
 const handleMouseDown = (opt: any) => {
   if (canvasCore.isPanning.value) return
 
-  const pointer = getCanvas()?.getPointer(opt.e)
+  const pointer = getCanvas()?.getScenePoint(opt.e)
   if (!pointer) return
 
   if (drawingTools.currentTool.value === 'select') {
@@ -153,7 +153,7 @@ const handleMouseDown = (opt: any) => {
 const handleMouseMove = (opt: any) => {
   if (canvasCore.isPanning.value) return
 
-  const pointer = getCanvas()?.getPointer(opt.e)
+  const pointer = getCanvas()?.getScenePoint(opt.e)
   if (!pointer) return
 
   drawingTools.updateDrawing(pointer.x, pointer.y, getCanvas())
@@ -264,7 +264,7 @@ onUnmounted(() => {
     canvas.off('mouse:move', handleMouseMove)
     canvas.off('mouse:up', handleMouseUp)
     canvas.off('object:modified', handleObjectModified)
-    canvas.off('object:selected', handleObjectSelected)
+    canvas.off('selection:created', handleObjectSelected)
     canvas.off('selection:cleared', handleSelectionCleared)
     canvas.off('path:created', handlePathCreated)
   }
