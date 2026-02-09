@@ -1,5 +1,3 @@
-import { ref } from 'vue'
-import { useMessage } from 'naive-ui'
 import type { Canvas } from 'fabric'
 
 interface ImageInsertOptions {
@@ -27,7 +25,7 @@ interface ImageDropOptions {
 
 export function useCanvasImage() {
   const message = useMessage()
-  const imageInputRef = ref<HTMLInputElement | null>(null)
+  const imageInputRef = useTemplateRef<HTMLInputElement>('imageInput')
 
   const triggerImageInput = () => {
     imageInputRef.value?.click()

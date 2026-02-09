@@ -6,14 +6,13 @@ import {
 } from '@tauri-apps/plugin-notification'
 import { handleShowMainWindow } from '@/components/AppSettings/logic'
 import { TimeUnits } from '@/utils/time'
-import { CountdownInst } from 'naive-ui'
 import { useEyeProtectionStore } from '@/stores/eyeProtection'
 
 const message = useMessage()
 const dialog = useDialog()
 
-const closeEyesRef = useTemplateRef<CountdownInst>('closeEyes')
-const restRef = useTemplateRef<CountdownInst>('rest')
+const closeEyesRef = useTemplateRef('closeEyes')
+const restRef = useTemplateRef('rest')
 const activeCountdown = ref(false)
 
 const eyeProtectionStore = useEyeProtectionStore()

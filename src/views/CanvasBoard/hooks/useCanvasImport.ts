@@ -8,7 +8,7 @@ interface FileImportOptions {
 
 export function useCanvasImport() {
   const message = useMessage()
-  const fileInputRef = ref<HTMLInputElement | null>(null)
+  const fileInputRef = useTemplateRef<HTMLInputElement>('fileInput')
 
   const triggerFileInput = () => {
     fileInputRef.value?.click()

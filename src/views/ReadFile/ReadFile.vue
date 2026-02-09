@@ -16,7 +16,7 @@ const { regList, regText, selectedReg, handleSelect } = useManageRegexSelect()
 const { fileList, searched, isUrl, analysisContent, handleSelectFile, saveToFile } =
   useAnalysisFileContent(regText, dirPath)
 
-const { outputs, outputRef, clearOutputs } = useBackendOutput()
+const { outputs, clearOutputs } = useBackendOutput()
 
 const {
   downloadStatus,
@@ -115,7 +115,7 @@ const {
     </div>
 
     <div
-      ref="outputRef"
+      ref="output"
       class="relative flex-1 box-border bg-[--avatarColor] border-(1px solid) border-[--borderColor] p-[10px] overflow-auto">
       <n-button
         v-show="outputs.length"

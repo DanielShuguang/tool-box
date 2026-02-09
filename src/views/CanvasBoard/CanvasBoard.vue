@@ -56,15 +56,9 @@ const {
   closeExportDialog,
   handleExport
 } = canvasExport
-const { fileInputRef, triggerFileInput, handleFileImport } = canvasImport
-const {
-  imageInputRef,
-  triggerImageInput,
-  handleImageInsert,
-  handlePaste,
-  handleDrop,
-  handleDragOver
-} = canvasImage
+const { triggerFileInput, handleFileImport } = canvasImport
+const { triggerImageInput, handleImageInsert, handlePaste, handleDrop, handleDragOver } =
+  canvasImage
 
 const handleExportWrapper = () => {
   handleExport(getCanvas, getCanvasDataURL, getCanvasSVG)
@@ -269,8 +263,6 @@ const canvasToolbar = useCanvasToolbar({
 
 const { toolbarItems, handleToolbarAction } = canvasToolbar
 
-onMounted(() => {})
-
 onUnmounted(() => {
   const canvas = getCanvas()
   if (canvas) {
@@ -324,14 +316,14 @@ onUnmounted(() => {
       @cancel="closeExportDialog" />
 
     <input
-      ref="fileInputRef"
+      ref="fileInput"
       type="file"
       accept="image/png,image/jpeg,image/svg+xml"
       class="hidden"
       @change="handleFileImportWrapper" />
 
     <input
-      ref="imageInputRef"
+      ref="imageInput"
       type="file"
       accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
       class="hidden"

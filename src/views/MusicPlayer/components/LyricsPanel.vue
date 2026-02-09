@@ -16,7 +16,7 @@ const emit = defineEmits<{
   'upload-lyrics': []
 }>()
 
-const containerRef = ref<HTMLElement | null>(null)
+const containerRef = useTemplateRef('container')
 const containerHeight = ref(0)
 
 /**
@@ -134,7 +134,7 @@ const lyricsStatusText = computed(() => {
 <template>
   <div
     v-if="isVisible && isFullScreen"
-    ref="containerRef"
+    ref="container"
     class="lyrics-panel w-full h-full transition-all duration-300 flex flex-col overflow-hidden px-8">
     <!-- 无歌词状态 -->
     <div

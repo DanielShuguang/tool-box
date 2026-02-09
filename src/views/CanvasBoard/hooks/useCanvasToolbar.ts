@@ -1,4 +1,3 @@
-import { computed, type ComputedRef, type Ref } from 'vue'
 import { useMessage } from 'naive-ui'
 import { CANVAS_TOOLBAR_ITEMS } from '../constants'
 import type { ToolbarItem, DrawingTool } from '../types'

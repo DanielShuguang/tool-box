@@ -13,8 +13,8 @@ let lastPanX = 0
 let lastPanY = 0
 let isMouseDown = false
 
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const containerRef = ref<HTMLDivElement | null>(null)
+const canvasRef = useTemplateRef('canvas')
+const containerRef = useTemplateRef('container')
 const isPanning = ref(false)
 
 const isInputElement = (target: EventTarget | null): boolean => {
@@ -77,10 +77,10 @@ const handleWheel = (e: WheelEvent) => {
 }
 
 onMounted(() => {
-  if (canvasRef.value && containerRef.value) {
+  if (canvasRef.value !== undefined && containerRef.value !== undefined) {
     emit('ready', {
-      canvas: canvasRef.value,
-      container: containerRef.value
+      canvas: canvasRef.value as HTMLCanvasElement,
+      container: containerRef.value as HTMLDivElement
     })
   }
   window.addEventListener('mousedown', handleDomMouseDown)
@@ -117,10 +117,10 @@ watch(
 
 <template>
   <div
-    ref="containerRef"
+    ref="container"
     class="canvas-container flex-1 bg-[#f0f0f0] overflow-hidden relative"
     :class="{ 'cursor-grab': isPanning }">
-    <canvas ref="canvasRef" />
+    <canvas ref="canvas" />
     <div class="absolute bottom-[10px] left-[10px] text-[12px] text-[--text-color-secondary]">
       提示：使用空格+拖拽平移画布，滚轮缩放
     </div>

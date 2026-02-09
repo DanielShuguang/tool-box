@@ -239,7 +239,7 @@ export function useDownloadConcurrent() {
 
 export function useBackendOutput() {
   const outputs = ref<string[]>([])
-  const outputRef = ref<HTMLDivElement>()
+  const outputRef = useTemplateRef<HTMLDivElement>('output')
 
   const updateOutputScroll = useDebounceFn(() => {
     if (!outputRef.value) return

@@ -17,7 +17,7 @@ const emit = defineEmits<{
   save: [lyrics: LyricsLine[], source: 'Upload']
 }>()
 
-const fileInput = ref<HTMLInputElement | null>(null)
+const fileInputRef = useTemplateRef('fileInput')
 const selectedFile = ref<File | null>(null)
 const errorMsg = ref<string>('')
 const isSaving = ref(false)
@@ -146,8 +146,8 @@ function resetState() {
   errorMsg.value = ''
   isSaving.value = false
   uploadMethod.value = 'paste'
-  if (fileInput.value) {
-    fileInput.value.value = ''
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
   }
 }
 
@@ -197,7 +197,7 @@ const supportedFormats = ['.lrc', '.txt']
         <n-tab-pane name="file" tab="上传文件">
           <div
             class="mt-4 border-2 border-dashed border-[--borderColor] rounded-lg p-6 text-center cursor-pointer hover:border-[--primaryColor] hover:bg-[--bgColorHover] transition-colors"
-            @click="fileInput?.click()"
+            @click="fileInputRef?.click()"
             @drop="handleDrop"
             @dragover="handleDragOver">
             <input
