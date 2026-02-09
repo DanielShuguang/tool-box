@@ -1,4 +1,4 @@
-use crate::utils::{crypto::generate_app_key, output::Message};
+use crate::utils::output::Message;
 use serde::{Deserialize, Serialize};
 use tauri::{
     plugin::{Builder, TauriPlugin},
@@ -41,11 +41,11 @@ async fn run(payload: AutostartPayload) -> anyhow::Result<()> {
             let exe_path = std::env::current_exe()?;
             // 添加 --hidden 参数，使应用启动时不显示窗口
             let exe_path = format!("\"{}\" --hidden", exe_path.to_string_lossy());
-            let key_name = generate_app_key(APP_NAME);
-            key.set_value(&key_name, &exe_path)?;
+            let key_name = APP_NAME;
+            key.set_value(key_name, &exe_path)?;
         } else {
-            let key_name = generate_app_key(APP_NAME);
-            key.delete_value(&key_name)?;
+            let key_name = APP_NAME;
+            key.delete_value(key_name)?;
         }
         Ok(())
     }
@@ -65,8 +65,8 @@ async fn check_autostart_status() -> anyhow::Result<bool> {
             .join("Run");
         let key = hkcu.open_subkey(&path)?;
 
-        let key_name = generate_app_key(APP_NAME);
-        match key.get_value::<String, &str>(&key_name) {
+        let key_name = APP_NAME;
+        match key.get_value::<String, &str>(key_name) {
             Ok(_) => Ok(true),
             Err(_) => Ok(false),
         }
