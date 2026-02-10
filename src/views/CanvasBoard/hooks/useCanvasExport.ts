@@ -50,7 +50,7 @@ export function useCanvasExport() {
         data = getCanvasSVG(canvas)
         data = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(data)
       } else {
-        data = getCanvasDataURL(canvas, format as 'png' | 'jpeg', 0.92)
+        data = getCanvasDataURL(canvas, format, 0.92)
       }
 
       const link = document.createElement('a')

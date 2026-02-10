@@ -170,7 +170,7 @@ describe('Canvas Constants', () => {
       SUPPORTED_EXPORT_FORMATS.forEach(format => {
         expect(format).toHaveProperty('label')
         expect(format).toHaveProperty('value')
-        expect(['png', 'jpg', 'svg']).toContain(format.value)
+        expect(['png', 'jpeg', 'svg']).toContain(format.value)
       })
     })
   })
