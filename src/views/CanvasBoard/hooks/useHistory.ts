@@ -117,16 +117,27 @@ export function useHistory() {
     return null
   }
 
-  const restoreFromState = (state: HistoryState, onComplete?: () => void) => {
-    if (!canvasInstance) return
+  const restoreFromState = (state: HistoryState, onComplete?: () => void): boolean => {
+    if (!canvasInstance) {
+      console.warn('restoreFromState: 画布实例不存在')
+      return false
+    }
 
-    historyIndex.value = 0
-    historyStack.value = [state]
-    const instance = canvasInstance
-    instance.loadFromJSON(state.json, () => {
-      instance.renderAll()
-      onComplete?.()
-    })
+    try {
+      const parsedJson = JSON.parse(state.json)
+      historyIndex.value = 0
+      historyStack.value = [state]
+      const instance = canvasInstance
+
+      instance.loadFromJSON(parsedJson, () => {
+        instance.renderAll()
+        onComplete?.()
+      })
+      return true
+    } catch (error) {
+      console.error('restoreFromState: 恢复画布状态失败', error)
+      return false
+    }
   }
 
   const getCurrentState = (): HistoryState | null => {

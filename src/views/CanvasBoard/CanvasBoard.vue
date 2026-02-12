@@ -186,10 +186,15 @@ const handleRestore = () => {
   const savedState = loadFromLocalStorage()
   if (savedState) {
     message.info('检测到自动保存的画布，正在恢复...')
-    restoreFromState(savedState, () => {
-      saveToHistory()
+    const success = restoreFromState(savedState, () => {
       message.success('恢复成功')
     })
+    if (!success) {
+      message.error('恢复失败，已创建新画布')
+      saveToHistory()
+    }
+  } else {
+    saveToHistory()
   }
 }
 
@@ -229,7 +234,6 @@ const handleCanvasReady = (refs: { canvas: HTMLCanvasElement; container: HTMLDiv
   initCanvas(refs.container, refs.canvas)
   setupEvents()
   initHistory(getCanvas(), (msg: string) => message.success(msg))
-  saveToHistory()
   handleRestore()
 }
 
