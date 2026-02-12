@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { computed, toRaw } from 'vue'
+import { computed, toRaw, ref, onMounted } from 'vue'
 import type { ObjectProperties } from '../types'
+import { getSystemFonts } from '../utils/fontUtils'
 
 interface Props {
   objectProperties: ObjectProperties
@@ -13,11 +14,19 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const fontOptions = ref<Array<{ label: string; value: string }>>([])
+
+onMounted(async () => {
+  const fonts = await getSystemFonts()
+  fontOptions.value = fonts.map(font => ({ label: font, value: font }))
+})
+
 const getFillColor = computed(() => props.objectProperties.fill)
 const getStrokeColor = computed(() => props.objectProperties.stroke)
 const getStrokeWidth = computed(() => props.objectProperties.strokeWidth)
 const getOpacity = computed(() => props.objectProperties.opacity)
 const getStrokeDash = computed(() => toRaw(props.objectProperties.strokeDashArray))
+const getFontFamily = computed(() => props.objectProperties.fontFamily || 'Arial')
 
 const handlePropertyUpdate = (property: keyof ObjectProperties, value: unknown) => {
   emit('update:property', property, value)
@@ -85,6 +94,14 @@ const colorModes: ('rgb' | 'hex' | 'hsl')[] = ['hex']
           :value="JSON.stringify(getStrokeDash)"
           :options="strokeDashOptions"
           @update:value="(v: string) => handlePropertyUpdate('strokeDashArray', JSON.parse(v))" />
+      </n-collapse-item>
+
+      <n-collapse-item title="字体" name="fontFamily">
+        <n-select
+          filterable
+          :value="getFontFamily"
+          :options="fontOptions"
+          @update:value="(v: string) => handlePropertyUpdate('fontFamily', v)" />
       </n-collapse-item>
     </n-collapse>
   </div>

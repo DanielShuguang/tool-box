@@ -118,7 +118,7 @@ watch(
 <template>
   <div
     ref="container"
-    class="canvas-container flex-1 bg-[#f0f0f0] overflow-hidden relative"
+    class="canvas-container flex-1 bg-[#fff] overflow-hidden relative"
     :class="{ 'cursor-grab': isPanning }">
     <canvas ref="canvas" />
     <div class="absolute bottom-[10px] left-[10px] text-[12px] text-[--text-color-secondary]">
@@ -127,16 +127,12 @@ watch(
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
 .canvas-container {
   cursor: default;
-}
 
-.canvas-container.cursor-grab {
-  cursor: grab;
-}
-
-.canvas-container :deep(canvas) {
-  display: block;
+  canvas {
+    display: block;
+  }
 }
 </style>

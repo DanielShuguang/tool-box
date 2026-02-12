@@ -30,7 +30,8 @@ export function useObjectOperations() {
       stroke: (obj.stroke as string) || '#000000',
       strokeWidth: obj.strokeWidth || 2,
       opacity: obj.opacity ?? 1,
-      strokeDashArray: obj.strokeDashArray || []
+      strokeDashArray: obj.strokeDashArray || [],
+      fontFamily: obj.fontFamily || 'Arial'
     }
   }
 
@@ -43,7 +44,7 @@ export function useObjectOperations() {
 
     const activeObject = canvas?.getActiveObject()
     if (activeObject) {
-      ;(activeObject as FabricObject)[property] = value as never
+      ;(activeObject as unknown as Record<string, unknown>)[property] = value
       activeObject.setCoords()
       canvas.renderAll()
     }
@@ -76,7 +77,8 @@ export function useObjectOperations() {
         stroke: objectProperties.value.stroke,
         strokeWidth: objectProperties.value.strokeWidth,
         opacity: objectProperties.value.opacity,
-        strokeDashArray: objectProperties.value.strokeDashArray
+        strokeDashArray: objectProperties.value.strokeDashArray,
+        fontFamily: objectProperties.value.fontFamily
       })
       activeObject.setCoords()
       canvas.renderAll()

@@ -7,16 +7,7 @@ import { FabricObject } from 'fabric'
 /**
  * 绘图工具类型
  */
-export type DrawingTool =
-  | 'select'
-  | 'rect'
-  | 'circle'
-  | 'ellipse'
-  | 'line'
-  | 'path'
-  | 'polygon'
-  | 'text'
-  | 'image'
+export type DrawingTool = 'select' | 'rect' | 'circle' | 'ellipse' | 'line' | 'text' | 'image'
 
 /**
  * 画布配置
@@ -36,6 +27,7 @@ export interface ObjectProperties {
   strokeWidth: number
   opacity: number
   strokeDashArray: readonly number[]
+  fontFamily?: string
 }
 
 /**

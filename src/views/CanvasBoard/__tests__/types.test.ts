@@ -17,28 +17,10 @@ import {
 describe('Canvas Types', () => {
   describe('DrawingTool', () => {
     it('should include all drawing tools', () => {
-      const tools: DrawingTool[] = [
-        'select',
-        'rect',
-        'circle',
-        'ellipse',
-        'line',
-        'path',
-        'polygon',
-        'text'
-      ]
+      const tools: DrawingTool[] = ['select', 'rect', 'circle', 'ellipse', 'line', 'text']
 
       tools.forEach(tool => {
-        expect([
-          'select',
-          'rect',
-          'circle',
-          'ellipse',
-          'line',
-          'path',
-          'polygon',
-          'text'
-        ]).toContain(tool)
+        expect(['select', 'rect', 'circle', 'ellipse', 'line', 'text']).toContain(tool)
       })
     })
   })

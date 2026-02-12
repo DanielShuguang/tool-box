@@ -19,7 +19,8 @@ export const DEFAULT_OBJECT_PROPERTIES = {
   stroke: '#000000',
   strokeWidth: 2,
   opacity: 1,
-  strokeDashArray: []
+  strokeDashArray: [],
+  fontFamily: 'Arial'
 } as const
 
 /**
@@ -115,18 +116,6 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
     type: 'tool',
     icon: 'LinkOutline',
     tooltip: '直线'
-  },
-  {
-    id: 'polygon',
-    type: 'tool',
-    icon: 'CreateOutline',
-    tooltip: '多边形'
-  },
-  {
-    id: 'path',
-    type: 'tool',
-    icon: 'BrushOutline',
-    tooltip: '自由绘制'
   },
   {
     id: 'text',

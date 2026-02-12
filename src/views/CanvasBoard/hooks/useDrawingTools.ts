@@ -3,7 +3,7 @@
  *
  * 处理各种图形工具的创建和绘制逻辑
  */
-import { Circle, Ellipse, FabricText, Polygon, Rect, FabricObject, Canvas, Polyline } from 'fabric'
+import { Circle, Ellipse, IText, Line, Rect, FabricObject, Canvas } from 'fabric'
 import type { DrawingTool, ObjectProperties } from '../types'
 
 interface CreateShapeParams {
@@ -41,17 +41,12 @@ export function useDrawingTools() {
   const startDrawing = ({ x, y, canvas, properties }: StartDrawingParams) => {
     if (!canvas) return
 
-    isDrawing.value = true
-    startPoint.value = { x, y }
-
-    if (toolRequiresDrawingMode(currentTool.value)) {
-      canvas.isDrawingMode = true
-      if (canvas.freeDrawingBrush) {
-        canvas.freeDrawingBrush.color = properties.stroke
-        canvas.freeDrawingBrush.width = properties.strokeWidth
-      }
+    if (currentTool.value === 'select') {
       return
     }
+
+    isDrawing.value = true
+    startPoint.value = { x, y }
 
     const newObject = createShape({
       tool: currentTool.value,
@@ -68,12 +63,6 @@ export function useDrawingTools() {
   const stopDrawing = (canvas: Canvas | null, properties: ObjectProperties) => {
     if (!canvas) return
 
-    if (toolRequiresDrawingMode(currentTool.value)) {
-      canvas.isDrawingMode = false
-      isDrawing.value = false
-      return
-    }
-
     if (isDrawing.value) {
       const activeObject = canvas.getActiveObject()
       if (activeObject) {
@@ -84,6 +73,7 @@ export function useDrawingTools() {
           opacity: properties.opacity,
           strokeDashArray: properties.strokeDashArray
         })
+        activeObject.setCoords()
       }
     }
 
@@ -97,20 +87,17 @@ export function useDrawingTools() {
 
   const updateDrawing = (x: number, y: number, canvas: Canvas | null) => {
     if (!canvas) return
-
     if (!isDrawing.value || !startPoint.value) return
 
     const activeObject = canvas.getActiveObject()
-    if (!activeObject || currentTool.value === 'path') return
+    if (!activeObject) return
 
     if (currentTool.value === 'line') {
-      const polyline = activeObject as unknown as Polyline & {
-        points: Array<{ x: number; y: number }>
-      }
-      if (polyline.points) {
-        polyline.points[1] = { x, y }
-        polyline.setCoords()
-      }
+      const line = activeObject as Line
+      line.set({
+        x2: x,
+        y2: y
+      })
     } else {
       const width = Math.abs(x - startPoint.value.x)
       const height = Math.abs(y - startPoint.value.y)
@@ -130,10 +117,6 @@ export function useDrawingTools() {
     canvas.renderAll()
   }
 
-  const toolRequiresDrawingMode = (tool: DrawingTool): boolean => {
-    return tool === 'path'
-  }
-
   const createShape = ({ tool, x, y, properties }: CreateShapeParams): FabricObject | null => {
     let shape: FabricObject | null = null
 
@@ -148,7 +131,9 @@ export function useDrawingTools() {
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
-          strokeDashArray: [...properties.strokeDashArray]
+          strokeDashArray: [...properties.strokeDashArray],
+          originX: 'left',
+          originY: 'top'
         })
         break
 
@@ -184,40 +169,17 @@ export function useDrawingTools() {
         break
 
       case 'line':
-        shape = new Polyline(
-          [
-            { x, y },
-            { x, y }
-          ],
-          {
-            stroke: properties.stroke,
-            strokeWidth: properties.strokeWidth,
-            strokeDashArray: [...properties.strokeDashArray],
-            opacity: properties.opacity,
-            fill: undefined
-          }
-        )
-        break
-
-      case 'polygon':
-        const sideCount = 6
-        const points: { x: number; y: number }[] = []
-        for (let i = 0; i < sideCount; i++) {
-          points.push({ x, y })
-        }
-        shape = new Polygon(points, {
-          left: x,
-          top: y,
-          fill: properties.fill,
+        shape = new Line([x, y, x, y], {
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
+          strokeDashArray: [...properties.strokeDashArray],
           opacity: properties.opacity,
-          strokeDashArray: [...properties.strokeDashArray]
+          fill: undefined
         })
         break
 
       case 'text':
-        shape = new FabricText('双击编辑文字', {
+        shape = new IText('双击编辑文字', {
           left: x,
           top: y,
           fontSize: 20,
@@ -249,27 +211,11 @@ export function useDrawingTools() {
 
       case 'ellipse':
         shape.set({
-          left,
-          top,
+          left: left + width / 2,
+          top: top + height / 2,
           rx: width / 2,
           ry: height / 2
         })
-        break
-
-      case 'polygon':
-        const sideCount = 6
-        const points: { x: number; y: number }[] = []
-        const centerX = left + width / 2
-        const centerY = top + height / 2
-        const maxRadius = Math.min(width, height) / 2
-        for (let i = 0; i < sideCount; i++) {
-          const angle = (i * 2 * Math.PI) / sideCount - Math.PI / 2
-          points.push({
-            x: centerX + maxRadius * Math.cos(angle),
-            y: centerY + maxRadius * Math.sin(angle)
-          })
-        }
-        shape.set({ points })
         break
     }
   }

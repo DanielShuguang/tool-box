@@ -125,7 +125,6 @@ const setupEvents = () => {
   canvas.on('object:modified', handleObjectModified)
   canvas.on('selection:created', handleObjectSelected)
   canvas.on('selection:cleared', handleSelectionCleared)
-  canvas.on('path:created', handlePathCreated)
 }
 
 const handleMouseDown = (opt: unknown) => {
@@ -136,10 +135,6 @@ const handleMouseDown = (opt: unknown) => {
 
   const pointer = canvas.getScenePoint((opt as { e: MouseEvent }).e)
   if (!pointer) return
-
-  if (drawingTools.currentTool.value === 'select') {
-    return
-  }
 
   drawingTools.startDrawing({
     x: pointer.x,
@@ -185,10 +180,6 @@ const handleObjectSelected = (opt: { selected: unknown[] }) => {
 
 const handleSelectionCleared = () => {
   objectOps.clearSelection()
-}
-
-const handlePathCreated = () => {
-  saveToHistory()
 }
 
 const handleRestore = () => {
@@ -272,7 +263,6 @@ onUnmounted(() => {
     canvas.off('object:modified', handleObjectModified)
     canvas.off('selection:created', handleObjectSelected)
     canvas.off('selection:cleared', handleSelectionCleared)
-    canvas.off('path:created', handlePathCreated)
   }
   destroy()
   canvasCore.dispose()
@@ -280,7 +270,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="canvas-board flex flex-col h-full">
+  <div class="canvas-board flex flex-col">
     <Toolbar
       :toolbar-items="toolbarItems"
       :current-tool="currentTool"
@@ -330,9 +320,3 @@ onUnmounted(() => {
       @change="handleImageInsertWrapper" />
   </div>
 </template>
-
-<style scoped>
-.canvas-board {
-  height: 100%;
-}
-</style>
