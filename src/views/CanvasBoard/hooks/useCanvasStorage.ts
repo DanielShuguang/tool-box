@@ -6,10 +6,11 @@
 import { Store } from '@tauri-apps/plugin-store'
 import type { HistoryState } from '../types'
 import { AUTO_SAVE_MAX_AGE } from '../constants'
+import { ConfigFile } from 'src/utils/storage'
 
 const STORAGE_KEY = 'canvas.autoSave'
 const STORAGE_VERSION = 1
-const STORE_FILE = '.canvas.dat'
+const STORE_FILE = ConfigFile.Canvas
 
 interface CanvasAutoSaveData {
   state: HistoryState

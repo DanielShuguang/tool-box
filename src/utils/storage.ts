@@ -10,7 +10,8 @@ export enum ConfigFile {
   EyeProtection = '.eye-protection.dat',
   Router = '.router.dat',
   MusicPlayer = '.music-player.dat',
-  Download = '.download.dat'
+  Download = '.download.dat',
+  Canvas = '.canvas.dat'
 }
 
 // 存储Store实例的Map，用于缓存已加载的Store对象
