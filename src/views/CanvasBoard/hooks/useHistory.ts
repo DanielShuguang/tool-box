@@ -2,174 +2,95 @@
  * 历史记录管理 Hook
  *
  * 处理撤销、恢复功能和状态保存
+ * 组合 useHistoryStack、useAutoSave、useCanvasStorage 三个模块
  */
 import type { HistoryState } from '../types'
-import { MAX_HISTORY_SIZE, AUTO_SAVE_INTERVAL } from '../constants'
 import { Canvas } from 'fabric'
+import { useHistoryStack } from './useHistoryStack'
+import { useAutoSave } from './useAutoSave'
+import { useCanvasStorage } from './useCanvasStorage'
 
 export function useHistory() {
-  const historyStack = ref<HistoryState[]>([])
-  const historyIndex = ref(-1)
-  const isInternalChange = ref(false)
+  const historyStackModule = useHistoryStack()
+  const autoSaveModule = useAutoSave()
+  const storageModule = useCanvasStorage()
 
-  const canUndo = computed(() => historyIndex.value > 0)
-  const canRedo = computed(() => historyIndex.value < historyStack.value.length - 1)
-
-  let autoSaveTimer: ReturnType<typeof setInterval> | null = null
   let canvasInstance: Canvas | null = null
-  let messageHandler: ((msg: string) => void) | null = null
 
   const initHistory = (canvas: Canvas | null, onMessage?: (msg: string) => void) => {
     if (!canvas) return
     canvasInstance = canvas
-    messageHandler = onMessage || null
-    startAutoSave()
+
+    historyStackModule.init(canvas, onMessage)
+    autoSaveModule.start(storageModule.save)
+  }
+
+  const getCanvasState = (): string => {
+    if (!canvasInstance) return ''
+    return JSON.stringify(canvasInstance.toJSON())
   }
 
   const saveToHistory = (json?: string) => {
-    if (!canvasInstance) return
+    historyStackModule.save(json)
+    triggerAutoSave()
+  }
 
-    const stateJson = json || JSON.stringify(canvasInstance.toJSON())
-    const now = Date.now()
-
-    if (historyIndex.value < historyStack.value.length - 1) {
-      historyStack.value = historyStack.value.slice(0, historyIndex.value + 1)
-    }
-
-    const prevState = historyStack.value[historyStack.value.length - 1]
-    if (prevState && prevState.json === stateJson) {
-      return
-    }
-
-    historyStack.value.push({ json: stateJson, timestamp: now })
-
-    if (historyStack.value.length > MAX_HISTORY_SIZE) {
-      historyStack.value.shift()
-    } else {
-      historyIndex.value++
-    }
+  const triggerAutoSave = () => {
+    const stateJson = getCanvasState()
+    autoSaveModule.trigger(stateJson)
   }
 
   const undo = () => {
-    if (!canUndo.value || !canvasInstance) return
-
-    historyIndex.value--
-    const state = historyStack.value[historyIndex.value]
-    const instance = canvasInstance
-
-    instance.loadFromJSON(state.json, () => {
-      instance.renderAll()
-      messageHandler?.('撤销成功')
-    })
+    historyStackModule.undo()
   }
 
   const redo = () => {
-    if (!canRedo.value || !canvasInstance) return
-
-    historyIndex.value++
-    const state = historyStack.value[historyIndex.value]
-    const instance = canvasInstance
-
-    instance.loadFromJSON(state.json, () => {
-      instance.renderAll()
-      messageHandler?.('恢复成功')
-    })
+    historyStackModule.redo()
   }
 
-  const startAutoSave = () => {
-    stopAutoSave()
-    autoSaveTimer = setInterval(() => {
-      saveToLocalStorage()
-    }, AUTO_SAVE_INTERVAL)
-  }
-
-  const stopAutoSave = () => {
-    if (autoSaveTimer) {
-      clearInterval(autoSaveTimer)
-      autoSaveTimer = null
-    }
-  }
-
-  const saveToLocalStorage = () => {
-    if (!canvasInstance || historyIndex.value < 0) return
-    const state = historyStack.value[historyIndex.value]
-    if (state) {
-      localStorage.setItem(
-        'canvas_autosave',
-        JSON.stringify({
-          state,
-          timestamp: Date.now()
-        })
-      )
-    }
-  }
-
-  const loadFromLocalStorage = () => {
-    const saved = localStorage.getItem('canvas_autosave')
-    if (saved) {
-      try {
-        const { state } = JSON.parse(saved)
-        return state as HistoryState
-      } catch {
-        return null
-      }
-    }
-    return null
+  const loadFromLocalStorage = async (): Promise<HistoryState | null> => {
+    return await storageModule.load()
   }
 
   const restoreFromState = (state: HistoryState, onComplete?: () => void): boolean => {
-    if (!canvasInstance) {
-      console.warn('restoreFromState: 画布实例不存在')
-      return false
-    }
-
-    try {
-      const parsedJson = JSON.parse(state.json)
-      historyIndex.value = 0
-      historyStack.value = [state]
-      const instance = canvasInstance
-
-      instance.loadFromJSON(parsedJson, () => {
-        instance.renderAll()
-        onComplete?.()
-      })
-      return true
-    } catch (error) {
-      console.error('restoreFromState: 恢复画布状态失败', error)
-      return false
-    }
+    return historyStackModule.restoreFromState(state, onComplete)
   }
 
   const getCurrentState = (): HistoryState | null => {
-    if (historyIndex.value >= 0 && historyIndex.value < historyStack.value.length) {
-      return historyStack.value[historyIndex.value]
-    }
-    return null
+    return historyStackModule.getCurrentState()
   }
 
   const clearHistory = () => {
-    historyStack.value = []
-    historyIndex.value = -1
+    historyStackModule.clear()
   }
 
   const setInternalChange = (value: boolean) => {
-    isInternalChange.value = value
+    historyStackModule.setInternalChange(value)
   }
 
-  const isInternalChangeState = () => isInternalChange.value
+  const setRestoring = (value: boolean) => {
+    historyStackModule.setRestoring(value)
+  }
 
-  const destroy = () => {
-    stopAutoSave()
-    saveToLocalStorage()
+  const isInternalChangeState = () => {
+    return historyStackModule.isInternalChangeState()
+  }
+
+  const destroy = async () => {
+    triggerAutoSave()
+    autoSaveModule.destroy()
+    historyStackModule.destroy()
+    canvasInstance = null
   }
 
   return {
-    historyStack,
-    historyIndex,
-    canUndo,
-    canRedo,
+    historyStack: historyStackModule.historyStack,
+    historyIndex: historyStackModule.historyIndex,
+    canUndo: historyStackModule.canUndo,
+    canRedo: historyStackModule.canRedo,
     initHistory,
     saveToHistory,
+    triggerAutoSave,
     undo,
     redo,
     loadFromLocalStorage,
@@ -178,6 +99,7 @@ export function useHistory() {
     clearHistory,
     destroy,
     setInternalChange,
-    isInternalChangeState
+    isInternalChangeState,
+    setRestoring
   }
 }

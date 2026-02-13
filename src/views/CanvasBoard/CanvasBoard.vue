@@ -40,6 +40,7 @@ const {
   loadFromLocalStorage,
   restoreFromState,
   setInternalChange,
+  setRestoring,
   destroy
 } = history
 const { currentTool, setTool } = drawingTools
@@ -162,6 +163,11 @@ const handleMouseUp = () => {
   const canvas = getCanvas()
   if (!canvas) return
   drawingTools.stopDrawing(canvas, objectProperties.value)
+
+  const activeObject = canvas.getActiveObject()
+  if (activeObject) {
+    saveToHistory()
+  }
 }
 
 const handleObjectModified = () => {
@@ -182,14 +188,17 @@ const handleSelectionCleared = () => {
   objectOps.clearSelection()
 }
 
-const handleRestore = () => {
-  const savedState = loadFromLocalStorage()
+const handleRestore = async () => {
+  const savedState = await loadFromLocalStorage()
   if (savedState) {
     message.info('检测到自动保存的画布，正在恢复...')
+    setRestoring(true)
     const success = restoreFromState(savedState, () => {
+      setRestoring(false)
       message.success('恢复成功')
     })
     if (!success) {
+      setRestoring(false)
       message.error('恢复失败，已创建新画布')
       saveToHistory()
     }

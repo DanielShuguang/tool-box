@@ -31,7 +31,12 @@ export const MAX_HISTORY_SIZE = 30
 /**
  * 自动保存间隔（毫秒）
  */
-export const AUTO_SAVE_INTERVAL = 30000
+export const AUTO_SAVE_INTERVAL = 5000
+
+/**
+ * 自动保存过期时间（毫秒），默认7天
+ */
+export const AUTO_SAVE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
 /**
  * 支持的导入格式

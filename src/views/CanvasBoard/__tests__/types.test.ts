@@ -130,9 +130,9 @@ describe('Canvas Constants', () => {
 
   describe('AUTO_SAVE_INTERVAL', () => {
     it('should be within reasonable range', () => {
-      expect(AUTO_SAVE_INTERVAL).toBeGreaterThanOrEqual(10000)
+      expect(AUTO_SAVE_INTERVAL).toBeGreaterThanOrEqual(1000)
       expect(AUTO_SAVE_INTERVAL).toBeLessThanOrEqual(60000)
-      expect(AUTO_SAVE_INTERVAL).toBe(30000)
+      expect(AUTO_SAVE_INTERVAL).toBe(5000)
     })
   })
 
