@@ -10,6 +10,72 @@ import { FabricObject } from 'fabric'
 export type DrawingTool = 'select' | 'rect' | 'circle' | 'ellipse' | 'line' | 'text' | 'image'
 
 /**
+ * 画稿文件格式版本
+ */
+export const DRAW_FILE_VERSION = '1.0.0'
+
+/**
+ * 画稿文件扩展名
+ */
+export const DRAW_FILE_EXTENSION = 'draw'
+
+/**
+ * 画稿画布元数据
+ */
+export interface DrawCanvasMetadata {
+  width: number
+  height: number
+  backgroundColor: string
+}
+
+/**
+ * 画稿资源文件信息
+ */
+export interface DrawAssetInfo {
+  id: string
+  filename: string
+  originalName: string
+}
+
+/**
+ * 画稿文件元数据 (manifest.json)
+ */
+export interface DrawFileMetadata {
+  version: string
+  format: 'canvas-draw'
+  created: number
+  modified: number
+  canvas: DrawCanvasMetadata
+  assets: DrawAssetInfo[]
+}
+
+/**
+ * 画稿保存选项
+ */
+export interface DrawSaveOptions {
+  title?: string
+  width: number
+  height: number
+  backgroundColor: string
+}
+
+/**
+ * 画稿导入结果
+ */
+export interface DrawImportResult {
+  success: boolean
+  metadata: DrawFileMetadata | null
+  canvasJson: string | null
+  assets: Map<string, Blob>
+  error?: string
+}
+
+/**
+ * 画稿导出选项
+ */
+export type ExportMode = 'image' | 'draw'
+
+/**
  * 画布配置
  */
 export interface CanvasConfig {

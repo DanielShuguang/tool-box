@@ -199,6 +199,12 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
     type: 'action',
     icon: 'FolderOpenOutline',
     tooltip: '导入图片'
+  },
+  {
+    id: 'import-draw',
+    type: 'action',
+    icon: 'DocumentTextOutline',
+    tooltip: '导入画稿'
   }
 ]
 

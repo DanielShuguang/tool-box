@@ -14,10 +14,11 @@ import {
   useCanvasExport,
   useCanvasImport,
   useCanvasToolbar,
-  useCanvasImage
+  useCanvasImage,
+  useDrawFile
 } from './hooks'
-import { SUPPORTED_EXPORT_FORMATS } from './constants'
-import type { ObjectProperties, ToolbarItem, ExportFormat } from './types'
+import { SUPPORTED_EXPORT_FORMATS, DEFAULT_CANVAS_CONFIG } from './constants'
+import type { ObjectProperties, ExportFormat, ExportMode } from './types'
 
 const message = useMessage()
 
@@ -61,8 +62,33 @@ const { triggerFileInput, handleFileImport } = canvasImport
 const { triggerImageInput, handleImageInsert, handlePaste, handleDrop, handleDragOver } =
   canvasImage
 
-const handleExportWrapper = () => {
-  handleExport(getCanvas, getCanvasDataURL, getCanvasSVG)
+const selectedExportMode = ref<ExportMode>('image')
+const drawFileInputRef = useTemplateRef<HTMLInputElement>('drawFileInput')
+
+const drawFile = useDrawFile({
+  getCanvas,
+  saveToHistory,
+  onLoadComplete: () => {
+    message.success('画稿加载完成')
+  }
+})
+
+const handleExportWrapper = async () => {
+  if (selectedExportMode.value === 'draw') {
+    const canvas = getCanvas()
+    if (!canvas) {
+      message.error('画布未初始化')
+      return
+    }
+    await drawFile.exportDrawFile({
+      width: canvas.width || DEFAULT_CANVAS_CONFIG.width,
+      height: canvas.height || DEFAULT_CANVAS_CONFIG.height,
+      backgroundColor: canvas.backgroundColor as string
+    })
+    closeExportDialog()
+  } else {
+    handleExport(getCanvas, getCanvasDataURL, getCanvasSVG)
+  }
 }
 
 const handleFileImportWrapper = (event: Event) => {
@@ -77,8 +103,29 @@ const handlePasteWrapper = () => {
   handlePaste({ getCanvas, insertImageFromClipboard, saveToHistory })
 }
 
-const handleDropWrapper = (event: DragEvent) => {
+const handleDropWrapper = async (event: DragEvent) => {
+  const files = event.dataTransfer?.files
+  if (files && files.length > 0) {
+    const file = files[0]
+    if (file.name.endsWith('.draw')) {
+      event.preventDefault()
+      await drawFile.importDrawFileFromBlob(file)
+      return
+    }
+  }
   handleDrop(event, { getCanvas, insertImageFromDrop, saveToHistory })
+}
+
+const triggerDrawFileInput = () => {
+  drawFileInputRef.value?.click()
+}
+
+const handleDrawFileImport = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    await drawFile.importDrawFileFromBlob(input.files[0])
+    input.value = ''
+  }
 }
 
 const handleUndo = () => {
@@ -262,7 +309,8 @@ const canvasToolbar = useCanvasToolbar({
   resetZoom,
   openExportDialog,
   triggerFileInput,
-  triggerImageInput
+  triggerImageInput,
+  triggerDrawFileInput
 })
 
 const { toolbarItems, handleToolbarAction } = canvasToolbar
@@ -311,10 +359,12 @@ onUnmounted(() => {
     <ExportDialog
       :show="showExportDialog"
       :format="selectedExportFormat"
-      :loading="isExporting"
+      :mode="selectedExportMode"
+      :loading="isExporting || drawFile.isExporting.value"
       :export-formats="SUPPORTED_EXPORT_FORMATS"
       @update:show="(v: boolean) => (showExportDialog = v)"
       @update:format="(v: ExportFormat) => (selectedExportFormat = v)"
+      @update:mode="(v: ExportMode) => (selectedExportMode = v)"
       @confirm="handleExportWrapper"
       @cancel="closeExportDialog" />
 
@@ -331,5 +381,12 @@ onUnmounted(() => {
       accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
       class="hidden"
       @change="handleImageInsertWrapper" />
+
+    <input
+      ref="drawFileInput"
+      type="file"
+      accept=".draw"
+      class="hidden"
+      @change="handleDrawFileImport" />
   </div>
 </template>

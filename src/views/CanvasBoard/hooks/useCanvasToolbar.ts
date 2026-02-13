@@ -20,6 +20,7 @@ interface ToolbarOptions {
   openExportDialog: () => void
   triggerFileInput: () => void
   triggerImageInput: () => void
+  triggerDrawFileInput?: () => void
 }
 
 export function useCanvasToolbar(options: ToolbarOptions) {
@@ -77,7 +78,8 @@ export function useCanvasToolbar(options: ToolbarOptions) {
       'zoom-reset': options.resetZoom,
       export: options.openExportDialog,
       import: options.triggerFileInput,
-      image: options.triggerImageInput
+      image: options.triggerImageInput,
+      'import-draw': options.triggerDrawFileInput || (() => {})
     }
 
     const action = actionMap[item.id]
