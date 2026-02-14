@@ -1,12 +1,13 @@
 import { useMessage } from 'naive-ui'
 import { CANVAS_TOOLBAR_ITEMS } from '../constants'
-import type { ToolbarItem, DrawingTool } from '../types'
+import type { ToolbarItem, DrawingTool, ObjectProperties } from '../types'
 import { Canvas } from 'fabric'
 
 interface ToolbarOptions {
   currentTool: Ref<DrawingTool>
   canUndo: ComputedRef<boolean>
   canRedo: ComputedRef<boolean>
+  objectProperties: Ref<ObjectProperties>
   setTool: (tool: DrawingTool) => void
   handleUndo: () => void
   handleRedo: () => void
@@ -21,6 +22,7 @@ interface ToolbarOptions {
   triggerFileInput: () => void
   triggerImageInput: () => void
   triggerDrawFileInput?: () => void
+  fillObjectAtPoint?: (x: number, y: number) => boolean
 }
 
 export function useCanvasToolbar(options: ToolbarOptions) {

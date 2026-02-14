@@ -15,7 +15,7 @@ export const DEFAULT_CANVAS_CONFIG = {
  * 默认对象属性配置
  */
 export const DEFAULT_OBJECT_PROPERTIES = {
-  fill: '#000000',
+  fill: 'transparent',
   stroke: '#000000',
   strokeWidth: 2,
   opacity: 1,
@@ -93,6 +93,12 @@ export const CANVAS_TOOLBAR_ITEMS: ToolbarItem[] = [
     type: 'tool',
     icon: 'HandLeftOutline',
     tooltip: '选择工具'
+  },
+  {
+    id: 'fill',
+    type: 'tool',
+    icon: 'ColorFillOutline',
+    tooltip: '填色工具'
   },
   {
     id: 'separator-1',
@@ -269,3 +275,14 @@ export const CANVAS_SHORTCUTS = [
   { key: 'Delete', action: 'delete', description: '删除选中' },
   { key: 'Backspace', action: 'delete', description: '删除选中' }
 ] as const
+
+export const CURSOR_MAP = {
+  select: 'default',
+  fill: 'crosshair',
+  rect: 'crosshair',
+  circle: 'crosshair',
+  ellipse: 'crosshair',
+  line: 'crosshair',
+  text: 'text',
+  image: 'default'
+}

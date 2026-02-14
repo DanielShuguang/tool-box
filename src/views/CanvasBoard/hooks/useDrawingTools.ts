@@ -41,7 +41,8 @@ export function useDrawingTools() {
   const startDrawing = ({ x, y, canvas, properties }: StartDrawingParams) => {
     if (!canvas) return
 
-    if (currentTool.value === 'select') {
+    // 选择工具和填色工具不绘制图形
+    if (currentTool.value === 'select' || currentTool.value === 'fill') {
       return
     }
 
@@ -127,7 +128,7 @@ export function useDrawingTools() {
           top: y,
           width: 0,
           height: 0,
-          fill: properties.fill,
+          fill: 'transparent',
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
@@ -142,7 +143,7 @@ export function useDrawingTools() {
           left: x,
           top: y,
           radius: 0,
-          fill: properties.fill,
+          fill: 'transparent',
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
@@ -158,7 +159,7 @@ export function useDrawingTools() {
           top: y,
           rx: 0,
           ry: 0,
-          fill: properties.fill,
+          fill: 'transparent',
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity,
@@ -183,7 +184,7 @@ export function useDrawingTools() {
           left: x,
           top: y,
           fontSize: 20,
-          fill: properties.fill,
+          fill: properties.fill === 'transparent' ? '#000000' : properties.fill,
           stroke: properties.stroke,
           strokeWidth: properties.strokeWidth,
           opacity: properties.opacity

@@ -18,7 +18,8 @@ import {
   ImageOutline,
   HandLeftOutline,
   RemoveCircleOutline,
-  RefreshCircleOutline
+  RefreshCircleOutline,
+  ColorFillOutline
 } from '@vicons/ionicons5'
 import type { ToolbarItem } from '../types'
 import { Component } from 'vue'
@@ -58,7 +59,8 @@ const getIconComponent = (iconName: string | undefined) => {
     ImageOutline,
     HandLeftOutline,
     RemoveCircleOutline,
-    RefreshCircleOutline
+    RefreshCircleOutline,
+    ColorFillOutline
   }
   return iconMap[iconName] || CreateOutline
 }

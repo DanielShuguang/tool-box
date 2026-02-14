@@ -7,7 +7,15 @@ import { FabricObject } from 'fabric'
 /**
  * 绘图工具类型
  */
-export type DrawingTool = 'select' | 'rect' | 'circle' | 'ellipse' | 'line' | 'text' | 'image'
+export type DrawingTool =
+  | 'select'
+  | 'rect'
+  | 'circle'
+  | 'ellipse'
+  | 'line'
+  | 'text'
+  | 'image'
+  | 'fill'
 
 /**
  * 画稿文件格式版本

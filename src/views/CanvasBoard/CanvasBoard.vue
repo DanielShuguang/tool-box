@@ -17,7 +17,7 @@ import {
   useCanvasImage,
   useDrawFile
 } from './hooks'
-import { SUPPORTED_EXPORT_FORMATS, DEFAULT_CANVAS_CONFIG } from './constants'
+import { SUPPORTED_EXPORT_FORMATS, DEFAULT_CANVAS_CONFIG, CURSOR_MAP } from './constants'
 import type { ObjectProperties, ExportFormat, ExportMode } from './types'
 
 const message = useMessage()
@@ -157,10 +157,10 @@ const handleZoom = (delta: number) => {
   }
 }
 
-const handlePropertyUpdate = (property: keyof ObjectProperties, value: unknown) => {
+const handlePropertyUpdate = (property: string, value: unknown) => {
   const canvas = getCanvas()
   if (!canvas) return
-  updateObjectProperty(property, value, canvas)
+  updateObjectProperty(property as keyof ObjectProperties, value, canvas)
 }
 
 const setupEvents = () => {
@@ -183,6 +183,20 @@ const handleMouseDown = (opt: unknown) => {
 
   const pointer = canvas.getScenePoint((opt as { e: MouseEvent }).e)
   if (!pointer) return
+
+  // 填色工具：点击图形时填充颜色
+  if (currentTool.value === 'fill') {
+    const targetInfo = canvas.findTarget((opt as { e: MouseEvent }).e)
+    const target = targetInfo?.target
+    if (target) {
+      target.set('fill', objectProperties.value.fill)
+      target.setCoords()
+      canvas.renderAll()
+      saveToHistory()
+      message.success('已填充颜色')
+    }
+    return
+  }
 
   drawingTools.startDrawing({
     x: pointer.x,
@@ -224,6 +238,10 @@ const handleObjectModified = () => {
 }
 
 const handleObjectSelected = (opt: { selected: unknown[] }) => {
+  // 填色工具模式下不更新属性面板
+  if (currentTool.value === 'fill') {
+    return
+  }
   if (Array.isArray(opt.selected) && opt.selected.length > 0) {
     objectOps.setSelectedObject(opt.selected[0])
   } else {
@@ -276,11 +294,21 @@ const handlePan = (dx: number, dy: number) => {
 
 const handlePanEnd = () => {
   setPanning(false)
-  const canvas = getCanvas()
-  if (canvas) {
-    canvas.defaultCursor = 'default'
-  }
+  updateCanvasCursor()
 }
+
+const updateCanvasCursor = () => {
+  const canvas = getCanvas()
+  if (!canvas) return
+
+  canvas.defaultCursor = CURSOR_MAP[currentTool.value] || 'default'
+  canvas.hoverCursor = currentTool.value === 'fill' ? 'crosshair' : 'move'
+}
+
+// 监听工具变化，更新光标
+watch(currentTool, () => {
+  updateCanvasCursor()
+})
 
 const handleWheel = (delta: number) => {
   handleZoom(delta)
@@ -297,6 +325,7 @@ const canvasToolbar = useCanvasToolbar({
   currentTool,
   canUndo,
   canRedo,
+  objectProperties,
   setTool,
   handleUndo,
   handleRedo,
