@@ -186,7 +186,8 @@ const handleMouseDown = (opt: unknown) => {
 
   // 填色工具：点击图形时填充颜色
   if (currentTool.value === 'fill') {
-    const targetInfo = canvas.findTarget((opt as { e: MouseEvent }).e)
+    // 使用 searchPossibleTargets 避免缓存问题
+    const targetInfo = canvas.searchPossibleTargets(canvas.getObjects(), pointer)
     const target = targetInfo?.target
     if (target) {
       target.set('fill', objectProperties.value.fill)

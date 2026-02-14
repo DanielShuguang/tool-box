@@ -80,10 +80,6 @@ export function useDrawingTools() {
 
     isDrawing.value = false
     startPoint.value = null
-
-    if (currentTool.value !== 'select') {
-      setTool('select')
-    }
   }
 
   const updateDrawing = (x: number, y: number, canvas: Canvas | null) => {
