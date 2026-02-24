@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "motion": {
+      "source": "onmax/nuxt-skills",
+      "sourceType": "github",
+      "computedHash": "88f028610d2a273dd1de1b79c0e4cc70ed041105af86f890520ff9b1c674352e"
+    },
+    "typescript-best-practices": {
+      "source": "0xbigboss/claude-code",
+      "sourceType": "github",
+      "computedHash": "b85adad2caf537bb27fa82910cfc356a2176897cda4ae3fcb1d2b021798e1415"
+    }
+  }
+}
