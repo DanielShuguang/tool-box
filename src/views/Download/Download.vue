@@ -1,14 +1,17 @@
 <script lang="ts" setup>
 import { useDownloadStore } from '@/stores/download'
 import { useDownloadDialog } from './hooks/useDownloadDialog'
+import { useResumeDownload } from './hooks/useResumeDownload'
 import DownloadTaskItem from './components/DownloadTaskItem.vue'
 import NewDownloadDialog from './components/NewDownloadDialog.vue'
-import { AddOutline, TrashBinOutline, FolderOpenOutline } from '@vicons/ionicons5'
+import ScanResumeDialog from './components/ScanResumeDialog.vue'
+import { AddOutline, TrashBinOutline, FolderOpenOutline, RefreshOutline } from '@vicons/ionicons5'
 
 const downloadStore = useDownloadStore()
 const { downloadingTasks, completedTasks, isSettingsLoaded } = storeToRefs(downloadStore)
 
 const { showNewDownloadDialog, openNewDownloadDialog, handleCreateDownload } = useDownloadDialog()
+const { showScanDialog, openScanDialog } = useResumeDownload()
 
 const searchKeyword = ref('')
 
@@ -68,6 +71,15 @@ async function handlePasteFromClipboard() {
         从剪贴板
       </n-button>
 
+      <n-button @click="openScanDialog">
+        <template #icon>
+          <n-icon>
+            <RefreshOutline />
+          </n-icon>
+        </template>
+        恢复下载
+      </n-button>
+
       <n-button :disabled="completedTasks.length === 0" @click="handleClearCompleted">
         <template #icon>
           <n-icon>
@@ -80,11 +92,6 @@ async function handlePasteFromClipboard() {
       <n-input v-model:value="searchKeyword" placeholder="搜索任务..." clearable class="w-60" />
 
       <div class="flex-1" />
-
-      <n-space>
-        <span class="text-[--text-color-secondary]"> 下载中: {{ downloadingTasks.length }} </span>
-        <span class="text-[--text-color-secondary]"> 已完成: {{ completedTasks.length }} </span>
-      </n-space>
     </div>
 
     <!-- 任务列表 -->
@@ -155,6 +162,9 @@ async function handlePasteFromClipboard() {
       :show="showNewDownloadDialog"
       @close="showNewDownloadDialog = false"
       @confirm="handleCreateDownload" />
+
+    <!-- 恢复下载对话框 -->
+    <ScanResumeDialog :show="showScanDialog" @close="showScanDialog = false" />
   </div>
 </template>
 

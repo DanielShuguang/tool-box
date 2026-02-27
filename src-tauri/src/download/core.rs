@@ -9,7 +9,11 @@ use crate::utils::output::MessageSender;
 
 use super::downloader::{download, handle_existing_files, load_download_progress, rename_file};
 use super::limiter::SpeedLimiter;
-use super::utils::{report_progress};
+use super::progress::{
+    delete_progress_file, get_progress_file_path, get_temp_file_path, save_progress_file,
+    start_periodic_progress_update,
+};
+use super::utils::report_progress;
 use super::{DownloadConfig, DownloadPayload, DownloadProgress, DownloadStatus};
 
 pub async fn perform_multithreaded_download(
@@ -62,13 +66,9 @@ pub async fn perform_singlethreaded_download(
     file: Arc<Mutex<File>>,
     speed_limiter: Option<Arc<SpeedLimiter>>,
 ) -> AnyResult<bool> {
-    let err = download(
-        url, 
-        (0, length - 1), 
-        false, 
-        file, 
-        speed_limiter
-    ).await.is_err();
+    let err = download(url, (0, length - 1), false, file, speed_limiter)
+        .await
+        .is_err();
     Ok(err)
 }
 
@@ -78,10 +78,11 @@ pub async fn run(
     sender: MessageSender,
     event_name: String,
 ) -> AnyResult<()> {
-    let (range, url, length) =
-        super::downloader::check_request_info(&payload.url, sender.clone(), event_name.clone()).await?;
-    let temp_path = path.to_string() + ".tmp";
-    let progress_path = path.to_string() + ".progress";
+    let (range, url, length, etag, last_modified) =
+        super::downloader::check_request_info(&payload.url, sender.clone(), event_name.clone())
+            .await?;
+    let temp_path = get_temp_file_path(path);
+    let progress_path = get_progress_file_path(path);
     let file_path = path.to_string();
 
     handle_existing_files(
@@ -93,6 +94,28 @@ pub async fn run(
         &event_name,
     )
     .await?;
+
+    let downloaded_bytes = load_download_progress(range, &progress_path)
+        .await
+        .map(|p| p.iter().map(|(_, e)| e + 1).sum())
+        .unwrap_or(0);
+
+    if downloaded_bytes == 0 {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64)
+            .unwrap_or(0);
+        save_progress_file(
+            &file_path,
+            &url,
+            0,
+            length,
+            etag.as_deref(),
+            last_modified.as_deref(),
+            Some(now),
+        )
+        .await?;
+    }
 
     if super::downloader::check_file_exist(path).await {
         sender.send(
@@ -130,9 +153,7 @@ pub async fn run(
     rename_file(&temp_path, path).await?;
 
     if !is_error {
-        if range && super::downloader::check_file_exist(&progress_path).await {
-            remove_file(&progress_path).await?;
-        }
+        let _ = delete_progress_file(&file_path).await;
         sender.send(&event_name, format!("下载完成：{}", file_path), true);
         Ok(())
     } else {
@@ -149,10 +170,11 @@ pub async fn run_download(
     progress_event: String,
     speed_limiter: Option<SpeedLimiter>,
 ) -> AnyResult<()> {
-    let (range, url, length) =
-        super::downloader::check_request_info(&config.url, sender.clone(), event_name.clone()).await?;
-    let temp_path = path.to_string() + ".tmp";
-    let progress_path = path.to_string() + ".progress";
+    let (range, url, length, etag, last_modified) =
+        super::downloader::check_request_info(&config.url, sender.clone(), event_name.clone())
+            .await?;
+    let temp_path = get_temp_file_path(path);
+    let progress_path = get_progress_file_path(path);
     let file_path = path.to_string();
 
     handle_existing_files(
@@ -189,6 +211,26 @@ pub async fn run_download(
     let mut progress = load_download_progress(range, &progress_path).await?;
     let file = Arc::new(Mutex::new(File::create(&temp_path).await?));
     let limiter = speed_limiter.map(Arc::new);
+
+    // Start periodic progress update (runs in background, updates every 5 seconds)
+    let file_path_for_update = file_path.clone();
+    let url_for_update = url.clone();
+    let etag_for_update = etag.clone();
+    let last_modified_for_update = last_modified.clone();
+    let started_at_for_update = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .ok();
+
+    start_periodic_progress_update(
+        file_path_for_update,
+        length,
+        url_for_update,
+        etag_for_update,
+        last_modified_for_update,
+        started_at_for_update,
+    )
+    .await;
 
     let is_error = if range {
         sender.send(&event_name, format!("多线程下载中：{}", file_path), true);

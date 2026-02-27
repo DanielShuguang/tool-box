@@ -1,5 +1,7 @@
 use autostart::{is_auto_start_enabled, set_auto_start};
-use download::{download_file, download_file_with_config};
+use download::{
+    check_server_range_support, download_file, download_file_with_config, scan_unfinished_downloads,
+};
 use file_search::{cancel_search_task, search_disk_file_real_time};
 use font::get_system_fonts;
 use lyrics::{
@@ -82,6 +84,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             download_file,
             download_file_with_config,
+            scan_unfinished_downloads,
+            check_server_range_support,
             get_cpu_info,
             get_harddisk_info,
             get_system_fonts,

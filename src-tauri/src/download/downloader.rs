@@ -22,7 +22,7 @@ pub async fn check_request_info(
     url: &str,
     sender: MessageSender,
     event_name: String,
-) -> AnyResult<(bool, String, u64)> {
+) -> AnyResult<(bool, String, u64, Option<String>, Option<String>)> {
     let req = reqwest::Client::new().head(url);
     let resp = req.send().await?;
     if !resp.status().is_success() {
@@ -43,7 +43,17 @@ pub async fn check_request_info(
         .flatten()
         .ok_or(Error::msg("获取文件长度失败"))?;
 
-    Ok((range, url, length))
+    let etag = headers
+        .get("etag")
+        .and_then(|val| val.to_str().ok())
+        .map(|s| s.to_string());
+
+    let last_modified = headers
+        .get("last-modified")
+        .and_then(|val| val.to_str().ok())
+        .map(|s| s.to_string());
+
+    Ok((range, url, length, etag, last_modified))
 }
 
 pub async fn check_redirected_url(
@@ -88,14 +98,14 @@ pub async fn download(
         return Err(Error::msg("请求失败"));
     }
     let mut bytes = rep.bytes().await?;
-    
+
     if let Some(limiter) = speed_limiter {
         if let Some(limiter) = Arc::into_inner(limiter) {
             let mut limiter = limiter;
             limiter.wait(bytes.len() as u64).await;
         }
     }
-    
+
     let mut file = file.lock().await;
     file.seek(SeekFrom::Start(start)).await?;
     file.write_all_buf(&mut bytes).await?;
@@ -181,7 +191,10 @@ pub async fn load_progress(progress_path: &str) -> AnyResult<Vec<(u64, u64)>> {
     Ok(progress)
 }
 
-pub async fn load_download_progress(range: bool, progress_path: &str) -> AnyResult<Vec<(u64, u64)>> {
+pub async fn load_download_progress(
+    range: bool,
+    progress_path: &str,
+) -> AnyResult<Vec<(u64, u64)>> {
     if range {
         load_progress(progress_path).await
     } else {
