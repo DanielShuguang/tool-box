@@ -1,295 +1,294 @@
-# Tool Box - AGENTS.md
+# 工具箱 - 开发指南
 
-## Project Overview
+## 项目概述
 
-Personal desktop utility application built with Tauri (Rust backend + Vue 3 frontend).
+基于 Tauri（Rust 后端 + Vue 3 前端）构建的个人桌面工具应用程序。
 
-## Tech Stack
+## 技术栈
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Vue 3 (Composition API), TypeScript, Vite |
-| UI Framework | Naive UI |
-| CSS | UnoCSS (Atomic CSS) |
-| State Management | Pinia |
-| Routing | Vue Router |
-| Animation | Motion-v |
-| Desktop API | Tauri API |
-| Backend | Tauri 2.x (Rust) |
-| Async Runtime | Tokio |
-| HTTP Client | reqwest |
-| Package Manager | pnpm 10.4+ |
-
----
-
-## Environment Requirements
-
-- **Node.js**: >= 22.18.0 (managed by Volta)
-- **Rust**: >= 1.88
-- **pnpm**: >= 10.4.1
+| 层级        | 技术                                  |
+| ----------- | ------------------------------------- |
+| 前端        | Vue 3（组合式 API）、TypeScript、Vite |
+| UI 框架     | Naive UI                              |
+| CSS         | UnoCSS（原子化 CSS）、less            |
+| 状态管理    | Pinia                                 |
+| 路由        | Vue Router                            |
+| 动画        | Motion-v                              |
+| 桌面 API    | Tauri API                             |
+| 后端        | Tauri 2.x（Rust）                     |
+| 异步运行时  | Tokio                                 |
+| HTTP 客户端 | reqwest                               |
+| 包管理器    | pnpm 10.4+                            |
 
 ---
 
-## Code Conventions
+## 环境要求
 
-### Frontend (Vue 3 + TypeScript)
+- **Node.js**：>= 22.18.0（由 Volta 管理）
+- **Rust**：>= 1.88
+- **pnpm**：>= 10.4.1
 
-**File Naming**
-- Components: `PascalCase` (e.g., `Download.vue`)
-- Stores: `camelCase` (e.g., `download.ts`)
-- Utilities: `camelCase` (e.g., `formatDate.ts`)
-- Types: `camelCase` (e.g., `types/download.ts`)
+---
 
-**Code Style**
-- Single quotes
-- No semicolons
-- 2 space indentation
-- Line width: 100 characters
-- Arrow functions: no parentheses for single parameter
-- No trailing commas
-- Max 300 lines per file
-- Max 3 function parameters (use object params if exceeded)
-- Comments in Chinese when necessary
+## 代码规范
 
-**Component Structure**
+### 前端（Vue 3 + TypeScript）
+
+**文件命名**
+
+- 组件：`PascalCase`（例如 `Download.vue`）
+- 存储：`camelCase`（例如 `download.ts`）
+- 工具函数：`camelCase`（例如 `formatDate.ts`）
+- 类型：`camelCase`（例如 `types/download.ts`）
+
+**代码风格**
+
+- 单引号
+- 不使用分号
+- 2 空格缩进
+- 行宽：100 字符
+- 箭头函数：单个参数时不使用括号
+- 不使用尾随逗号
+- 单文件最多 300 行
+- 函数参数最多 3 个（超过时使用对象参数）
+- 必要时使用中文注释
+
+**组件结构**
+
 ```vue
 <script setup lang="ts">
-// 1. Imports
-// 2. Types/Interfaces
+// 1. 导入
+// 2. 类型/接口
 // 3. Props/Emits
-// 4. Reactive state
-// 5. Computed
-// 6. Watch
-// 7. Methods
-// 8. Lifecycle
+// 4. 响应式状态
+// 5. 计算属性
+// 6. 监听器
+// 7. 方法
+// 8. 生命周期
 </script>
 
 <template>
-  <!-- Template content -->
+  <!-- 模板内容 -->
 </template>
 
 <style scoped lang="scss">
-/* Scoped styles */
+/* 作用域样式 */
 </style>
 ```
 
-**Component Development**
-- Use `<script setup lang="ts">` syntax
-- Component file structure: `.vue` (template) + `logic.ts` (logic)
-- Use Composition API
-- Use TypeScript for type definitions
-- Use Naive UI component library
-- Split complex features into independent components
+**组件开发**
 
-**State Management (Pinia)**
-- Use setup store pattern with `defineStore`
-- Store files: `src/stores/*.ts`
-- Naming: feature-based (e.g., `download.ts`, `musicPlayer.ts`)
+- 使用 `<script setup lang="ts">` 语法
+- 组件文件结构：`.vue`（模板）+ `logic.ts`（逻辑）
+- 使用组合式 API
+- 使用 TypeScript 进行类型定义
+- 使用 Naive UI 组件库
+- 将复杂功能拆分为独立组件
+- 样式优先使用 UnoCSS 原子化 CSS，必要时使用 less 自定义样式
 
-**Auto-imports**
-Project uses Vite's unplugin plugins. Check `src/types/auto-imports.d.ts` and `src/types/components.d.ts` for auto-imported components and functions.
+**状态管理（Pinia）**
 
-### Backend (Rust)
+- 使用 `defineStore` 的 setup 模式
+- 存储文件位置：`src/stores/*.ts`
+- 命名：按功能命名（例如 `download.ts`、`musicPlayer.ts`）
 
-**File Naming**
-- Modules: `snake_case` (e.g., `file_search`)
-- Functions/Variables: `snake_case` (e.g., `search_disk_file`)
-- Structs: `PascalCase` (e.g., `SearchResult`)
-- Enums: `PascalCase` (e.g., `FileStatus`)
-- Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_FILE_SIZE`)
+**自动导入**
+项目使用 Vite 的 unplugin 插件。查看 `src/types/auto-imports.d.ts` 和 `src/types/components.d.ts` 了解自动导入的组件和函数。
 
-**Module Organization**
-- One module per feature domain
-- Commands defined with `#[tauri::command]` macro
-- Use `anyhow` for error handling
+### 后端（Rust）
 
-**Command Pattern**
+**文件命名**
+
+- 模块：`snake_case`（例如 `file_search`）
+- 函数/变量：`snake_case`（例如 `search_disk_file`）
+- 结构体：`PascalCase`（例如 `SearchResult`）
+- 枚举：`PascalCase`（例如 `FileStatus`）
+- 常量：`UPPER_SNAKE_CASE`（例如 `MAX_FILE_SIZE`）
+
+**模块组织**
+
+- 一个模块对应一个功能域
+- 使用 `#[tauri::command]` 宏定义命令
+- 使用 `anyhow` 进行错误处理
+
+**命令模式**
+
 ```rust
 #[tauri::command]
 async fn command_name(
     state: tauri::State<'_, AppState>,
     param: ParamType,
 ) -> Result<ReturnType, String> {
-    // Implementation
+    // 实现
 }
 ```
 
 ---
 
-## Naming Conventions
+## 命名规范
 
 ### TypeScript / JavaScript
 
-| Type | Naming | Example |
-|------|--------|---------|
-| Components | PascalCase | `AppSettings.vue` |
-| Files | kebab-case | `file-search.ts` |
-| Variables/Functions | camelCase | `searchDiskFile` |
-| Constants | UPPER_SNAKE_CASE | `MAX_FILE_SIZE` |
-| Types/Interfaces | PascalCase | `SearchResult` |
-| Enums | PascalCase | `FileStatus` |
+| 类型      | 命名方式         | 示例              |
+| --------- | ---------------- | ----------------- |
+| 组件      | PascalCase       | `AppSettings.vue` |
+| 文件      | kebab-case       | `file-search.ts`  |
+| 变量/函数 | camelCase        | `searchDiskFile`  |
+| 常量      | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`   |
+| 类型/接口 | PascalCase       | `SearchResult`    |
+| 枚举      | PascalCase       | `FileStatus`      |
 
 ### Rust
 
-| Type | Naming | Example |
-|------|--------|---------|
-| Modules | snake_case | `file_search` |
-| Functions/Variables | snake_case | `search_disk_file` |
-| Structs | PascalCase | `SearchResult` |
-| Enums | PascalCase | `FileStatus` |
-| Constants | UPPER_SNAKE_CASE | `MAX_FILE_SIZE` |
+| 类型      | 命名方式         | 示例               |
+| --------- | ---------------- | ------------------ |
+| 模块      | snake_case       | `file_search`      |
+| 函数/变量 | snake_case       | `search_disk_file` |
+| 结构体    | PascalCase       | `SearchResult`     |
+| 枚举      | PascalCase       | `FileStatus`       |
+| 常量      | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`    |
 
 ---
 
-## Code Quality
+## 代码质量
 
-### Frontend Commands
+### 前端命令
 
 ```bash
-# Lint check and auto-fix (only modified files)
+# 静态检查并自动修复（仅修改的文件）
 npx oxlint --fix <modified-files>
 
-# Code formatting (only modified files)
+# 代码格式化（仅修改的文件）
 npx oxfmt <modified-files>
 
-# Type check (with incremental build cache)
+# 类型检查（使用增量构建缓存）
 pnpm check
 ```
 
-### Backend Commands
+### 后端命令
 
 ```bash
-# Rust code formatting
+# Rust 代码格式化
 cargo fmt
 
-# Rust code linting
+# Rust 代码静态检查
 cargo clippy
 ```
 
-### Required Workflow
-After code modifications, MUST run:
-1. `pnpm lint` - Lint check
-2. `pnpm fmt` - Code formatting
-3. `pnpm build` - Build verification
+### 必选工作流
+
+代码修改后，必须执行：
+
+1. `pnpm lint` - 静态检查
+2. `pnpm fmt` - 代码格式化
+3. `pnpm build` - 构建验证
 
 ---
 
-## Linting & Formatting
+## 测试
 
-### Tools
-- **Linter**: oxlint (`.oxlintrc.json`)
-- **Formatter**: oxfmt (`.oxfmtrc.json`)
-- **Type Check**: vue-tsc (`tsconfig.json`)
-- **Git Hooks**: husky (pre-commit hook)
-
-### Commands
-```bash
-pnpm lint        # Run oxlint with auto-fix
-pnpm fmt         # Run oxfmt
-pnpm check       # Type check
-```
-
----
-
-## Testing
-
-- **Framework**: Vitest 4.0+
-- **Assertions**: @testing-library/jest-dom
+- **框架**：Vitest 4.0+
+- **断言库**：@testing-library/jest-dom
 
 ```bash
-pnpm test           # Run tests
-pnpm test:ui       # Run with UI
-pnpm test:coverage  # Run with coverage
+pnpm test           # 运行测试
+pnpm test:ui       # 使用 UI 运行
+pnpm test:coverage  # 使用覆盖率运行
 ```
 
-### Testing Notes
-When testing code that calls Tauri commands or uses `invoke`, use `@tauri-apps/api/mocks` to mock the backend behavior instead of calling the actual backend.
+### 测试说明
+
+测试调用 Tauri 命令或使用 `invoke` 的代码时，使用 `@tauri-apps/api/mocks` 来模拟后端行为，而不是调用真实的后端。
 
 ---
 
-## Tauri Commands Development
+## Tauri 命令开发
 
-### Backend (Rust) Development
-1. Create module in `src-tauri/src/`
-2. Define command with `#[tauri::command]` macro
-3. Register command in `lib.rs` `invoke_handler`
-4. Return type: `Result<T, String>`
+### 后端（Rust）开发
 
-### Frontend (TypeScript) Development
-1. Create file in `src/backend-channel/`
-2. Use `invoke` function to call backend commands
-3. Define TypeScript types corresponding to Rust structs
+1. 在 `src-tauri/src/` 中创建模块
+2. 使用 `#[tauri::command]` 宏定义命令
+3. 在 `lib.rs` 的 `invoke_handler` 中注册命令
+4. 返回类型：`Result<T, String>`
+
+### 前端（TypeScript）开发
+
+1. 在 `src/backend-channel/` 中创建文件
+2. 使用 `invoke` 函数调用后端命令
+3. 定义与 Rust 结构体对应的 TypeScript 类型
 
 ---
 
-## Tauri Commands API
+## Tauri 命令 API
 
-### Registration (Rust)
-Commands registered in `src-tauri/src/lib.rs`:
+### 注册（Rust）
+
+命令注册在 `src-tauri/src/lib.rs` 中：
+
 ```rust
 .invoke_handler(tauri::generate_handler![
     command_name,
-    // ...other commands
+    // ...其他命令
 ])
 ```
 
 ---
 
-## Routing
+## 路由
 
-- **Mode**: Hash history (`createWebHashHistory`)
-- **Pattern**: Lazy-loaded views
-- **Meta**: Each route includes `title` in meta
+- **模式**：哈希历史模式（`createWebHashHistory`）
+- **模式**：懒加载视图
+- **元信息**：每个路由在 meta 中包含 `title`
 
 ```typescript
 {
   path: '/feature',
   component: () => import('@/views/Feature/Feature.vue'),
-  meta: { title: 'Feature Name' }
+  meta: { title: '功能名称' }
 }
 ```
 
 ---
 
-## Git Commit
+## Git 提交
 
-- Use husky pre-commit hook (auto-runs lint before commit)
-- Commit messages in Chinese
-- Keep commit messages concise and clear
-
----
-
-## Tauri Plugins
-
-| Plugin | Purpose |
-|--------|---------|
-| tauri-plugin-fs | File system access |
-| tauri-plugin-dialog | Native dialogs |
-| tauri-plugin-shell | Shell commands |
-| tauri-plugin-notification | System notifications |
-| tauri-plugin-os | OS info |
-| tauri-plugin-http | HTTP requests |
-| tauri-plugin-store | Persistent storage |
-| tauri-plugin-cli | CLI arguments |
-| tauri-plugin-autostart | Auto-start |
+- 使用 husky 提交前钩子（提交前自动运行 lint）
+- 提交信息使用中文
+- 保持提交信息简洁明了
 
 ---
 
-## Development Commands
+## Tauri 插件
+
+| 插件                      | 用途         |
+| ------------------------- | ------------ |
+| tauri-plugin-fs           | 文件系统访问 |
+| tauri-plugin-dialog       | 原生对话框   |
+| tauri-plugin-shell        | Shell 命令   |
+| tauri-plugin-notification | 系统通知     |
+| tauri-plugin-os           | 操作系统信息 |
+| tauri-plugin-http         | HTTP 请求    |
+| tauri-plugin-store        | 持久化存储   |
+| tauri-plugin-cli          | CLI 参数     |
+| tauri-plugin-autostart    | 自动启动     |
+
+---
+
+## 开发命令
 
 ```bash
-pnpm dev          # Start Vite dev server
-pnpm tauri dev   # Start Tauri development
-pnpm build       # Build frontend (type check + Vite build)
-pnpm tauri build # Build Tauri application
-pnpm test        # Run tests
-pnpm lint        # Lint with auto-fix
-pnpm check       # Type check
+pnpm dev          # 启动 Vite 开发服务器
+pnpm tauri dev   # 启动 Tauri 开发
+pnpm build       # 构建前端（类型检查 + Vite 构建）
+pnpm tauri build # 构建 Tauri 应用程序
+pnpm test        # 运行测试
+pnpm lint        # 静态检查并自动修复
+pnpm check       # 类型检查
 ```
 
 ---
 
-## Build Requirements
+## 构建要求
 
 - Node.js >= 22.18.0
 - Rust >= 1.88
@@ -297,23 +296,26 @@ pnpm check       # Type check
 
 ---
 
-## Window Configuration
+## 窗口配置
 
-- **Main Window**: `label: "main"`, decorations disabled, min 1024x768
-- **Lyrics Window**: `label: "lyrics-window"`, transparent, always on top, 600x80
+- **主窗口**：`label: "main"`，无装饰，最小 1024x768
+- **歌词窗口**：`label: "lyrics-window"`，透明，始终置顶，600x80
 
 ---
 
-## Important Notes
+## 重要说明
 
-### Code Quality
-1. After code modifications, MUST run `pnpm lint`, `pnpm fmt`, and `pnpm build`
-2. Follow existing code style and naming conventions
+### 代码质量
 
-### Feature Development
-1. New features: create new page in `src/views/`
-2. New Tauri commands: update both frontend and backend
+1. 代码修改后，必须运行 `pnpm lint`、`pnpm fmt` 和 `pnpm build`
+2. 遵循现有的代码风格和命名规范
 
-### Type Safety
-1. Use TypeScript strict mode
-2. Avoid `any` type - use `unknown` or specific types instead
+### 功能开发
+
+1. 新功能：在 `src/views/` 中创建新页面
+2. 新 Tauri 命令：同时更新前端和后端
+
+### 类型安全
+
+1. 使用 TypeScript 严格模式
+2. 避免使用 `any` 类型 - 使用 `unknown` 或具体类型代替
