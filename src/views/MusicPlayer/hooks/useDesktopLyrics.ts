@@ -1,83 +1,53 @@
-import { invoke } from '@tauri-apps/api/core'
-import { LyricsStyle } from '@/types/lyrics'
+import {
+  createLyricsWindow,
+  closeLyricsWindow,
+  sendLyricsToWindow,
+  checkLyricsWindowOpen,
+  clearLyricsWindow,
+  updateLyricsStyle
+} from '@/backend-channel/desktop-lyrics'
+import type { LyricsStyle } from '@/types/lyrics'
 
 export function useDesktopLyrics() {
-  const isLyricsWindowOpen = ref(false)
+  const isLyricsWindowOpenState = ref(false)
 
-  async function createLyricsWindow() {
-    try {
-      await invoke('create_lyrics_window')
-      isLyricsWindowOpen.value = true
-    } catch (error) {
-      console.error('创建歌词窗口失败:', error)
-      throw error
-    }
+  async function checkAndSyncState() {
+    isLyricsWindowOpenState.value = await checkLyricsWindowOpen()
   }
 
-  async function closeLyricsWindow() {
-    try {
-      await invoke('close_lyrics_window')
-      isLyricsWindowOpen.value = false
-    } catch (error) {
-      console.error('关闭歌词窗口失败:', error)
-      throw error
-    }
+  async function createWindow() {
+    await createLyricsWindow()
+    isLyricsWindowOpenState.value = true
   }
 
-  async function sendLyricsToWindow(text: string) {
-    if (!isLyricsWindowOpen.value) return
-
-    try {
-      await invoke('send_lyrics_to_window', {
-        eventType: 'update-lyrics',
-        data: { text }
-      })
-    } catch (error) {
-      console.error('发送歌词失败:', error)
-    }
+  async function closeWindow() {
+    await closeLyricsWindow()
+    isLyricsWindowOpenState.value = false
   }
 
-  async function checkLyricsWindowOpen() {
-    try {
-      isLyricsWindowOpen.value = await invoke<boolean>('is_lyrics_window_open')
-    } catch (error) {
-      console.error('检查歌词窗口状态失败:', error)
-    }
+  async function sendLyrics(text: string) {
+    await sendLyricsToWindow(text)
   }
 
-  async function clearLyricsWindow() {
-    if (!isLyricsWindowOpen.value) return
-
-    try {
-      await invoke('send_lyrics_to_window', {
-        eventType: 'clear-lyrics',
-        data: {}
-      })
-    } catch (error) {
-      console.error('清除歌词失败:', error)
-    }
+  async function clearLyrics() {
+    await clearLyricsWindow()
   }
 
-  async function updateLyricsStyle(style: LyricsStyle) {
-    if (!isLyricsWindowOpen.value) return
-
-    try {
-      await invoke('send_lyrics_to_window', {
-        eventType: 'update-style',
-        data: style
-      })
-    } catch (error) {
-      console.error('更新歌词样式失败:', error)
-    }
+  async function changeStyle(style: LyricsStyle) {
+    await updateLyricsStyle(style)
   }
+
+  onMounted(() => {
+    checkAndSyncState()
+  })
 
   return {
-    isLyricsWindowOpen,
-    createLyricsWindow,
-    closeLyricsWindow,
-    sendLyricsToWindow,
-    checkLyricsWindowOpen,
-    clearLyricsWindow,
-    updateLyricsStyle
+    isLyricsWindowOpen: isLyricsWindowOpenState,
+    createLyricsWindow: createWindow,
+    closeLyricsWindow: closeWindow,
+    sendLyricsToWindow: sendLyrics,
+    checkLyricsWindowOpen: checkAndSyncState,
+    clearLyricsWindow: clearLyrics,
+    updateLyricsStyle: changeStyle
   }
 }
