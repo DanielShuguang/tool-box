@@ -18,6 +18,7 @@ import {
   useDrawFile
 } from './hooks'
 import { SUPPORTED_EXPORT_FORMATS, DEFAULT_CANVAS_CONFIG, CURSOR_MAP } from './constants'
+import { hasCanvasContent } from './utils/canvasUtils'
 import type { ObjectProperties, ExportFormat, ExportMode } from './types'
 
 const message = useMessage()
@@ -257,15 +258,21 @@ const handleSelectionCleared = () => {
 const handleRestore = async () => {
   const savedState = await loadFromLocalStorage()
   if (savedState) {
-    message.info('检测到自动保存的画布，正在恢复...')
-    setRestoring(true)
-    const success = restoreFromState(savedState, () => {
-      setRestoring(false)
-      message.success('恢复成功')
-    })
-    if (!success) {
-      setRestoring(false)
-      message.error('恢复失败，已创建新画布')
+    // 检查保存的状态是否包含实际内容
+    if (hasCanvasContent(savedState.json)) {
+      message.info('检测到自动保存的画布，正在恢复...')
+      setRestoring(true)
+      const success = restoreFromState(savedState, () => {
+        setRestoring(false)
+        message.success('恢复成功')
+      })
+      if (!success) {
+        setRestoring(false)
+        message.error('恢复失败，已创建新画布')
+        saveToHistory()
+      }
+    } else {
+      // 没有实际内容，不显示恢复消息，直接创建新画布
       saveToHistory()
     }
   } else {
