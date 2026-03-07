@@ -46,7 +46,14 @@ const {
   destroy
 } = history
 const { currentTool, setTool } = drawingTools
-const { objectProperties, deleteSelected, clearCanvas, updateObjectProperty } = objectOps
+const {
+  objectProperties,
+  fillColor,
+  deleteSelected,
+  clearCanvas,
+  updateObjectProperty,
+  updateFillColor
+} = objectOps
 const { importFromFile, getCanvasDataURL, getCanvasSVG } = fileOps
 const imageOps = useImageOperations()
 const { insertImageFromFile, insertImageFromClipboard, insertImageFromDrop } = imageOps
@@ -162,6 +169,11 @@ const handlePropertyUpdate = (property: string, value: unknown) => {
   const canvas = getCanvas()
   if (!canvas) return
   updateObjectProperty(property as keyof ObjectProperties, value, canvas)
+
+  // 当更新填充颜色时，同步更新填色工具使用的颜色
+  if (property === 'fill') {
+    updateFillColor(value as string)
+  }
 }
 
 const setupEvents = () => {
@@ -191,7 +203,8 @@ const handleMouseDown = (opt: unknown) => {
     const targetInfo = canvas.searchPossibleTargets(canvas.getObjects(), pointer)
     const target = targetInfo?.target
     if (target) {
-      target.set('fill', objectProperties.value.fill)
+      // 使用独立的 fillColor，不受选中对象影响
+      target.set('fill', fillColor.value)
       target.setCoords()
       canvas.renderAll()
       saveToHistory()

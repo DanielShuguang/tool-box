@@ -11,6 +11,10 @@ export function useObjectOperations() {
   const objectProperties = ref<ObjectProperties>({ ...DEFAULT_OBJECT_PROPERTIES })
   const selectedObject = shallowRef<FabricObject | null>(null)
 
+  // 独立的填充颜色状态，专门用于填色工具
+  // 不受选中对象影响，始终保持用户最后设置的填充颜色
+  const fillColor = ref<string>('#000000')
+
   const getSelectedObject = () => selectedObject.value
 
   const setSelectedObject = (obj: any) => {
@@ -24,15 +28,21 @@ export function useObjectOperations() {
     selectedObject.value = null
   }
 
+  // 更新属性面板显示，但不更新 fillColor
   const updatePropertiesFromObject = (obj: any) => {
     objectProperties.value = {
-      fill: (obj.fill as string) || '#000000',
+      fill: (obj.fill as string) || 'transparent',
       stroke: (obj.stroke as string) || '#000000',
       strokeWidth: obj.strokeWidth || 2,
       opacity: obj.opacity ?? 1,
       strokeDashArray: obj.strokeDashArray || [],
       fontFamily: obj.fontFamily || 'Arial'
     }
+  }
+
+  // 更新填充颜色（用于填色工具）
+  const updateFillColor = (color: string) => {
+    fillColor.value = color
   }
 
   const updateObjectProperty = (
@@ -94,10 +104,12 @@ export function useObjectOperations() {
   return {
     objectProperties,
     selectedObject,
+    fillColor,
     getSelectedObject,
     setSelectedObject,
     clearSelection,
     updateObjectProperty,
+    updateFillColor,
     deleteSelected,
     clearCanvas,
     applyPropertiesToSelected,
