@@ -55,6 +55,11 @@ const routes: RouteRecordRaw[] = [
     path: '/canvasBoard',
     component: () => import('@/views/CanvasBoard/CanvasBoard.vue'),
     meta: { title: '画板' }
+  },
+  {
+    path: '/randomPicker',
+    component: () => import('@/views/RandomPicker/RandomPicker.vue'),
+    meta: { title: '随机选择' }
   }
 ]
 
