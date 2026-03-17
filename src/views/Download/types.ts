@@ -92,6 +92,8 @@ export interface DownloadSettings {
   defaultDir: string
   /** 同时下载的最大任务数 */
   maxConcurrent: number
+  /** 分片下载线程数 */
+  downloadThreads: number
   /** 默认限速（字节/秒，null表示不限速） */
   defaultSpeedLimit: number | null
   /** 下载完成后是否打开文件 */

@@ -36,6 +36,7 @@ const downloadDefaultDir = ref('')
 // 默认限速输入，单位 MB/s
 const downloadDefaultSpeedLimitMB = ref<string>('')
 const downloadMaxConcurrent = ref(3)
+const downloadThreads = ref(5)
 const downloadOpenAfterComplete = ref(false)
 
 onMounted(async () => {
@@ -135,6 +136,7 @@ async function loadDownloadSettings() {
       defaultDir: string
       defaultSpeedLimit: number | null
       maxConcurrent: number
+      downloadThreads: number
       openAfterComplete: boolean
     }>(
       'download_settings',
@@ -142,6 +144,7 @@ async function loadDownloadSettings() {
         defaultDir: '',
         defaultSpeedLimit: null,
         maxConcurrent: 3,
+        downloadThreads: 5,
         openAfterComplete: false
       },
       ConfigFile.Settings
@@ -153,6 +156,7 @@ async function loadDownloadSettings() {
       ? (settings.defaultSpeedLimit / (1024 * 1024)).toFixed(2)
       : ''
     downloadMaxConcurrent.value = settings.maxConcurrent
+    downloadThreads.value = settings.downloadThreads ?? 5
     downloadOpenAfterComplete.value = settings.openAfterComplete
   } catch (error) {
     console.error('加载下载设置失败:', error)
@@ -200,6 +204,13 @@ async function handleMaxConcurrentChange(value: number | null) {
   }
 }
 
+async function handleDownloadThreadsChange(value: number | null) {
+  if (value !== null) {
+    downloadThreads.value = value
+    await saveDownloadSettings()
+  }
+}
+
 async function handleOpenAfterCompleteChange(value: boolean) {
   downloadOpenAfterComplete.value = value
   await saveDownloadSettings()
@@ -213,6 +224,7 @@ async function saveDownloadSettings(speedLimit?: number | null) {
         defaultDir: downloadDefaultDir.value,
         defaultSpeedLimit: speedLimit ?? null,
         maxConcurrent: downloadMaxConcurrent.value,
+        downloadThreads: downloadThreads.value,
         openAfterComplete: downloadOpenAfterComplete.value
       },
       ConfigFile.Settings
@@ -328,6 +340,17 @@ async function saveDownloadSettings(speedLimit?: number | null) {
           style="width: 150px"
           @update:value="handleMaxConcurrentChange" />
         <span class="ml-[10px] text-[--textColor2]">个任务同时下载</span>
+      </n-form-item>
+
+      <n-form-item label="分片下载线程">
+        <n-input-number
+          v-model:value="downloadThreads"
+          :min="1"
+          :max="16"
+          :step="1"
+          style="width: 150px"
+          @update:value="handleDownloadThreadsChange" />
+        <span class="ml-[10px] text-[--textColor2]">每个任务的下载线程数</span>
       </n-form-item>
 
       <n-form-item label="下载完成后打开">

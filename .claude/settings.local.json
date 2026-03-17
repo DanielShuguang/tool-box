@@ -4,7 +4,8 @@
       "Bash(npx oxlint:*)",
       "Bash(pnpm check:*)",
       "Bash(npx oxfmt:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(cd:*)"
     ]
   }
 }

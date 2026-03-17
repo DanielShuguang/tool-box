@@ -1,4 +1,4 @@
-import { ConfigFile } from '@/utils/storage'
+import { load, ConfigFile } from '@/utils/storage'
 import type {
   DownloadTask,
   DownloadStatus,
@@ -13,6 +13,7 @@ import { Command } from '@tauri-apps/plugin-shell'
 const defaultDownloadSettings: DownloadSettings = {
   defaultDir: '',
   maxConcurrent: 3,
+  downloadThreads: 5,
   defaultSpeedLimit: null,
   openAfterComplete: false,
   clipboardMonitor: false
@@ -69,30 +70,24 @@ export const useDownloadStore = defineStore(
     // 所有任务
     const tasks = ref<DownloadTask[]>([])
 
+    // 等待队列中的任务 ID
+    const pendingQueue = ref<string[]>([])
+
     // 加载设置
     async function loadSettings() {
       try {
-        // 延迟初始化，确保 store 持久化已完成
-        await new Promise(resolve => setTimeout(resolve, 100))
-        // 从持久化数据中恢复设置
-        const saved = localStorage.getItem('download_settings')
-        if (saved) {
-          const parsed = JSON.parse(saved)
-          settings.value = { ...defaultDownloadSettings, ...parsed }
-        }
+        const saved = await load<{
+          defaultDir: string
+          maxConcurrent: number
+          downloadThreads: number
+          defaultSpeedLimit: number | null
+          openAfterComplete: boolean
+        }>('download_settings', { ...defaultDownloadSettings }, ConfigFile.Settings)
+        settings.value = { ...defaultDownloadSettings, ...saved }
       } catch (error) {
         console.error('加载下载设置失败:', error)
       } finally {
         isSettingsLoaded.value = true
-      }
-    }
-
-    // 保存设置
-    async function saveSettings() {
-      try {
-        localStorage.setItem('download_settings', JSON.stringify(settings.value))
-      } catch (error) {
-        console.error('保存下载设置失败:', error)
       }
     }
 
@@ -101,7 +96,6 @@ export const useDownloadStore = defineStore(
       if (!settings.value.defaultDir) {
         const { downloadDir } = await import('@tauri-apps/api/path')
         settings.value.defaultDir = await downloadDir()
-        await saveSettings()
       }
       return settings.value.defaultDir
     }
@@ -137,6 +131,26 @@ export const useDownloadStore = defineStore(
     // 根据ID获取任务
     function getTaskById(id: string): DownloadTask | undefined {
       return tasks.value.find(t => t.id === id)
+    }
+
+    // 获取当前下载数
+    const activeDownloadCount = computed(
+      () => tasks.value.filter(t => t.status === 'downloading').length
+    )
+
+    // 检查是否可以启动新任务
+    function canStartNewTask(): boolean {
+      return activeDownloadCount.value < settings.value.maxConcurrent
+    }
+
+    // 启动下一个等待中的任务
+    function startNextPendingTask() {
+      if (!canStartNewTask() || pendingQueue.value.length === 0) return
+
+      const nextId = pendingQueue.value.shift()
+      if (nextId) {
+        startTask(nextId)
+      }
     }
 
     // 创建下载任务
@@ -175,6 +189,14 @@ export const useDownloadStore = defineStore(
       tasks.value.unshift(task)
       saveTasksToStorage()
 
+      // 尝试启动任务
+      if (canStartNewTask()) {
+        startTask(id)
+      } else {
+        // 加入等待队列
+        pendingQueue.value.push(id)
+      }
+
       return task
     }
 
@@ -201,7 +223,7 @@ export const useDownloadStore = defineStore(
           url: task.url,
           dirPath: task.saveDir,
           pluginName: 'download',
-          concurrent: 3,
+          concurrent: settings.value.downloadThreads,
           fileName: task.fileName || undefined,
           speedLimitMbps: task.speedLimit ? task.speedLimit / (1024 * 1024) : undefined
         })
@@ -260,6 +282,11 @@ export const useDownloadStore = defineStore(
 
       tasks.value[index] = updatedTask
       saveTasksToStorage()
+
+      // 任务状态变为终态时，尝试启动下一个等待中的任务
+      if (['completed', 'failed', 'cancelled'].includes(updates.status as string)) {
+        startNextPendingTask()
+      }
     }
 
     // 暂停下载任务
@@ -290,6 +317,12 @@ export const useDownloadStore = defineStore(
     async function cancelTask(id: string) {
       const task = getTaskById(id)
       if (!task) return
+
+      // 从等待队列中移除
+      const queueIndex = pendingQueue.value.indexOf(id)
+      if (queueIndex !== -1) {
+        pendingQueue.value.splice(queueIndex, 1)
+      }
 
       try {
         const { invoke } = await import('@tauri-apps/api/core')
@@ -433,9 +466,14 @@ export const useDownloadStore = defineStore(
       settings,
       isSettingsLoaded,
       loadSettings,
-      saveSettings,
       getDefaultDir,
       selectDownloadDir,
+
+      // 任务队列
+      pendingQueue,
+      activeDownloadCount,
+      canStartNewTask,
+      startNextPendingTask,
 
       // 任务
       allTasks: tasks,
