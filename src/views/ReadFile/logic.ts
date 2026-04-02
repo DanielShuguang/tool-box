@@ -7,7 +7,7 @@ import { downloadFile } from '@/backend-channel/download'
 import { writeTextFile } from '@tauri-apps/plugin-fs'
 import { open } from '@tauri-apps/plugin-dialog'
 import mammoth from 'mammoth'
-import XLSX from 'xlsx'
+import * as XLSX from 'xlsx'
 import { Nullable } from '@/types/common'
 
 const pluginName = 'ReadFile'
