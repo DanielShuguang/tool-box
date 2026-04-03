@@ -45,66 +45,96 @@ async function handleCopy(path: string) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-[10px]">
-    <n-form label-placement="left">
-      <n-form-item label="文件名">
-        <n-input :disabled="taskStatus === SearchStatus.Processing" v-model:value="searchText" />
-      </n-form-item>
-      <n-form-item label="需要搜索的磁盘">
-        <n-checkbox class="mr-[10px]" v-model:checked="selectAll" label="全选"></n-checkbox>
-        <n-checkbox-group v-model:value="selectedPoint">
-          <n-space item-class="flex">
-            <n-checkbox v-for="disk in diskMountPoints" :value="disk" :label="disk" :key="disk" />
-          </n-space>
-        </n-checkbox-group>
-      </n-form-item>
-      <n-form-item label="搜索使用线程数">
-        <n-input-number v-model:value="concurrentCount" :min="1" />
-        <span class="ml-[15px]">搜索线程越多，速度越快，请根据电脑配置合理设置</span>
-      </n-form-item>
-      <n-form-item label="搜索文件夹">
-        <n-switch
-          :disabled="taskStatus === SearchStatus.Processing"
-          v-model:value="supportFolder" />
-      </n-form-item>
-      <n-form-item>
+  <div class="flex flex-col h-full gap-3 overflow-hidden">
+    <!-- 搜索配置 -->
+    <div class="config-card">
+      <p class="section-title">搜索配置</p>
+      <n-form label-placement="top" :show-feedback="false" :show-require-mark="false">
+        <n-form-item label="文件名">
+          <n-input
+            v-model:value="searchText"
+            placeholder="输入文件名关键词"
+            :disabled="taskStatus === SearchStatus.Processing" />
+        </n-form-item>
+        <n-form-item label="搜索磁盘" class="mt-3">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <n-checkbox v-model:checked="selectAll" label="全选" />
+            <n-divider vertical />
+            <n-checkbox-group v-model:value="selectedPoint">
+              <n-space :item-style="{ display: 'flex' }">
+                <n-checkbox
+                  v-for="disk in diskMountPoints"
+                  :key="disk"
+                  :value="disk"
+                  :label="disk" />
+              </n-space>
+            </n-checkbox-group>
+          </div>
+        </n-form-item>
+        <div class="grid grid-cols-2 gap-4 mt-3">
+          <n-form-item label="搜索线程数">
+            <n-input-number
+              v-model:value="concurrentCount"
+              :min="1"
+              class="w-full"
+              :disabled="taskStatus === SearchStatus.Processing" />
+          </n-form-item>
+          <n-form-item label="包含文件夹">
+            <div class="flex items-center h-[34px]">
+              <n-switch
+                v-model:value="supportFolder"
+                :disabled="taskStatus === SearchStatus.Processing" />
+            </div>
+          </n-form-item>
+        </div>
+      </n-form>
+    </div>
+
+    <!-- 操作栏 -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
         <n-button
           v-if="taskStatus === SearchStatus.Default"
-          :disabled="!selectedPoint.length || !searchText"
           type="primary"
+          :disabled="!selectedPoint.length || !searchText"
           @click="handleSearch">
           搜索
         </n-button>
         <n-button
           v-else
           :loading="taskStatus === SearchStatus.Shutdown"
+          type="warning"
           @click="handleStopSearchTask">
-          取消
+          取消搜索
         </n-button>
-        <n-button v-if="list.length" class="ml-[10px]" @click="clearResult">清空</n-button>
-        <n-alert v-if="list.length" class="ml-[15px]" type="info">
-          点击路径可以快速打开文件所在文件夹，打开高权限文件夹需要赋予应用所需权限，否则可能会打开失败。
-        </n-alert>
-      </n-form-item>
-    </n-form>
+        <n-button v-if="list.length" @click="clearResult">清空结果</n-button>
+      </div>
+      <span v-if="list.length" class="text-[13px] text-[--textColor3]">
+        共找到
+        <b class="text-[--textColorBase] font-semibold">{{ list.length }}</b>
+        个结果
+      </span>
+    </div>
 
-    <div v-show="renderItems.length" class="position-relative flex-1 min-h-0">
-      <n-spin
-        v-if="taskStatus === SearchStatus.Processing"
-        class="position-(absolute top-[10px] right-[10px])"
-        size="small" />
-      <div
-        class="bg-[--avatarColor] size-full border-(1px solid) border-[--borderColor] p-[10px] box-border"
-        :="containerProps">
-        <div :="wrapperProps">
-          <div
-            v-for="item in list"
-            :key="item.data.path"
-            class="flex items-center px-[10px] h-[30px] gap-[15px]">
-            <div>{{ item.index + 1 }}.</div>
-            <n-tooltip>
+    <!-- 搜索结果 -->
+    <div v-show="renderItems.length" class="result-panel flex-1 min-h-0">
+      <div class="result-header">
+        <p class="section-title !mb-0">搜索结果</p>
+        <div class="flex items-center gap-2">
+          <span class="text-[12px] text-[--textColor3]">点击路径可打开所在文件夹</span>
+          <n-spin v-if="taskStatus === SearchStatus.Processing" size="small" />
+        </div>
+      </div>
+      <div class="result-body" v-bind="containerProps">
+        <div v-bind="wrapperProps">
+          <div v-for="item in list" :key="item.data.path" class="result-row">
+            <span class="row-index">{{ item.index + 1 }}</span>
+            <n-tooltip :delay="300">
               <template #trigger>
-                <n-icon :size="15">
+                <n-icon
+                  :size="14"
+                  class="row-type-icon shrink-0"
+                  :class="item.data.isDir ? 'text-[--warningColor]' : 'text-[--textColor3]'">
                   <FolderOpenOutline v-if="item.data.isDir" />
                   <DocumentTextOutline v-else />
                 </n-icon>
@@ -114,7 +144,7 @@ async function handleCopy(path: string) {
             <n-tooltip content-class="max-w-[70vw]" :delay="500">
               <template #trigger>
                 <PathHighlight
-                  class="text-ellipsis overflow-hidden text-nowrap cursor-pointer hover:underline"
+                  class="row-path"
                   highlight-class="text-[--errorColor] underline bg-[transparent]"
                   :data="item.data.path"
                   :search="searchText"
@@ -126,13 +156,13 @@ async function handleCopy(path: string) {
                 highlight-class="text-[--errorColor] underline bg-[transparent]"
                 :search="searchText" />
             </n-tooltip>
-            <span v-if="!item.data.isDir" class="text-[--infoColor] text-nowrap">
+            <span v-if="!item.data.isDir" class="row-size">
               {{ getCorrectSize(item.data.size) }}
             </span>
             <n-tooltip>
               <template #trigger>
-                <n-icon :size="15" class="cursor-pointer hover:text-[--primaryColorHover]">
-                  <Copy @click="handleCopy(item.data.path)" />
+                <n-icon size="14" class="row-copy" @click="handleCopy(item.data.path)">
+                  <Copy />
                 </n-icon>
               </template>
               复制路径
@@ -143,3 +173,117 @@ async function handleCopy(path: string) {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.config-card {
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background-color: var(--cardColor);
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--textColor3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0 0 10px;
+}
+
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  overflow: hidden;
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: var(--cardColor);
+    border-bottom: 1px solid var(--borderColor);
+    flex-shrink: 0;
+  }
+
+  .result-body {
+    flex: 1;
+    overflow-y: auto;
+    background-color: var(--actionColor);
+  }
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--dividerColor);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--hoverColor, rgba(128, 128, 128, 0.08));
+
+    .row-copy {
+      opacity: 1;
+    }
+  }
+}
+
+.row-index {
+  font-size: 11px;
+  color: var(--textColor3);
+  font-variant-numeric: tabular-nums;
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.row-type-icon {
+  flex-shrink: 0;
+}
+
+.row-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--textColorBase);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.row-size {
+  font-size: 11px;
+  color: var(--infoColor);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.row-copy {
+  opacity: 0;
+  cursor: pointer;
+  color: var(--textColor3);
+  flex-shrink: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    color: var(--primaryColor);
+  }
+}
+</style>
