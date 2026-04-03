@@ -170,11 +170,9 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
           v-show="!openSettings"
           class="w-full h-full p-[5px] box-border overflow-auto"
           v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <keep-alive>
-              <component :is="Component" class="size-full" />
-            </keep-alive>
-          </transition>
+          <keep-alive>
+            <component :is="Component" class="size-full" />
+          </keep-alive>
         </router-view>
       </div>
     </div>
@@ -291,15 +289,5 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
       }
     }
   }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.18s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>
