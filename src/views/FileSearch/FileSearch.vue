@@ -107,11 +107,11 @@ async function handleCopy(path: string) {
           @click="handleStopSearchTask">
           取消搜索
         </n-button>
-        <n-button v-if="list.length" @click="clearResult">清空结果</n-button>
+        <n-button v-if="renderItems.length" @click="clearResult">清空结果</n-button>
       </div>
-      <span v-if="list.length" class="text-[13px] text-[--textColor3]">
+      <span v-if="renderItems.length" class="text-[13px] text-[--textColor3]">
         共找到
-        <b class="text-[--textColorBase] font-semibold">{{ list.length }}</b>
+        <b class="text-[--textColorBase] font-semibold">{{ renderItems.length }}</b>
         个结果
       </span>
     </div>
