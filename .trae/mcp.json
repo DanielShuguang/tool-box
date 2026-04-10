@@ -1,7 +1,0 @@
-{
-  "mcpServers": {
-    "vue-mcp": {
-      "url": "http://localhost:8890/mcp"
-    }
-  }
-}
