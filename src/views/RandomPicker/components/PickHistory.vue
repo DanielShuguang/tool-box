@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRandomPickerStore } from '@/stores/randomPicker'
-import { TimeOutline } from '@vicons/ionicons5'
 
 const store = useRandomPickerStore()
 const { history } = storeToRefs(store)
@@ -17,7 +16,14 @@ const handleClear = () => {
 
 // 格式化时间
 const formatTime = (timestamp: number): string => {
-  return new Date(timestamp).toLocaleString('zh-CN')
+  const date = new Date(timestamp)
+  const today = new Date()
+  const isToday = date.toDateString() === today.toDateString()
+
+  if (isToday) {
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }
+  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 
 // 获取模式名称
@@ -32,25 +38,26 @@ const getModeName = (mode: string): string => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full w-80 border-l border-[var(--border-color)]">
     <!-- 头部操作栏 -->
-    <div class="px-4 py-3 border-b border-gray-100">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium text-gray-600">选择历史 ({{ history.length }})</span>
-        <div v-if="history.length > 0" class="flex gap-1">
-          <n-button size="tiny" @click="handleUndo">撤销</n-button>
-          <n-button size="tiny" type="error" @click="handleClear">清空</n-button>
-        </div>
+    <div class="px-4 py-3 border-b border-[var(--border-color)] flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium">选择历史</span>
+        <n-tag v-if="history.length > 0" size="small" round>{{ history.length }}</n-tag>
+      </div>
+      <div v-if="history.length > 0" class="flex gap-1">
+        <n-button size="tiny" quaternary type="warning" @click="handleUndo">撤销</n-button>
+        <n-button size="tiny" quaternary type="error" @click="handleClear">清空</n-button>
       </div>
     </div>
 
     <!-- 历史列表 -->
     <div class="flex-1 overflow-auto">
-      <div v-if="history.length > 0" class="p-2">
+      <div v-if="history.length > 0" class="p-3">
         <div
           v-for="item in history"
           :key="item.id"
-          class="p-3 rounded-lg mb-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-150">
+          class="p-3 rounded-lg mb-2 bg-[var(--hover-color)]">
           <!-- 时间戳和模式 -->
           <div class="flex items-center gap-2 mb-2">
             <n-tag size="small" type="info">
@@ -59,13 +66,18 @@ const getModeName = (mode: string): string => {
             <n-tag v-if="item.target" size="small">
               {{ item.target.name }}
             </n-tag>
-            <span class="text-xs text-gray-400 flex-1">
+            <span class="text-xs text-[var(--text-color3)] flex-1">
               {{ formatTime(item.timestamp) }}
             </span>
           </div>
           <!-- 选中的结果 -->
           <div class="flex flex-wrap gap-1">
-            <n-tag v-for="selected in item.selected" :key="selected.id" type="success" size="small">
+            <n-tag
+              v-for="selected in item.selected"
+              :key="selected.id"
+              type="success"
+              size="small"
+              round>
               {{ selected.name }}
             </n-tag>
           </div>
@@ -73,11 +85,10 @@ const getModeName = (mode: string): string => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-gray-400">
-        <n-icon size="48" :depth="3">
-          <TimeOutline />
-        </n-icon>
-        <span class="mt-2 text-sm">暂无选择记录</span>
+      <div
+        v-else
+        class="flex flex-col items-center justify-center h-full text-[var(--text-color3)]">
+        <n-empty description="暂无选择记录" size="small" />
       </div>
     </div>
   </div>

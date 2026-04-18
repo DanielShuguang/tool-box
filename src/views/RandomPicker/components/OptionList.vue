@@ -6,7 +6,6 @@ import {
   TrashBinOutline,
   EyeOutline,
   EyeOffOutline,
-  DocumentTextOutline,
   RemoveCircleOutline
 } from '@vicons/ionicons5'
 
@@ -15,6 +14,8 @@ const { options, selectedCount } = storeToRefs(store)
 
 const showAddDialog = ref(false)
 const addText = ref('')
+
+const showBatchActions = ref(false)
 const selectedForBatch = ref<string[]>([])
 
 // 添加候选项
@@ -37,27 +38,12 @@ const handleToggleDisabled = (id: string) => {
   store.toggleDisabled(id)
 }
 
-// 批量禁用选中的项
-const handleBatchDisable = () => {
-  if (selectedForBatch.value.length > 0) {
-    store.setDisabled(selectedForBatch.value, true)
-    selectedForBatch.value = []
-  }
-}
-
-// 批量启用选中的项
-const handleBatchEnable = () => {
-  if (selectedForBatch.value.length > 0) {
-    store.setDisabled(selectedForBatch.value, false)
-    selectedForBatch.value = []
-  }
-}
-
 // 批量删除选中的项
 const handleBatchRemove = () => {
   if (selectedForBatch.value.length > 0) {
     store.removeOptions(selectedForBatch.value)
     selectedForBatch.value = []
+    showBatchActions.value = false
   }
 }
 
@@ -79,15 +65,29 @@ const toggleBatchSelect = (id: string) => {
   } else {
     selectedForBatch.value.splice(index, 1)
   }
+  showBatchActions.value = selectedForBatch.value.length > 0
+}
+
+// 全选/取消全选
+const toggleSelectAll = () => {
+  if (selectedForBatch.value.length === options.value.length) {
+    selectedForBatch.value = []
+  } else {
+    selectedForBatch.value = options.value.map(opt => opt.id)
+  }
+  showBatchActions.value = selectedForBatch.value.length > 0
 }
 </script>
 
 <template>
   <div class="flex flex-col h-full">
     <!-- 头部操作栏 -->
-    <div class="px-4 py-3 border-b border-gray-100">
+    <div class="px-4 py-3 border-b border-[var(--border-color)]">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-medium text-gray-600">候选项 ({{ options.length }})</span>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium">候选项</span>
+          <n-tag size="small" round>{{ options.length }}</n-tag>
+        </div>
         <n-button type="primary" size="small" @click="showAddDialog = true">
           <template #icon>
             <n-icon><AddOutline /></n-icon>
@@ -96,31 +96,35 @@ const toggleBatchSelect = (id: string) => {
         </n-button>
       </div>
 
-      <!-- 批量操作 -->
-      <div v-if="selectedForBatch.length > 0" class="flex items-center gap-2 mb-2">
-        <span class="text-xs text-gray-500">已选 {{ selectedForBatch.length }} 项</span>
-        <n-button size="tiny" @click="handleBatchDisable">禁用</n-button>
-        <n-button size="tiny" @click="handleBatchEnable">启用</n-button>
-        <n-button size="tiny" type="error" @click="handleBatchRemove">删除</n-button>
-      </div>
+      <!-- 批量操作栏 -->
+      <transition name="fade">
+        <div
+          v-if="showBatchActions"
+          class="flex items-center gap-2 p-2 rounded-lg bg-[var(--primary-color)]/10 mb-2">
+          <span class="text-xs text-[var(--text-color2)] flex-1">
+            已选 {{ selectedForBatch.length }} 项
+          </span>
+          <n-button size="tiny" @click="toggleSelectAll">
+            {{ selectedForBatch.length === options.length ? '取消全选' : '全选' }}
+          </n-button>
+          <n-button size="tiny" type="error" @click="handleBatchRemove">删除</n-button>
+          <n-button
+            size="tiny"
+            @click="
+              showBatchActions = false
+              selectedForBatch = []
+            ">
+            取消
+          </n-button>
+        </div>
+      </transition>
 
       <!-- 工具按钮 -->
-      <div v-if="options.length > 0" class="flex items-center gap-1">
-        <n-button
-          v-if="selectedForBatch.length === 0"
-          size="small"
-          quaternary
-          @click="handleClearAllDisabled">
+      <div v-if="!showBatchActions && options.some(opt => opt.disabled)" class="flex items-center">
+        <n-button size="small" quaternary @click="handleClearAllDisabled">
           <template #icon>
-            <n-icon><RemoveCircleOutline /></n-icon>
+            <n-icon size="14"><RemoveCircleOutline /></n-icon>
           </template>
-          清除禁用
-        </n-button>
-        <n-button
-          v-if="options.some(opt => opt.disabled) && selectedForBatch.length === 0"
-          size="small"
-          quaternary
-          @click="handleClearAllDisabled">
           清除禁用
         </n-button>
       </div>
@@ -128,14 +132,15 @@ const toggleBatchSelect = (id: string) => {
 
     <!-- 候选项列表 -->
     <div class="flex-1 overflow-auto">
-      <div v-if="options.length > 0" class="p-2">
+      <div v-if="options.length > 0" class="p-3">
         <div
           v-for="option in options"
           :key="option.id"
-          class="flex items-center gap-2 p-2 rounded-lg mb-1 cursor-pointer transition-colors duration-150 hover:bg-gray-50"
+          class="flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer transition-all duration-150 hover:bg-[var(--hover-color)]"
           :class="{
-            'opacity-50': option.disabled,
-            'bg-blue-500/10': isSelected(option)
+            'opacity-40': option.disabled,
+            'bg-[var(--primary-color)]/10 border border-[var(--primary-color)]/30':
+              isSelected(option)
           }"
           @click="toggleBatchSelect(option.id)">
           <!-- 批量选择复选框 -->
@@ -149,8 +154,8 @@ const toggleBatchSelect = (id: string) => {
             <span
               class="flex-1 truncate text-sm"
               :class="{
-                'line-through text-gray-400': option.disabled,
-                'text-blue-500 font-medium': isSelected(option)
+                'line-through text-[var(--text-color3)]': option.disabled,
+                'text-[var(--primary-color)] font-medium': isSelected(option)
               }">
               {{ option.name }}
             </span>
@@ -173,7 +178,7 @@ const toggleBatchSelect = (id: string) => {
                   :type="option.disabled ? 'warning' : 'default'"
                   @click="handleToggleDisabled(option.id)">
                   <template #icon>
-                    <n-icon size="16">
+                    <n-icon size="14">
                       <EyeOffOutline v-if="option.disabled" />
                       <EyeOutline v-else />
                     </n-icon>
@@ -191,7 +196,7 @@ const toggleBatchSelect = (id: string) => {
                   type="error"
                   @click="handleRemove(option.id)">
                   <template #icon>
-                    <n-icon size="16"><TrashBinOutline /></n-icon>
+                    <n-icon size="14"><TrashBinOutline /></n-icon>
                   </template>
                 </n-button>
               </template>
@@ -202,21 +207,25 @@ const toggleBatchSelect = (id: string) => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-gray-400">
-        <n-icon size="48" :depth="3">
-          <DocumentTextOutline />
-        </n-icon>
-        <span class="mt-2 text-sm">暂无候选项</span>
-        <span class="text-xs">点击"添加"按钮开始</span>
+      <div
+        v-else
+        class="flex flex-col items-center justify-center h-full text-[var(--text-color3)]">
+        <n-empty description="暂无候选项" size="small">
+          <template #extra>
+            <n-button size="small" type="primary" @click="showAddDialog = true">
+              添加候选项
+            </n-button>
+          </template>
+        </n-empty>
       </div>
     </div>
 
     <!-- 统计信息 -->
-    <div class="px-4 py-2 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
-      <span>共 {{ options.length }} 项</span>
-      <span>
-        已禁用 {{ options.filter(opt => opt.disabled).length }} 项 | 已选中 {{ selectedCount }} 项
-      </span>
+    <div
+      v-if="options.length > 0"
+      class="px-4 py-2 border-t border-[var(--border-color)] text-xs text-[var(--text-color3)] flex justify-between">
+      <span>已禁用 {{ options.filter(opt => opt.disabled).length }} 项</span>
+      <span>已选中 {{ selectedCount }} 项</span>
     </div>
 
     <!-- 添加对话框 -->
@@ -231,7 +240,18 @@ const toggleBatchSelect = (id: string) => {
         v-model:value="addText"
         type="textarea"
         placeholder="输入候选项，每行一个&#10;例如：&#10;火锅&#10;烧烤&#10;日料"
-        :rows="6" />
+        :rows="5" />
     </n-modal>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
