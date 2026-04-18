@@ -5,7 +5,15 @@ import { useResumeDownload } from './hooks/useResumeDownload'
 import DownloadTaskItem from './components/DownloadTaskItem.vue'
 import NewDownloadDialog from './components/NewDownloadDialog.vue'
 import ScanResumeDialog from './components/ScanResumeDialog.vue'
-import { AddOutline, TrashBinOutline, ClipboardOutline, RefreshOutline } from '@vicons/ionicons5'
+import {
+  AddOutline,
+  TrashBinOutline,
+  ClipboardOutline,
+  RefreshOutline,
+  CloudDownloadOutline,
+  CheckmarkCircleOutline,
+  TimeOutline
+} from '@vicons/ionicons5'
 
 const downloadStore = useDownloadStore()
 const { downloadingTasks, completedTasks, isSettingsLoaded } = storeToRefs(downloadStore)
@@ -35,6 +43,11 @@ const filteredCompletedTasks = computed(() => {
 
 const activeTab = ref<'downloading' | 'completed'>('downloading')
 
+// 统计数据
+const totalTasks = computed(() => downloadingTasks.value.length + completedTasks.value.length)
+const completedCount = computed(() => completedTasks.value.length)
+const downloadingCount = computed(() => downloadingTasks.value.length)
+
 onMounted(async () => {
   await downloadStore.loadSettings()
   downloadStore.loadTasksFromStorage()
@@ -50,97 +63,153 @@ async function handlePasteFromClipboard() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
-    <!-- 工具栏 -->
-    <div class="toolbar shrink-0">
-      <div class="flex items-center gap-2">
-        <n-button type="primary" size="small" @click="openNewDownloadDialog">
-          <template #icon>
-            <n-icon><AddOutline /></n-icon>
-          </template>
-          新建下载
-        </n-button>
-        <n-button size="small" @click="handlePasteFromClipboard">
-          <template #icon>
-            <n-icon><ClipboardOutline /></n-icon>
-          </template>
-          从剪贴板
-        </n-button>
-        <n-button size="small" @click="openScanDialog">
-          <template #icon>
-            <n-icon><RefreshOutline /></n-icon>
-          </template>
-          恢复下载
-        </n-button>
-        <n-button
-          size="small"
-          :disabled="completedTasks.length === 0"
-          @click="handleClearCompleted">
-          <template #icon>
-            <n-icon><TrashBinOutline /></n-icon>
-          </template>
-          清除已完成
-        </n-button>
-      </div>
-      <n-input
-        v-model:value="searchKeyword"
-        placeholder="搜索任务..."
-        clearable
-        size="small"
-        class="w-52" />
+  <div class="w-full h-full flex flex-col overflow-hidden">
+    <!-- 页面标题 -->
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+      <h2 class="text-lg font-semibold">下载管理</h2>
     </div>
 
-    <!-- 标签栏 -->
-    <div class="tab-bar shrink-0">
-      <button
-        class="tab-btn"
-        :class="{ active: activeTab === 'downloading' }"
-        @click="activeTab = 'downloading'">
-        下载中
-        <span class="tab-count">{{ downloadingTasks.length }}</span>
-      </button>
-      <button
-        class="tab-btn"
-        :class="{ active: activeTab === 'completed' }"
-        @click="activeTab = 'completed'">
-        已完成
-        <span class="tab-count">{{ completedTasks.length }}</span>
-      </button>
-    </div>
-
-    <!-- 任务列表 -->
-    <div class="flex-1 min-h-0 overflow-y-auto p-3">
-      <div v-if="!isSettingsLoaded" class="flex items-center justify-center h-full">
-        <n-spin size="large" />
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto p-4">
+      <!-- 统计卡片 -->
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-blue-500">
+              <CloudDownloadOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">总任务数</div>
+              <div class="text-xl font-bold">{{ totalTasks }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-orange-500">
+              <TimeOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">下载中</div>
+              <div class="text-xl font-bold">{{ downloadingCount }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-green-500">
+              <CheckmarkCircleOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">已完成</div>
+              <div class="text-xl font-bold">{{ completedCount }}</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <template v-else>
-        <div v-show="activeTab === 'downloading'">
-          <div v-if="filteredDownloadingTasks.length === 0" class="empty-state">
-            <n-empty description="暂无下载任务">
-              <template #extra>
-                <n-button type="primary" size="small" @click="openNewDownloadDialog">
-                  添加下载任务
-                </n-button>
+
+      <!-- 工具栏 -->
+      <n-card :bordered="false" class="mb-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <n-button type="primary" size="small" @click="openNewDownloadDialog">
+              <template #icon>
+                <n-icon><AddOutline /></n-icon>
               </template>
-            </n-empty>
+              新建下载
+            </n-button>
+            <n-button size="small" @click="handlePasteFromClipboard">
+              <template #icon>
+                <n-icon><ClipboardOutline /></n-icon>
+              </template>
+              从剪贴板
+            </n-button>
+            <n-button size="small" @click="openScanDialog">
+              <template #icon>
+                <n-icon><RefreshOutline /></n-icon>
+              </template>
+              恢复下载
+            </n-button>
+            <n-button
+              size="small"
+              :disabled="completedTasks.length === 0"
+              @click="handleClearCompleted">
+              <template #icon>
+                <n-icon><TrashBinOutline /></n-icon>
+              </template>
+              清除已完成
+            </n-button>
           </div>
-          <div v-else class="flex flex-col gap-2">
-            <DownloadTaskItem
-              v-for="task in filteredDownloadingTasks"
-              :key="task.id"
-              :task="task" />
-          </div>
+          <n-input
+            v-model:value="searchKeyword"
+            placeholder="搜索任务..."
+            clearable
+            size="small"
+            class="w-full sm:w-52" />
         </div>
+      </n-card>
 
-        <div v-show="activeTab === 'completed'">
-          <div v-if="filteredCompletedTasks.length === 0" class="empty-state">
-            <n-empty description="暂无已完成的任务" />
-          </div>
-          <div v-else class="flex flex-col gap-2">
-            <DownloadTaskItem v-for="task in filteredCompletedTasks" :key="task.id" :task="task" />
-          </div>
+      <!-- 标签栏 -->
+      <n-card :bordered="false" class="mb-4">
+        <div class="flex gap-2">
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="{
+              'bg-blue-500 text-white': activeTab === 'downloading',
+              'bg-gray-100 text-gray-600 hover:bg-gray-200': activeTab !== 'downloading'
+            }"
+            @click="activeTab = 'downloading'">
+            下载中 {{ downloadingTasks.length }}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="{
+              'bg-green-500 text-white': activeTab === 'completed',
+              'bg-gray-100 text-gray-600 hover:bg-gray-200': activeTab !== 'completed'
+            }"
+            @click="activeTab = 'completed'">
+            已完成 {{ completedTasks.length }}
+          </button>
         </div>
-      </template>
+      </n-card>
+
+      <!-- 任务列表 -->
+      <n-card :bordered="false">
+        <div v-if="!isSettingsLoaded" class="flex items-center justify-center py-12">
+          <n-spin size="large" />
+        </div>
+        <template v-else>
+          <div v-show="activeTab === 'downloading'">
+            <div v-if="filteredDownloadingTasks.length === 0" class="py-12 text-center">
+              <n-empty description="暂无下载任务">
+                <template #extra>
+                  <n-button type="primary" size="small" @click="openNewDownloadDialog">
+                    添加下载任务
+                  </n-button>
+                </template>
+              </n-empty>
+            </div>
+            <div v-else class="flex flex-col gap-2">
+              <DownloadTaskItem
+                v-for="task in filteredDownloadingTasks"
+                :key="task.id"
+                :task="task" />
+            </div>
+          </div>
+
+          <div v-show="activeTab === 'completed'">
+            <div v-if="filteredCompletedTasks.length === 0" class="py-12 text-center">
+              <n-empty description="暂无已完成的任务" />
+            </div>
+            <div v-else class="flex flex-col gap-2">
+              <DownloadTaskItem
+                v-for="task in filteredCompletedTasks"
+                :key="task.id"
+                :task="task" />
+            </div>
+          </div>
+        </template>
+      </n-card>
     </div>
 
     <NewDownloadDialog
@@ -151,74 +220,14 @@ async function handlePasteFromClipboard() {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--borderColor);
+<style scoped lang="scss">
+.n-card {
   background-color: var(--cardColor);
-  gap: 8px;
-  flex-shrink: 0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.tab-bar {
-  display: flex;
-  padding: 0 8px;
-  border-bottom: 1px solid var(--borderColor);
+.bg-white {
   background-color: var(--cardColor);
-}
-
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border: none;
-  background: transparent;
-  color: var(--textColor2);
-  font-size: 13px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
-
-  &:hover {
-    color: var(--textColorBase);
-  }
-
-  &.active {
-    color: var(--primaryColor);
-    border-bottom-color: var(--primaryColor);
-  }
-}
-
-.tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  background-color: var(--actionColor);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  color: var(--textColor3);
-
-  .active & {
-    background-color: var(--primaryColor);
-    color: #fff;
-  }
-}
-
-.empty-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
 }
 </style>

@@ -7,6 +7,7 @@ import {
 import { handleShowMainWindow } from '@/components/AppSettings/logic'
 import { TimeUnits } from '@/utils/time'
 import { useEyeProtectionStore } from '@/stores/eyeProtection'
+import { TimeOutline, EyeOutline, SunnyOutline, RefreshOutline } from '@vicons/ionicons5'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -122,132 +123,149 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-3 overflow-hidden">
-    <!-- 提示信息 -->
-    <div class="tip-bar shrink-0">
-      本功能旨在帮助无法脱离屏幕的用户尽可能保护自己的眼睛，如非必要，请不要长时间注视或使用电子屏幕。
+  <div class="w-full h-full flex flex-col overflow-hidden">
+    <!-- 页面标题 -->
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+      <h2 class="text-lg font-semibold">护眼工具</h2>
     </div>
 
-    <!-- 功能配置 -->
-    <div class="config-card">
-      <p class="section-title">功能配置</p>
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-[13px] text-[--textColorBase]">启用护眼提醒</span>
-        <n-switch v-model:value="eyeProtectionStore.isOpen" />
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto p-4">
+      <!-- 统计卡片 -->
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-blue-500">
+              <TimeOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">闭眼间隔</div>
+              <div class="text-xl font-bold">
+                {{ eyeProtectionStore.closeEyesInterval || 20 }} 分钟
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-orange-500">
+              <SunnyOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">远眺间隔</div>
+              <div class="text-xl font-bold">{{ eyeProtectionStore.restInterval || 30 }} 分钟</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon
+              size="20"
+              :class="eyeProtectionStore.isOpen ? 'text-green-500' : 'text-gray-400'">
+              <RefreshOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">当前状态</div>
+              <div
+                class="text-sm font-bold"
+                :class="eyeProtectionStore.isOpen ? 'text-green-500' : 'text-gray-400'">
+                {{ eyeProtectionStore.isOpen ? '运行中' : '已关闭' }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <template v-if="eyeProtectionStore.isOpen">
-        <n-divider class="!my-3" />
-        <n-form label-placement="top" :show-feedback="false" :show-require-mark="false">
-          <div class="grid grid-cols-2 gap-4">
-            <n-form-item label="闭眼休息间隔">
+      <!-- 功能配置 -->
+      <n-card :bordered="false" class="mb-4">
+        <template #header>
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2">
+              <n-icon size="18"><EyeOutline /></n-icon>
+              <span class="text-base font-medium">功能配置</span>
+            </div>
+            <n-switch v-model:value="eyeProtectionStore.isOpen" />
+          </div>
+        </template>
+
+        <div v-if="!eyeProtectionStore.isOpen" class="text-center py-6 text-gray-400">
+          开启护眼提醒来保护您的眼睛
+        </div>
+
+        <template v-else>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium">闭眼休息间隔</label>
               <n-input-number
                 v-model:value="eyeProtectionStore.closeEyesInterval"
-                :show-button="false"
+                :min="1"
                 class="w-full">
                 <template #suffix>分钟</template>
               </n-input-number>
-              <span class="field-hint">长时间工作后闭眼休息能放松眼球</span>
-            </n-form-item>
-            <n-form-item label="远眺小憩间隔">
+              <span class="text-xs text-gray-400">长时间工作后闭眼休息能放松眼球</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium">远眺小憩间隔</label>
               <n-input-number
                 v-model:value="eyeProtectionStore.restInterval"
-                :show-button="false"
+                :min="1"
                 class="w-full">
                 <template #suffix>分钟</template>
               </n-input-number>
-              <span class="field-hint">每隔一小段时间远眺一会儿有助眼睛健康</span>
-            </n-form-item>
+              <span class="text-xs text-gray-400">每隔一小段时间远眺一会儿有助眼睛健康</span>
+            </div>
           </div>
-        </n-form>
-        <div class="mt-3">
-          <n-button type="primary" size="small" @click="handleRestart">重新计时</n-button>
-        </div>
-      </template>
-    </div>
+          <div class="mt-4 flex items-center justify-between">
+            <n-button type="primary" @click="handleRestart">重新计时</n-button>
+            <div class="flex gap-4">
+              <div class="text-center">
+                <div class="text-xs text-gray-500 mb-1">闭眼倒计时</div>
+                <div class="text-xl font-bold text-blue-500">
+                  <n-countdown
+                    ref="closeEyes"
+                    :active="activeCountdown && !!eyeProtectionStore.closeEyesInterval"
+                    :duration="(eyeProtectionStore.closeEyesInterval || 0) * TimeUnits.Minute"
+                    @finish="closeEyesAlarm" />
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-xs text-gray-500 mb-1">远眺倒计时</div>
+                <div class="text-xl font-bold text-orange-500">
+                  <n-countdown
+                    ref="rest"
+                    :active="activeCountdown && !!eyeProtectionStore.restInterval"
+                    :duration="(eyeProtectionStore.restInterval || 0) * TimeUnits.Minute"
+                    @finish="restAlarm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </n-card>
 
-    <!-- 倒计时面板 -->
-    <div v-if="eyeProtectionStore.isOpen" class="grid grid-cols-2 gap-3">
-      <div class="countdown-card">
-        <p class="section-title">闭眼休息倒计时</p>
-        <div class="countdown-value">
-          <n-countdown
-            ref="closeEyes"
-            :active="activeCountdown && !!eyeProtectionStore.closeEyesInterval"
-            :duration="(eyeProtectionStore.closeEyesInterval || 0) * TimeUnits.Minute"
-            @finish="closeEyesAlarm" />
+      <!-- 提示信息 -->
+      <div class="p-3 rounded-lg bg-orange-50 border border-orange-200">
+        <div class="flex items-start gap-2">
+          <n-icon size="18" class="text-orange-500 flex-shrink-0 mt-0.5">
+            <EyeOutline />
+          </n-icon>
+          <div class="text-sm text-orange-700">
+            本功能旨在帮助无法脱离屏幕的用户尽可能保护自己的眼睛，如非必要，请不要长时间注视或使用电子屏幕。
+          </div>
         </div>
-        <span class="countdown-label">到时间将弹窗提醒闭眼休息</span>
-      </div>
-
-      <div class="countdown-card">
-        <p class="section-title">远眺小憩倒计时</p>
-        <div class="countdown-value">
-          <n-countdown
-            ref="rest"
-            :active="activeCountdown && !!eyeProtectionStore.restInterval"
-            :duration="(eyeProtectionStore.restInterval || 0) * TimeUnits.Minute"
-            @finish="restAlarm" />
-        </div>
-        <span class="countdown-label">到时间将弹窗提醒远眺休息</span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.tip-bar {
-  font-size: 12px;
-  color: var(--textColor3);
-  padding: 8px 12px;
-  border-radius: 6px;
-  background-color: var(--actionColor);
-  border: 1px solid var(--borderColor);
-  line-height: 1.5;
-}
-
-.config-card {
-  border: 1px solid var(--borderColor);
-  border-radius: 8px;
-  padding: 14px 16px;
+.n-card {
   background-color: var(--cardColor);
-  flex-shrink: 0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.section-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--textColor3);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin: 0 0 10px;
-}
-
-.field-hint {
-  display: block;
-  font-size: 11px;
-  color: var(--textColor3);
-  margin-top: 4px;
-}
-
-.countdown-card {
-  border: 1px solid var(--borderColor);
-  border-radius: 8px;
-  padding: 14px 16px;
+.bg-white {
   background-color: var(--cardColor);
-  text-align: center;
-}
-
-.countdown-value {
-  font-size: 28px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--primaryColor);
-  margin: 12px 0 8px;
-}
-
-.countdown-label {
-  font-size: 11px;
-  color: var(--textColor3);
 }
 </style>

@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import { TranslationFactory } from './logic'
-import { SwapHorizontalOutline, CopyOutline, TrashOutline } from '@vicons/ionicons5'
+import {
+  SwapHorizontalOutline,
+  CopyOutline,
+  TrashOutline,
+  LanguageOutline
+} from '@vicons/ionicons5'
 import { useMessage } from 'naive-ui'
 
 const message = useMessage()
@@ -46,6 +51,11 @@ const supportedLanguages = [
   { code: 'UK', name: '乌克兰语' },
   { code: 'ZH', name: '中文' }
 ]
+
+// 统计数据
+const inputLength = computed(() => inputText.value.length)
+const outputLength = computed(() => outputText.value.length)
+const isTranslated = computed(() => outputText.value.length > 0)
 
 const targetLanguages = computed(() =>
   supportedLanguages.filter(item => item.code !== 'auto' && item.code !== sourceLanguage.value)
@@ -113,333 +123,194 @@ const swapAndTranslate = () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-3 overflow-hidden">
-    <!-- 顶部服务选择 -->
-    <div class="config-card shrink-0">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="section-title !mb-0">翻译服务</span>
-          <n-radio-group v-model:value="translationService" size="small">
-            <n-radio-button value="google">Google</n-radio-button>
-            <n-radio-button value="deepl">DeepL</n-radio-button>
-          </n-radio-group>
+  <div class="w-full h-full flex flex-col overflow-hidden">
+    <!-- 页面标题 -->
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+      <h2 class="text-lg font-semibold">翻译工具</h2>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto p-4">
+      <!-- 统计卡片 -->
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-green-500">
+              <LanguageOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">原文字符</div>
+              <div class="text-xl font-bold">{{ inputLength }}</div>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-orange-500">
+              <LanguageOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">译文字符</div>
+              <div class="text-xl font-bold">{{ outputLength }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <n-icon size="20" class="text-purple-500">
+              <LanguageOutline />
+            </n-icon>
+            <div>
+              <div class="text-xs text-gray-500">翻译服务</div>
+              <div class="text-sm font-bold">
+                {{ translationService === 'google' ? 'Google' : 'DeepL' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 服务选择 -->
+      <n-card class="mb-4" :bordered="false">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-medium">翻译服务</span>
+            <n-radio-group v-model:value="translationService" size="small">
+              <n-radio-button value="google">Google</n-radio-button>
+              <n-radio-button value="deepl">DeepL</n-radio-button>
+            </n-radio-group>
+          </div>
           <n-button size="tiny" @click="clearAll" :disabled="!inputText && !outputText">
             <template #icon>
               <n-icon><TrashOutline /></n-icon>
             </template>
           </n-button>
         </div>
-      </div>
-    </div>
+      </n-card>
 
-    <!-- 语言选择 -->
-    <div class="language-bar shrink-0">
-      <div class="flex items-center gap-3">
-        <!-- 源语言 -->
-        <n-popover trigger="click" placement="bottom-start">
-          <template #trigger>
-            <button class="language-btn">
-              <span class="language-label">源语言</span>
-              <span class="language-name">{{ sourceLanguageName }}</span>
-              <svg
-                class="w-3 h-3 opacity-60"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-          </template>
-          <div class="language-dropdown">
-            <button
-              v-for="lang in supportedLanguages"
-              :key="lang.code"
-              class="language-option"
-              :class="{ active: sourceLanguage === lang.code }"
-              @click="sourceLanguage = lang.code">
-              {{ lang.name }}
-            </button>
-          </div>
-        </n-popover>
+      <!-- 语言选择 -->
+      <n-card class="mb-4" :bordered="false">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 源语言 -->
+            <n-select
+              v-model:value="sourceLanguage"
+              :options="supportedLanguages.map(l => ({ label: l.name, value: l.code }))"
+              placeholder="源语言"
+              size="small"
+              class="w-28" />
 
-        <!-- 交换按钮 -->
-        <n-button
-          text
-          size="small"
-          @click="exchangeLanguages"
-          :disabled="sourceLanguage === 'auto'"
-          class="swap-btn">
-          <template #icon>
-            <n-icon size="18"><SwapHorizontalOutline /></n-icon>
-          </template>
-        </n-button>
-
-        <!-- 目标语言 -->
-        <n-popover trigger="click" placement="bottom-start">
-          <template #trigger>
-            <button class="language-btn">
-              <span class="language-label">目标语言</span>
-              <span class="language-name">{{ targetLanguageName }}</span>
-              <svg
-                class="w-3 h-3 opacity-60"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-          </template>
-          <div class="language-dropdown">
-            <button
-              v-for="lang in targetLanguages"
-              :key="lang.code"
-              class="language-option"
-              :class="{ active: targetLanguage === lang.code }"
-              @click="targetLanguage = lang.code">
-              {{ lang.name }}
-            </button>
-          </div>
-        </n-popover>
-      </div>
-
-      <!-- 翻译按钮 -->
-      <n-button
-        type="primary"
-        size="small"
-        @click="translate"
-        :disabled="!inputText.trim()"
-        :loading="loading">
-        翻译
-      </n-button>
-    </div>
-
-    <!-- 翻译区域 -->
-    <div class="flex-1 min-h-0 grid grid-cols-2 gap-3">
-      <!-- 输入面板 -->
-      <div class="translate-panel">
-        <div class="panel-header">
-          <span class="text-[11px] font-semibold text-[--textColor3] uppercase tracking-wider"
-            >原文</span
-          >
-          <span class="text-[11px] text-[--textColor3]">{{ inputText.length }} 字符</span>
-        </div>
-        <div class="panel-body">
-          <textarea
-            v-model="inputText"
-            class="translate-input"
-            placeholder="请输入要翻译的文本..."
-            @keydown.meta.enter="translate"
-            @keydown.ctrl.enter="translate" />
-        </div>
-      </div>
-
-      <!-- 输出面板 -->
-      <div class="translate-panel">
-        <div class="panel-header">
-          <span class="text-[11px] font-semibold text-[--textColor3] uppercase tracking-wider"
-            >译文</span
-          >
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] text-[--textColor3]">{{ outputText.length }} 字符</span>
-            <n-button v-if="outputText" text size="tiny" @click="copyOutput" class="copy-btn">
-              <template #icon>
-                <n-icon size="14"><CopyOutline /></n-icon>
-              </template>
-            </n-button>
+            <!-- 交换按钮 -->
             <n-button
-              v-if="outputText"
               text
-              size="tiny"
-              @click="swapAndTranslate"
-              class="swap-translate-btn"
-              title="交换并翻译">
+              size="small"
+              @click="exchangeLanguages"
+              :disabled="sourceLanguage === 'auto'"
+              class="swap-btn">
               <template #icon>
-                <n-icon size="14"><SwapHorizOutlined /></n-icon>
+                <n-icon size="18"><SwapHorizontalOutline /></n-icon>
               </template>
             </n-button>
+
+            <!-- 目标语言 -->
+            <n-select
+              v-model:value="targetLanguage"
+              :options="targetLanguages.map(l => ({ label: l.name, value: l.code }))"
+              placeholder="目标语言"
+              size="small"
+              class="w-28" />
+          </div>
+
+          <!-- 翻译按钮 -->
+          <n-button
+            type="primary"
+            size="small"
+            @click="translate"
+            :disabled="!inputText.trim()"
+            :loading="loading">
+            翻译
+          </n-button>
+        </div>
+      </n-card>
+
+      <!-- 翻译区域 -->
+      <n-card :bordered="false">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <span class="text-base font-medium">翻译内容</span>
+          </div>
+        </template>
+
+        <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- 输入面板 -->
+          <div class="flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">原文</span>
+              <span class="text-xs text-gray-400">{{ inputLength }} 字符</span>
+            </div>
+            <n-input
+              v-model:value="inputText"
+              type="textarea"
+              placeholder="请输入要翻译的文本..."
+              :rows="6"
+              @keydown.meta.enter="translate"
+              @keydown.ctrl.enter="translate" />
+          </div>
+
+          <!-- 输出面板 -->
+          <div class="flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">译文</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">{{ outputLength }} 字符</span>
+                <n-button v-if="outputText" text size="tiny" @click="copyOutput">
+                  <template #icon>
+                    <n-icon size="14"><CopyOutline /></n-icon>
+                  </template>
+                </n-button>
+                <n-button
+                  v-if="outputText"
+                  text
+                  size="tiny"
+                  @click="swapAndTranslate"
+                  title="交换并翻译">
+                  <template #icon>
+                    <n-icon size="14"><SwapHorizontalOutline /></n-icon>
+                  </template>
+                </n-button>
+              </div>
+            </div>
+            <n-input
+              v-model:value="outputText"
+              type="textarea"
+              placeholder="翻译结果..."
+              :rows="6"
+              readonly />
           </div>
         </div>
-        <div class="panel-body">
-          <textarea
-            v-model="outputText"
-            class="translate-output"
-            placeholder="翻译结果..."
-            readonly />
-        </div>
-      </div>
-    </div>
 
-    <!-- 错误信息 -->
-    <div v-if="errorMessage" class="error-bar shrink-0">
-      <span>{{ errorMessage }}</span>
+        <!-- 空状态 -->
+        <div v-if="!isTranslated" class="text-center py-8">
+          <n-empty description="输入文本后点击翻译" size="small" />
+        </div>
+
+        <!-- 错误信息 -->
+        <div v-if="errorMessage" class="mt-3 p-2 rounded bg-red-50 text-red-600 text-sm">
+          {{ errorMessage }}
+        </div>
+      </n-card>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.config-card {
-  border: 1px solid var(--borderColor);
-  border-radius: 8px;
-  padding: 10px 14px;
+.n-card {
   background-color: var(--cardColor);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.language-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 8px;
+.bg-white {
   background-color: var(--cardColor);
-  border: 1px solid var(--borderColor);
-}
-
-.language-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border: 1px solid var(--borderColor);
-  border-radius: 6px;
-  background: var(--cardColor);
-  color: var(--textColorBase);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    border-color: var(--primaryColor);
-    color: var(--primaryColor);
-  }
-
-  .language-label {
-    font-size: 10px;
-    color: var(--textColor3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .language-name {
-    font-weight: 500;
-  }
-}
-
-.swap-btn {
-  color: var(--textColor2);
-  transition: all 0.15s ease;
-
-  &:hover:not(:disabled) {
-    color: var(--primaryColor);
-    transform: rotate(180deg);
-  }
-
-  &:disabled {
-    opacity: 0.3;
-  }
-}
-
-.language-dropdown {
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 4px;
-}
-
-.language-option {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--textColorBase);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.1s ease;
-
-  &:hover {
-    background: var(--actionColor);
-  }
-
-  &.active {
-    background: var(--primaryColor);
-    color: #fff;
-  }
-}
-
-.translate-panel {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--borderColor);
-  border-radius: 8px;
-  background-color: var(--cardColor);
-  overflow: hidden;
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--borderColor);
-  background-color: var(--actionColor);
-}
-
-.panel-body {
-  flex: 1;
-  min-h: 0;
-  display: flex;
-}
-
-.translate-input,
-.translate-output {
-  flex: 1;
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background: transparent;
-  color: var(--textColorBase);
-  font-size: 14px;
-  line-height: 1.6;
-  resize: none;
-  outline: none;
-
-  &::placeholder {
-    color: var(--textColor3);
-  }
-}
-
-.translate-output {
-  background: var(--actionColor);
-  cursor: default;
-}
-
-.copy-btn,
-.swap-translate-btn {
-  color: var(--textColor3);
-  opacity: 0;
-  transition:
-    opacity 0.15s ease,
-    color 0.15s ease;
-
-  .translate-panel:hover & {
-    opacity: 1;
-  }
-
-  &:hover {
-    color: var(--primaryColor);
-  }
-}
-
-.error-bar {
-  padding: 8px 12px;
-  border-radius: 6px;
-  background-color: var(--errorColor);
-  color: #fff;
-  font-size: 12px;
 }
 </style>
