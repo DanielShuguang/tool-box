@@ -37,10 +37,6 @@ describe('storage utils', () => {
       expect(ConfigFile.Router).toBe('.router.dat')
     })
 
-    it('应该包含 MusicPlayer', () => {
-      expect(ConfigFile.MusicPlayer).toBe('.music-player.dat')
-    })
-
     it('应该包含 Download', () => {
       expect(ConfigFile.Download).toBe('.download.dat')
     })

@@ -9,7 +9,6 @@ export enum ConfigFile {
   Settings = '.settings.dat',
   EyeProtection = '.eye-protection.dat',
   Router = '.router.dat',
-  MusicPlayer = '.music-player.dat',
   Download = '.download.dat',
   Canvas = '.canvas.dat'
 }

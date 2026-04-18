@@ -50,8 +50,7 @@ export default defineConfig(({ command }) => {
     build: {
       rollupOptions: {
         input: {
-          main: path.resolve(__dirname, 'index.html'),
-          lyrics: path.resolve(__dirname, 'lyrics.html')
+          main: path.resolve(__dirname, 'index.html')
         }
       }
     },

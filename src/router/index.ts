@@ -42,11 +42,6 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '待办事项' }
   },
   {
-    path: '/musicPlayer',
-    component: () => import('@/views/MusicPlayer/MusicPlayer.vue'),
-    meta: { title: '音乐播放器' }
-  },
-  {
     path: '/accounting',
     component: () => import('@/views/Accounting/Accounting.vue'),
     meta: { title: '记账工具' }

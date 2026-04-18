@@ -17,7 +17,6 @@ import {
   EyeOutline,
   GlobeOutline,
   ListOutline,
-  MusicalNotesOutline,
   WalletOutline,
   ColorPaletteOutline,
   ShuffleOutline,
@@ -50,7 +49,6 @@ const navItems = [
   { path: '/eyeProtection', title: '护眼工具', icon: EyeOutline },
   { path: '/translator', title: '翻译工具', icon: GlobeOutline },
   { path: '/todo', title: '待办事项', icon: ListOutline },
-  { path: '/musicPlayer', title: '音乐播放器', icon: MusicalNotesOutline },
   { path: '/accounting', title: '记账工具', icon: WalletOutline },
   { path: '/canvasBoard', title: '画板', icon: ColorPaletteOutline },
   { path: '/randomPicker', title: '随机选择', icon: ShuffleOutline }
