@@ -68,10 +68,10 @@ const isTargetCompleted = (targetId: string): boolean => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col">
     <!-- 头部 -->
-    <div class="flex items-center justify-between mb-4">
-      <span class="text-gray-600">选择目标</span>
+    <div class="px-4 py-3 flex items-center justify-between">
+      <span class="text-sm font-medium text-gray-600">选择目标</span>
       <n-button size="small" type="primary" @click="openAddDialog">
         <template #icon>
           <n-icon><AddOutline /></n-icon>
@@ -81,61 +81,58 @@ const isTargetCompleted = (targetId: string): boolean => {
     </div>
 
     <!-- 目标列表 -->
-    <div class="flex-1 overflow-auto">
+    <div class="px-4 pb-3">
       <div v-if="targets.length > 0" class="flex flex-col gap-2">
-        <n-card
+        <div
           v-for="target in targets"
           :key="target.id"
-          size="small"
+          class="flex items-center justify-between p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           :class="{ 'opacity-50': isTargetCompleted(target.id) }">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <n-tag type="info" size="small">
-                {{ target.order + 1 }}
-              </n-tag>
-              <span class="font-medium">{{ target.name }}</span>
-              <n-tag size="small">×{{ target.count }}</n-tag>
-            </div>
-            <div class="flex items-center gap-1">
-              <n-button
-                size="small"
-                type="primary"
-                :disabled="isTargetCompleted(target.id)"
-                @click="handlePick(target)">
-                选择
-              </n-button>
-              <n-tooltip trigger="hover">
-                <template #trigger>
-                  <n-button size="small" quaternary @click="openEditDialog(target.id)">
-                    <template #icon>
-                      <n-icon><CreateOutline /></n-icon>
-                    </template>
-                  </n-button>
-                </template>
-                编辑
-              </n-tooltip>
-              <n-tooltip trigger="hover">
-                <template #trigger>
-                  <n-button size="small" quaternary type="error" @click="handleRemove(target.id)">
-                    <template #icon>
-                      <n-icon><TrashBinOutline /></n-icon>
-                    </template>
-                  </n-button>
-                </template>
-                删除
-              </n-tooltip>
-            </div>
+          <div class="flex items-center gap-2">
+            <n-tag type="info" size="small">
+              {{ target.order + 1 }}
+            </n-tag>
+            <span class="text-sm font-medium">{{ target.name }}</span>
+            <n-tag size="small">×{{ target.count }}</n-tag>
           </div>
-        </n-card>
+          <div class="flex items-center gap-1">
+            <n-button
+              size="tiny"
+              type="primary"
+              :disabled="isTargetCompleted(target.id)"
+              @click="handlePick(target)">
+              选择
+            </n-button>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button size="tiny" quaternary @click="openEditDialog(target.id)">
+                  <template #icon>
+                    <n-icon size="14"><CreateOutline /></n-icon>
+                  </template>
+                </n-button>
+              </template>
+              编辑
+            </n-tooltip>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button size="tiny" quaternary type="error" @click="handleRemove(target.id)">
+                  <template #icon>
+                    <n-icon size="14"><TrashBinOutline /></n-icon>
+                  </template>
+                </n-button>
+              </template>
+              删除
+            </n-tooltip>
+          </div>
+        </div>
       </div>
 
       <!-- 空状态 -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-gray-400">
-        <n-icon size="48" :depth="3">
+      <div v-else class="flex flex-col items-center justify-center py-6 text-gray-400">
+        <n-icon size="32" :depth="3">
           <ListOutline />
         </n-icon>
-        <span class="mt-2">暂无选择目标</span>
-        <span class="text-sm">点击"添加"创建选择目标</span>
+        <span class="mt-1 text-xs">暂无选择目标</span>
       </div>
     </div>
 
@@ -150,7 +147,7 @@ const isTargetCompleted = (targetId: string): boolean => {
       <div class="flex flex-col gap-4">
         <n-input v-model:value="targetName" placeholder="目标名称（如：第一选择、二等奖）" />
         <div class="flex items-center gap-2">
-          <span class="text-gray-600">选择数量:</span>
+          <span class="text-sm text-gray-600">选择数量:</span>
           <n-input-number v-model:value="targetCount" :min="1" :max="100" />
         </div>
       </div>

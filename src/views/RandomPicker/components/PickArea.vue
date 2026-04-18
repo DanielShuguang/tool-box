@@ -59,57 +59,76 @@ const handleReset = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center h-full p-6">
+  <div class="flex flex-col h-full">
     <!-- 模式选择 -->
-    <div class="mb-6 w-full max-w-md">
-      <n-radio-group v-model:value="mode" class="flex justify-center">
-        <n-radio-button v-for="item in modeOptions" :key="item.value" :value="item.value">
-          {{ item.label }}
-        </n-radio-button>
-      </n-radio-group>
+    <div class="px-4 py-3 border-b border-gray-100">
+      <div class="flex flex-wrap items-center gap-4">
+        <n-radio-group v-model:value="mode" class="flex items-center">
+          <n-radio-button v-for="item in modeOptions" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </n-radio-button>
+        </n-radio-group>
+
+        <!-- 普通选择和权重选择时显示数量配置 -->
+        <div v-if="mode !== 'sequential'" class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">选取数量:</span>
+          <n-input-number
+            v-model:value="pickCount"
+            :min="1"
+            :max="availableCount"
+            size="small"
+            class="w-24" />
+        </div>
+
+        <!-- 剔除配置 -->
+        <div class="flex items-center gap-2">
+          <n-switch v-model:value="config.removeSelected" size="small" />
+          <span class="text-sm text-gray-500">选中后移除</span>
+        </div>
+      </div>
     </div>
 
-    <!-- 配置区域 -->
-    <div class="mb-6 flex flex-wrap items-center justify-center gap-4">
-      <!-- 普通选择和权重选择时显示数量配置 -->
-      <div v-if="mode !== 'sequential'" class="flex items-center gap-2">
-        <span class="text-gray-600">选取数量:</span>
-        <n-input-number v-model:value="pickCount" :min="1" :max="availableCount" class="w-24" />
+    <!-- 选择区域 -->
+    <div class="flex-1 flex flex-col items-center justify-center p-6">
+      <!-- 可选取数量提示 -->
+      <div class="mb-6 text-center">
+        <div class="text-3xl font-bold text-gray-700 mb-1">{{ availableCount }}</div>
+        <div class="text-sm text-gray-500">可选取</div>
       </div>
 
-      <!-- 剔除配置 -->
-      <div class="flex items-center gap-2">
-        <n-switch v-model:value="config.removeSelected" />
-        <span class="text-gray-600">选中后移除</span>
+      <!-- 选择按钮 -->
+      <div
+        class="relative flex flex-col items-center justify-center w-32 h-32 rounded-full cursor-pointer transition-all duration-300 select-none"
+        :class="[
+          canPick && !isPicking
+            ? 'bg-blue-500 hover:bg-blue-600 hover:scale-105 active:scale-95'
+            : 'bg-gray-300 cursor-not-allowed'
+        ]"
+        role="button"
+        @click="handlePick">
+        <n-icon v-if="!isPicking" size="40" class="text-white">
+          <ShuffleOutline />
+        </n-icon>
+        <n-spin v-else size="large" />
+        <span class="mt-2 text-sm font-medium text-white">
+          {{ isPicking ? '选择中...' : '随机选择' }}
+        </span>
       </div>
+
+      <!-- 重置按钮 -->
+      <n-button
+        v-if="selectedCount > 0"
+        quaternary
+        type="warning"
+        size="small"
+        class="mt-4"
+        @click="handleReset">
+        <template #icon>
+          <n-icon><RefreshOutline /></n-icon>
+        </template>
+        重置已选状态
+      </n-button>
     </div>
-
-    <!-- 可选取数量提示 -->
-    <div class="mb-4 text-gray-500">可选取: {{ availableCount }} 项</div>
-
-    <!-- 选择按钮 -->
-    <div
-      class="relative flex flex-col items-center justify-center w-36 h-36 rounded-full cursor-pointer transition-all duration-300 select-none"
-      :class="[
-        canPick && !isPicking
-          ? 'bg-blue-500 hover:bg-blue-600 hover:scale-105 active:scale-95'
-          : 'bg-gray-300 cursor-not-allowed'
-      ]"
-      role="button"
-      @click="handlePick">
-      <n-icon v-if="!isPicking" size="48" class="text-white">
-        <ShuffleOutline />
-      </n-icon>
-      <n-spin v-else size="large" />
-      <span class="mt-2 text-lg font-medium text-white">
-        {{ isPicking ? '选择中...' : '随机选择' }}
-      </span>
-    </div>
-
-    <!-- 重置按钮 -->
-    <n-button v-if="selectedCount > 0" quaternary type="warning" class="mt-4" @click="handleReset">
-      重置已选状态
-    </n-button>
 
     <!-- 结果展示 -->
     <n-modal

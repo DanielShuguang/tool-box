@@ -19,39 +19,41 @@ const handleExport = () => {
 </script>
 
 <template>
-  <div class="w-full flex flex-col">
-    <!-- 头部 -->
-    <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-      <h2 class="text-lg font-semibold">随机选择</h2>
-      <n-button quaternary @click="handleExport">
-        <template #icon>
-          <n-icon><DownloadOutline /></n-icon>
-        </template>
-        导出
-      </n-button>
+  <div class="w-full h-full flex flex-col overflow-hidden">
+    <!-- 页面标题 -->
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">随机选择</h2>
+        <n-button quaternary size="small" @click="handleExport">
+          <template #icon>
+            <n-icon><DownloadOutline /></n-icon>
+          </template>
+          导出
+        </n-button>
+      </div>
     </div>
 
     <!-- 主内容区 -->
     <div class="flex-1 flex overflow-hidden">
       <!-- 左侧：候选项列表 -->
-      <div class="w-1/3 border-r border-gray-200 p-4 overflow-hidden flex flex-col">
+      <div class="w-1/3 border-r border-gray-200 overflow-hidden flex flex-col">
         <OptionList />
       </div>
 
       <!-- 中间：选择区域 -->
       <div class="flex-1 border-r border-gray-200 overflow-hidden flex flex-col">
         <!-- 顺序选择模式时显示目标配置 -->
-        <div v-if="mode === 'sequential'" class="border-b border-gray-200 p-4">
+        <div v-if="mode === 'sequential'" class="border-b border-gray-200">
           <TargetConfig />
         </div>
         <!-- 选择区域 -->
-        <div class="flex-1">
+        <div class="flex-1 overflow-hidden">
           <PickArea />
         </div>
       </div>
 
       <!-- 右侧：选择历史 -->
-      <div class="w-1/4 p-4 overflow-hidden flex flex-col">
+      <div class="w-1/4 overflow-hidden flex flex-col">
         <PickHistory />
       </div>
     </div>
