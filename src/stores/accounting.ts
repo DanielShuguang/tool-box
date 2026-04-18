@@ -53,6 +53,10 @@ export const useAccountingStore = defineStore(
     const loading = ref(false)
     // 当前过滤条件
     const currentFilters = ref<AccountingFilter>({})
+    // 统计信息
+    const totalIncome = ref(0)
+    const totalExpense = ref(0)
+    const balance = computed(() => totalIncome.value - totalExpense.value)
 
     // 添加记录
     const addRecord = async (record: NewAccountingRecord) => {
@@ -111,6 +115,10 @@ export const useAccountingStore = defineStore(
         if (filters) {
           currentFilters.value = filters
         }
+        // 更新统计信息
+        const stats = await accountingStorage.getAccountingStats()
+        totalIncome.value = stats.income
+        totalExpense.value = stats.expense
       } catch (error) {
         console.error('Failed to load records:', error)
         throw error
@@ -196,6 +204,9 @@ export const useAccountingStore = defineStore(
       pageSize,
       loading,
       currentFilters,
+      totalIncome,
+      totalExpense,
+      balance,
       addRecord,
       deleteRecord,
       updateRecord,
