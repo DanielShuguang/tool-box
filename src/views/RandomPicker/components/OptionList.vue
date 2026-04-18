@@ -77,6 +77,12 @@ const toggleSelectAll = () => {
   }
   showBatchActions.value = selectedForBatch.value.length > 0
 }
+
+// 取消批量选择
+const cancelBatchSelect = () => {
+  showBatchActions.value = false
+  selectedForBatch.value = []
+}
 </script>
 
 <template>
@@ -108,14 +114,7 @@ const toggleSelectAll = () => {
             {{ selectedForBatch.length === options.length ? '取消全选' : '全选' }}
           </n-button>
           <n-button size="tiny" type="error" @click="handleBatchRemove">删除</n-button>
-          <n-button
-            size="tiny"
-            @click="
-              showBatchActions = false
-              selectedForBatch = []
-            ">
-            取消
-          </n-button>
+          <n-button size="tiny" @click="cancelBatchSelect">取消</n-button>
         </div>
       </transition>
 
