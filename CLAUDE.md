@@ -6,19 +6,19 @@
 
 ## 技术栈
 
-| 层级        | 技术                                  |
-| ----------- | ------------------------------------- |
-| 前端        | Vue 3（组合式 API）、TypeScript、Vite |
-| UI 框架     | Naive UI                              |
-| CSS         | UnoCSS（原子化 CSS）、less            |
-| 状态管理    | Pinia                                 |
-| 路由        | Vue Router                            |
-| 动画        | Motion-v                              |
-| 桌面 API    | Tauri API                             |
-| 后端        | Tauri 2.x（Rust）                     |
-| 异步运行时  | Tokio                                 |
-| HTTP 客户端 | reqwest                               |
-| 包管理器    | pnpm 10.4+                            |
+| 层级       | 技术                                 |
+| ---------- | ------------------------------------ |
+| 前端       | Vue 3（组合式 API）、TypeScript、Vite |
+| UI 框架    | Naive UI                             |
+| CSS        | UnoCSS（原子化 CSS）、less           |
+| 状态管理   | Pinia                                |
+| 路由       | Vue Router                           |
+| 动画       | Motion-v                             |
+| 桌面 API   | Tauri API                            |
+| 后端       | Tauri 2.x（Rust）                  |
+| 异步运行时 | Tokio                                |
+| HTTP 客户端 | reqwest                              |
+| 包管理器   | pnpm 10.4+                          |
 
 ---
 
@@ -129,24 +129,24 @@ async fn command_name(
 
 ### TypeScript / JavaScript
 
-| 类型      | 命名方式         | 示例              |
-| --------- | ---------------- | ----------------- |
-| 组件      | PascalCase       | `AppSettings.vue` |
-| 文件      | kebab-case       | `file-search.ts`  |
-| 变量/函数 | camelCase        | `searchDiskFile`  |
-| 常量      | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`   |
-| 类型/接口 | PascalCase       | `SearchResult`    |
-| 枚举      | PascalCase       | `FileStatus`      |
+| 类型       | 命名方式         | 示例               |
+| ---------- | ---------------- | ------------------ |
+| 组件       | PascalCase       | `AppSettings.vue`  |
+| 文件       | kebab-case       | `file-search.ts`   |
+| 变量/函数  | camelCase       | `searchDiskFile`   |
+| 常量       | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`    |
+| 类型/接口   | PascalCase       | `SearchResult`      |
+| 枚举       | PascalCase       | `FileStatus`       |
 
 ### Rust
 
-| 类型      | 命名方式         | 示例               |
-| --------- | ---------------- | ------------------ |
-| 模块      | snake_case       | `file_search`      |
-| 函数/变量 | snake_case       | `search_disk_file` |
-| 结构体    | PascalCase       | `SearchResult`     |
-| 枚举      | PascalCase       | `FileStatus`       |
-| 常量      | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`    |
+| 类型       | 命名方式         | 示例                |
+| ---------- | ---------------- | ------------------- |
+| 模块       | snake_case       | `file_search`       |
+| 函数/变量   | snake_case       | `search_disk_file`  |
+| 结构体     | PascalCase       | `SearchResult`      |
+| 枚举       | PascalCase       | `FileStatus`        |
+| 常量       | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`     |
 
 ---
 
@@ -188,7 +188,7 @@ cargo clippy
 ## 测试
 
 - **框架**：Vitest 4.0+
-- **断言库**：@testing-library/jest-dom
+- **断言库**：`@testing-library/jest-dom`
 
 ```bash
 pnpm test           # 运行测试
@@ -260,17 +260,17 @@ pnpm test:coverage  # 使用覆盖率运行
 
 ## Tauri 插件
 
-| 插件                      | 用途         |
-| ------------------------- | ------------ |
-| tauri-plugin-fs           | 文件系统访问 |
-| tauri-plugin-dialog       | 原生对话框   |
-| tauri-plugin-shell        | Shell 命令   |
-| tauri-plugin-notification | 系统通知     |
-| tauri-plugin-os           | 操作系统信息 |
-| tauri-plugin-http         | HTTP 请求    |
-| tauri-plugin-store        | 持久化存储   |
-| tauri-plugin-cli          | CLI 参数     |
-| tauri-plugin-autostart    | 自动启动     |
+| 插件                       | 用途        |
+| -------------------------- | ----------- |
+| tauri-plugin-fs            | 文件系统访问 |
+| tauri-plugin-dialog         | 原生对话框   |
+| tauri-plugin-shell          | Shell 命令   |
+| tauri-plugin-notification   | 系统通知     |
+| tauri-plugin-os             | 操作系统信息 |
+| tauri-plugin-http           | HTTP 请求    |
+| tauri-plugin-store          | 持久化存储   |
+| tauri-plugin-cli            | CLI 参数     |
+| tauri-plugin-autostart      | 自动启动     |
 
 ---
 
