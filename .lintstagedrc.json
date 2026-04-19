@@ -1,10 +1,8 @@
 {
   "*.{ts,js,tsx}": [
-    "oxlint --fix",
-    "oxfmt"
+    "oxlint --fix"
   ],
   "*.vue": [
-    "oxlint --fix --vue-plugin",
-    "oxfmt"
+    "oxlint --fix --vue-plugin"
   ]
 }
