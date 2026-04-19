@@ -4,7 +4,6 @@ import {
   FolderOpenOutline,
   DocumentTextOutline,
   SearchOutline,
-  ServerOutline,
   DocumentTextOutline as FileTextIcon
 } from '@vicons/ionicons5'
 import {

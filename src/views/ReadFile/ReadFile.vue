@@ -34,7 +34,6 @@ const {
 
 // 统计数据
 const matchedCount = computed(() => searched.value.length)
-const outputCount = computed(() => outputs.value.length)
 </script>
 
 <template>

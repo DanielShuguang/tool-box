@@ -61,12 +61,6 @@ const targetLanguages = computed(() =>
   supportedLanguages.filter(item => item.code !== 'auto' && item.code !== sourceLanguage.value)
 )
 
-const sourceLanguageName = computed(
-  () => supportedLanguages.find(l => l.code === sourceLanguage.value)?.name || '自动检测'
-)
-const targetLanguageName = computed(
-  () => supportedLanguages.find(l => l.code === targetLanguage.value)?.name || '中文'
-)
 
 const exchangeLanguages = () => {
   if (sourceLanguage.value === 'auto') {
