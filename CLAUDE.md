@@ -2,23 +2,23 @@
 
 ## 项目概述
 
-基于 Tauri（Rust 后端 + Vue 3 前端）构建的个人桌面工具应用程序。
+基于 Tauri 2.x（Rust 后端 + Vue 3 前端）构建的个人桌面工具应用程序。
 
 ## 技术栈
 
-| 层级       | 技术                                 |
-| ---------- | ------------------------------------ |
-| 前端       | Vue 3（组合式 API）、TypeScript、Vite |
-| UI 框架    | Naive UI                             |
-| CSS        | UnoCSS（原子化 CSS）、less           |
-| 状态管理   | Pinia                                |
-| 路由       | Vue Router                           |
-| 动画       | Motion-v                             |
-| 桌面 API   | Tauri API                            |
-| 后端       | Tauri 2.x（Rust）                  |
-| 异步运行时 | Tokio                                |
-| HTTP 客户端 | reqwest                              |
-| 包管理器   | pnpm 10.4+                          |
+| 层级 | 技术 |
+|------|------|
+| 前端 | Vue 3（组合式 API）、TypeScript、Vite |
+| UI 框架 | Naive UI |
+| CSS | UnoCSS（原子化 CSS）、Sass |
+| 状态管理 | Pinia |
+| 路由 | Vue Router |
+| 动画 | Motion-v |
+| 桌面 API | Tauri API 2.x |
+| 后端 | Tauri 2.x（Rust） |
+| 异步运行时 | Tokio |
+| HTTP 客户端 | reqwest |
+| 包管理器 | pnpm 10.4+ |
 
 ---
 
@@ -27,6 +27,23 @@
 - **Node.js**：>= 22.18.0（由 Volta 管理）
 - **Rust**：>= 1.88
 - **pnpm**：>= 10.4.1
+
+---
+
+## 功能模块
+
+| 模块 | 说明 |
+|------|------|
+| RandomPicker | 随机选择器 |
+| Download | 下载管理（含断点续传） |
+| FileSearch | 文件搜索 |
+| ReadFile | 文件读取 |
+| EyeProtection | 护眼工具 |
+| Todo | 待办事项 |
+| Accounting | 记账功能 |
+| Translator | 翻译工具 |
+| CanvasBoard | 画板（支持历史记录、自动保存） |
+| WindowsActivatiion | Windows 激活 |
 
 ---
 
@@ -49,7 +66,7 @@
 - 行宽：100 字符
 - 箭头函数：单个参数时不使用括号
 - 不使用尾随逗号
-- 单文件最多 300 行
+- 单文件最多 400 行
 - 函数参数最多 3 个（超过时使用对象参数）
 - 必要时使用中文注释
 
@@ -76,23 +93,19 @@
 </style>
 ```
 
-**组件开发**
+**组件拆分规则**
 
-- 使用 `<script setup lang="ts">` 语法
-- 组件文件结构：`.vue`（模板）+ `logic.ts`（逻辑）
-- 使用组合式 API
-- 使用 TypeScript 进行类型定义
-- 使用 Naive UI 组件库
-- 将复杂功能拆分为独立组件
-- 样式优先使用 UnoCSS 原子化 CSS，必要时使用 less 自定义样式
+- 简单/小型组件：拆分为 `.vue`（模板）+ `logic.ts`（逻辑）
+- 复杂组件：按功能拆分为多个 `.vue` 文件，逻辑封装到独立 `.ts` 文件
 
 **状态管理（Pinia）**
 
 - 使用 `defineStore` 的 setup 模式
 - 存储文件位置：`src/stores/*.ts`
-- 命名：按功能命名（例如 `download.ts`、`musicPlayer.ts`）
+- 命名：按功能命名（例如 `download.ts`、`randomPicker.ts`）
 
 **自动导入**
+
 项目使用 Vite 的 unplugin 插件。查看 `src/types/auto-imports.d.ts` 和 `src/types/components.d.ts` 了解自动导入的组件和函数。
 
 ### 后端（Rust）
@@ -129,24 +142,24 @@ async fn command_name(
 
 ### TypeScript / JavaScript
 
-| 类型       | 命名方式         | 示例               |
-| ---------- | ---------------- | ------------------ |
-| 组件       | PascalCase       | `AppSettings.vue`  |
-| 文件       | kebab-case       | `file-search.ts`   |
-| 变量/函数  | camelCase       | `searchDiskFile`   |
-| 常量       | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`    |
-| 类型/接口   | PascalCase       | `SearchResult`      |
-| 枚举       | PascalCase       | `FileStatus`       |
+| 类型 | 命名方式 | 示例 |
+|------|----------|------|
+| 组件 | PascalCase | `AppSettings.vue` |
+| 文件 | kebab-case | `file-search.ts` |
+| 变量/函数 | camelCase | `searchDiskFile` |
+| 常量 | UPPER_SNAKE_CASE | `MAX_FILE_SIZE` |
+| 类型/接口 | PascalCase | `SearchResult` |
+| 枚举 | PascalCase | `FileStatus` |
 
 ### Rust
 
-| 类型       | 命名方式         | 示例                |
-| ---------- | ---------------- | ------------------- |
-| 模块       | snake_case       | `file_search`       |
-| 函数/变量   | snake_case       | `search_disk_file`  |
-| 结构体     | PascalCase       | `SearchResult`      |
-| 枚举       | PascalCase       | `FileStatus`        |
-| 常量       | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`     |
+| 类型 | 命名方式 | 示例 |
+|------|----------|------|
+| 模块 | snake_case | `file_search` |
+| 函数/变量 | snake_case | `search_disk_file` |
+| 结构体 | PascalCase | `SearchResult` |
+| 枚举 | PascalCase | `FileStatus` |
+| 常量 | UPPER_SNAKE_CASE | `MAX_FILE_SIZE` |
 
 ---
 
@@ -156,12 +169,12 @@ async fn command_name(
 
 ```bash
 # 静态检查并自动修复（仅修改的文件）
-npx oxlint --fix <modified-files>
+npx oxlint --fix src/file.ts
 
 # 代码格式化（仅修改的文件）
-npx oxfmt <modified-files>
+npx oxfmt src/file.ts
 
-# 类型检查（使用增量构建缓存）
+# 类型检查
 pnpm check
 ```
 
@@ -187,18 +200,18 @@ cargo clippy
 
 ## 测试
 
-- **框架**：Vitest 4.0+
+- **框架**：Vitest 4.x
 - **断言库**：`@testing-library/jest-dom`
 
 ```bash
 pnpm test           # 运行测试
-pnpm test:ui       # 使用 UI 运行
+pnpm test:ui        # 使用 UI 运行
 pnpm test:coverage  # 使用覆盖率运行
 ```
 
 ### 测试说明
 
-测试调用 Tauri 命令或使用 `invoke` 的代码时，使用 `@tauri-apps/api/mocks` 来模拟后端行为，而不是调用真实的后端。
+测试调用 Tauri 命令或使用 `invoke` 的代码时，使用 `@tauri-apps/api/mocks` 来模拟后端行为。
 
 ---
 
@@ -219,87 +232,39 @@ pnpm test:coverage  # 使用覆盖率运行
 
 ---
 
-## Tauri 命令 API
-
-### 注册（Rust）
-
-命令注册在 `src-tauri/src/lib.rs` 中：
-
-```rust
-.invoke_handler(tauri::generate_handler![
-    command_name,
-    // ...其他命令
-])
-```
-
----
-
-## 路由
-
-- **模式**：哈希历史模式（`createWebHashHistory`）
-- **模式**：懒加载视图
-- **元信息**：每个路由在 meta 中包含 `title`
-
-```typescript
-{
-  path: '/feature',
-  component: () => import('@/views/Feature/Feature.vue'),
-  meta: { title: '功能名称' }
-}
-```
-
----
-
-## Git 提交
-
-- 使用 husky 提交前钩子（提交前自动运行 lint）
-- 提交信息使用中文
-- 保持提交信息简洁明了
-
----
-
 ## Tauri 插件
 
-| 插件                       | 用途        |
-| -------------------------- | ----------- |
-| tauri-plugin-fs            | 文件系统访问 |
-| tauri-plugin-dialog         | 原生对话框   |
-| tauri-plugin-shell          | Shell 命令   |
-| tauri-plugin-notification   | 系统通知     |
-| tauri-plugin-os             | 操作系统信息 |
-| tauri-plugin-http           | HTTP 请求    |
-| tauri-plugin-store          | 持久化存储   |
-| tauri-plugin-cli            | CLI 参数     |
-| tauri-plugin-autostart      | 自动启动     |
+| 插件 | 用途 |
+|------|------|
+| tauri-plugin-fs | 文件系统访问 |
+| tauri-plugin-dialog | 原生对话框 |
+| tauri-plugin-shell | Shell 命令 |
+| tauri-plugin-notification | 系统通知 |
+| tauri-plugin-os | 操作系统信息 |
+| tauri-plugin-http | HTTP 请求 |
+| tauri-plugin-store | 持久化存储 |
+| tauri-plugin-cli | CLI 参数 |
+| tauri-plugin-autostart | 自动启动 |
 
 ---
 
 ## 开发命令
 
 ```bash
-pnpm dev          # 启动 Vite 开发服务器
-pnpm tauri dev   # 启动 Tauri 开发
-pnpm build       # 构建前端（类型检查 + Vite 构建）
-pnpm tauri build # 构建 Tauri 应用程序
-pnpm test        # 运行测试
-pnpm lint        # 静态检查并自动修复
-pnpm check       # 类型检查
+pnpm dev           # 启动 Vite 开发服务器
+pnpm tauri dev    # 启动 Tauri 开发
+pnpm build        # 构建前端（类型检查 + Vite 构建）
+pnpm tauri build  # 构建 Tauri 应用程序
+pnpm test         # 运行测试
+pnpm lint         # 静态检查并自动修复
+pnpm check        # 类型检查
 ```
-
----
-
-## 构建要求
-
-- Node.js >= 22.18.0
-- Rust >= 1.88
-- pnpm >= 10.4.1
 
 ---
 
 ## 窗口配置
 
 - **主窗口**：`label: "main"`，无装饰，最小 1024x768
-- **歌词窗口**：`label: "lyrics-window"`，透明，始终置顶，600x80
 
 ---
 

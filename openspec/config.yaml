@@ -1,8 +1,6 @@
 schema: spec-driven
 
 # 项目上下文
-# 在创建工件时向 AI 显示此信息。
-# 添加您的技术栈、约定、风格指南、领域知识等。
 context: |
   # 项目概述
   基于 Tauri 2.x 的桌面应用，前端使用 Vue 3 + TypeScript，后端使用 Rust。
@@ -13,16 +11,21 @@ context: |
   - Vite
   - Naive UI (UI 组件库)
   - UnoCSS (原子化 CSS)
+  - Sass (自定义样式)
   - Vue Router
   - VueUse
-  - Tauri API
+  - Tauri API 2.x
   - motion-v (动画库)
+  - Pinia (状态管理)
+  - Vitest (测试框架)
 
   ## 后端
   - Rust
   - Tauri 2.x
   - Tokio (异步运行时)
   - reqwest (HTTP 客户端)
+  - sysinfo (系统信息)
+  - winreg (Windows 注册表)
 
   # 代码风格
   ## TypeScript/JavaScript
@@ -32,7 +35,7 @@ context: |
   - 行宽 100 字符
   - 箭头函数参数不使用括号 (当只有一个参数时)
   - 尾随逗号: 不使用
-  - 单个文件行数不超过 300 行
+  - 单个文件行数不超过 400 行
   - 函数形参不超过 3 个，超过时考虑使用对象参数
   - 注释: 必要时添加注释，保持代码可读性，语言为中文
 
@@ -75,6 +78,18 @@ context: |
   - 逻辑封装到独立的 `.ts` 文件中
   - 每个文件不超过 400 行
 
+  # 功能模块
+  - RandomPicker: 随机选择器
+  - Download: 下载管理（含断点续传）
+  - FileSearch: 文件搜索
+  - ReadFile: 文件读取
+  - EyeProtection: 护眼工具
+  - Todo: 待办事项
+  - Accounting: 记账功能
+  - Translator: 翻译工具
+  - CanvasBoard: 画板（支持历史记录、自动保存）
+  - WindowsActivatiion: Windows 激活
+
   # Tauri 命令开发规范
   ## 后端 (Rust)
   - 在 `src-tauri/src/` 中创建对应模块
@@ -87,6 +102,17 @@ context: |
   - 使用 `invoke` 函数调用后端命令
   - 定义 TypeScript 类型与 Rust 结构体对应
 
+  # Tauri 插件
+  - tauri-plugin-fs: 文件系统访问
+  - tauri-plugin-dialog: 原生对话框
+  - tauri-plugin-shell: Shell 命令
+  - tauri-plugin-notification: 系统通知
+  - tauri-plugin-os: 操作系统信息
+  - tauri-plugin-http: HTTP 请求
+  - tauri-plugin-store: 持久化存储
+  - tauri-plugin-cli: CLI 参数
+  - tauri-plugin-autostart: 自动启动
+
   # Git 提交规范
   - 使用 husky pre-commit hook
   - 提交前会自动运行 lint
@@ -94,9 +120,9 @@ context: |
 
   # 必须运行的命令
   ## 代码修改后必须运行（增量检查）
-  - `npx oxlint --fix <修改的文件>` - Lint 检查和自动修复（仅检查修改的文件）
-  - `npx oxfmt <修改的文件>` - 代码格式化（仅格式化修改的文件）
-  - `pnpm check` - 类型检查（使用增量编译缓存）
+  - `npx oxlint --fix <修改的文件>` - Lint 检查和自动修复
+  - `npx oxfmt <修改的文件>` - 代码格式化
+  - `pnpm check` - 类型检查
 
   # 环境要求
   - Node.js >= 22.18.0 (使用 Volta 管理)
@@ -104,7 +130,6 @@ context: |
   - pnpm >= 10.4.1
 
 # 每个工件的规则
-# 为特定工件添加自定义规则。
 rules:
   proposal:
     - 保持提案简洁，聚焦核心功能
