@@ -26,15 +26,32 @@ function gotoDownload(link: string) {
 
 // 统计数据
 const statusLabel = computed(() => {
-  if (activeState.value > 1) return '已过期'
+  if (activeState.value === 0) return '未激活'
   if (activeState.value === 1) return '已激活'
-  return '未激活'
+  // activeState > 1 表示 KMS 时间戳
+  const remaining = activeState.value - Date.now()
+  const remainingDays = remaining / (1000 * 60 * 60 * 24)
+  if (remainingDays <= 60) return '即将过期'
+  return '已激活'
 })
 
 const statusColor = computed(() => {
   if (activeState.value === 1) return 'text-green-500'
   if (activeState.value === 0) return 'text-red-500'
   return 'text-orange-500'
+})
+
+// KMS 剩余天数
+const remainingDays = computed(() => {
+  if (activeState.value > 1) {
+    return Math.ceil((activeState.value - Date.now()) / (1000 * 60 * 60 * 24))
+  }
+  return 0
+})
+
+// 是否即将过期（剩余 <= 60 天）
+const isExpiringSoon = computed(() => {
+  return activeState.value > 1 && remainingDays.value <= 60
 })
 </script>
 
@@ -58,7 +75,7 @@ const statusColor = computed(() => {
           <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <n-icon size="20" :class="statusColor">
-                <CheckmarkCircleOutline v-if="activeState === 1" />
+                <CheckmarkCircleOutline v-if="activeState === 1 || (activeState > 1 && !isExpiringSoon)" />
                 <CloseCircleOutline v-else-if="activeState === 0" />
                 <KeyOutline v-else />
               </n-icon>
@@ -108,9 +125,9 @@ const statusColor = computed(() => {
             <div
               class="w-12 h-12 rounded-full flex items-center justify-center"
               :class="{
-                'bg-green-100': activeState === 1,
+                'bg-green-100': activeState === 1 || (activeState > 1 && !isExpiringSoon),
                 'bg-red-100': activeState === 0,
-                'bg-orange-100': activeState > 1
+                'bg-orange-100': activeState > 1 && isExpiringSoon
               }">
               <n-icon size="24" :class="statusColor">
                 <CheckmarkCircleOutline v-if="activeState === 1" />
@@ -123,7 +140,7 @@ const statusColor = computed(() => {
                 <span :class="textColor" class="text-lg font-semibold">
                   {{ format(activeState, 'yyyy-MM-dd') }}
                 </span>
-                <n-tag type="warning" size="small">即将过期</n-tag>
+                <n-tag v-if="isExpiringSoon" type="warning" size="small">即将过期</n-tag>
               </div>
               <span v-else-if="activeState === 1" class="text-lg font-semibold text-green-500">
                 已永久激活
@@ -132,9 +149,7 @@ const statusColor = computed(() => {
               <div class="text-sm text-gray-400 mt-1">
                 {{
                   activeState > 1
-                    ? '剩余 ' +
-                      Math.ceil((activeState - Date.now()) / (1000 * 60 * 60 * 24)) +
-                      ' 天'
+                    ? '剩余 ' + remainingDays + ' 天'
                     : '点击下方按钮激活'
                 }}
               </div>
