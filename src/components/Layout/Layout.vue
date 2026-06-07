@@ -17,7 +17,8 @@ import {
   GlobeOutline,
   ListOutline,
   ShuffleOutline,
-  ContrastOutline
+  ContrastOutline,
+  CameraOutline
 } from '@vicons/ionicons5'
 import { MinimizeRound } from '@vicons/material'
 import { Maximize20Regular } from '@vicons/fluent'
@@ -45,7 +46,8 @@ const navItems = [
   { path: '/eyeProtection', title: '护眼工具', icon: EyeOutline },
   { path: '/translator', title: '翻译工具', icon: GlobeOutline },
   { path: '/todo', title: '待办事项', icon: ListOutline },
-  { path: '/randomPicker', title: '随机选择', icon: ShuffleOutline }
+  { path: '/randomPicker', title: '随机选择', icon: ShuffleOutline },
+  { path: '/screenshot', title: '截图工具', icon: CameraOutline }
 ]
 
 watch(

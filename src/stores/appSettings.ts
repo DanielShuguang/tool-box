@@ -5,6 +5,18 @@ export interface AppSettingsState {
   enableTrayIcon: boolean
   themeAutoFollow: boolean
   isDark: boolean
+  screenshot: {
+    shortcuts: {
+      captureFullScreen: string
+      captureRegion: string
+      captureWindow: string
+    }
+    save: {
+      defaultFormat: 'png' | 'jpg'
+      defaultPath: string
+      autoCopyToClipboard: boolean
+    }
+  }
 }
 
 export const useAppSettingsStore = defineStore(
@@ -14,6 +26,18 @@ export const useAppSettingsStore = defineStore(
     const enableTrayIcon = ref(false)
     const themeAutoFollow = ref(false)
     const isDark = ref(false)
+    const screenshot = ref({
+      shortcuts: {
+        captureFullScreen: 'Ctrl+Shift+S',
+        captureRegion: 'Ctrl+Shift+A',
+        captureWindow: 'Ctrl+Shift+W'
+      },
+      save: {
+        defaultFormat: 'png' as 'png' | 'jpg',
+        defaultPath: '',
+        autoCopyToClipboard: false
+      }
+    })
 
     // 获取系统主题
     function getSystemTheme() {
@@ -55,7 +79,8 @@ export const useAppSettingsStore = defineStore(
       autostart,
       enableTrayIcon,
       themeAutoFollow,
-      isDark
+      isDark,
+      screenshot
     }
   },
   {
