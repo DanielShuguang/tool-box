@@ -50,7 +50,8 @@ const handleClose = () => {
 <template>
   <div class="flex flex-col h-[600px]">
     <!-- 头部 -->
-    <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
+    <div
+      class="px-5 py-4 border-b border-[var(--border-color)] flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
       <div class="flex items-center gap-3">
         <span class="text-base font-semibold text-[var(--text-color1)]">选择历史</span>
         <n-tag v-if="history.length > 0" size="small" round type="info">
@@ -65,7 +66,9 @@ const handleClose = () => {
     </div>
 
     <!-- 操作栏 -->
-    <div v-if="history.length > 0" class="px-5 py-3 border-b border-[var(--border-color)] bg-gray-50/50">
+    <div
+      v-if="history.length > 0"
+      class="px-5 py-3 border-b border-[var(--border-color)] bg-gray-50/50">
       <div class="flex gap-2">
         <n-button size="small" @click="handleUndo" class="flex-1">
           <template #icon>
@@ -73,9 +76,7 @@ const handleClose = () => {
           </template>
           撤销
         </n-button>
-        <n-button size="small" type="error" @click="handleClear" ghost>
-          清空全部
-        </n-button>
+        <n-button size="small" type="error" @click="handleClear" ghost> 清空全部 </n-button>
       </div>
     </div>
 

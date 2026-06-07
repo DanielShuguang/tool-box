@@ -75,7 +75,8 @@ const isExpiringSoon = computed(() => {
           <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <n-icon size="20" :class="statusColor">
-                <CheckmarkCircleOutline v-if="activeState === 1 || (activeState > 1 && !isExpiringSoon)" />
+                <CheckmarkCircleOutline
+                  v-if="activeState === 1 || (activeState > 1 && !isExpiringSoon)" />
                 <CloseCircleOutline v-else-if="activeState === 0" />
                 <KeyOutline v-else />
               </n-icon>
@@ -147,11 +148,7 @@ const isExpiringSoon = computed(() => {
               </span>
               <span v-else class="text-lg font-semibold text-red-500">未激活</span>
               <div class="text-sm text-gray-400 mt-1">
-                {{
-                  activeState > 1
-                    ? '剩余 ' + remainingDays + ' 天'
-                    : '点击下方按钮激活'
-                }}
+                {{ activeState > 1 ? '剩余 ' + remainingDays + ' 天' : '点击下方按钮激活' }}
               </div>
             </div>
           </div>

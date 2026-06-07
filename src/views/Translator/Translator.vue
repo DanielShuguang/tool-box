@@ -61,7 +61,6 @@ const targetLanguages = computed(() =>
   supportedLanguages.filter(item => item.code !== 'auto' && item.code !== sourceLanguage.value)
 )
 
-
 const exchangeLanguages = () => {
   if (sourceLanguage.value === 'auto') {
     message.warning('自动检测语言无法交换')
