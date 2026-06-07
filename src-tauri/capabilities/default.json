@@ -65,6 +65,7 @@
           "headers": true
         }
       ]
-    }
+    },
+    "http:allow-fetch-cancel-body"
   ]
 }

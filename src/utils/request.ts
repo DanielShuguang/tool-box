@@ -49,20 +49,6 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * 超时控制
- */
-function timeoutPromise<T = any>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      setTimeout(() => {
-        reject(createRequestError(`请求超时 ${ms}ms`))
-      }, ms)
-    })
-  ])
-}
-
-/**
  * 通用请求方法
  */
 export async function request<T = any>(
@@ -85,18 +71,21 @@ export async function request<T = any>(
   // 重试机制
   for (let i = 0; i <= retries; i++) {
     try {
-      // 超时控制
-      const response = await timeoutPromise(
-        fetch(url.toString(), {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            ...headers
-          },
-          body
-        }),
-        timeout
-      )
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+      const response = await fetch(url.toString(), {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          ...headers
+        },
+        body,
+        signal: controller.signal,
+        connectTimeout: timeout
+      })
+      clearTimeout(timeoutId)
 
       // 处理非2xx响应
       if (!response.ok) {
