@@ -40,6 +40,26 @@ const routes: RouteRecordRaw[] = [
     path: '/randomPicker',
     component: () => import('@/views/RandomPicker/RandomPicker.vue'),
     meta: { title: '随机选择' }
+  },
+  {
+    path: '/screenshot',
+    component: () => import('@/views/Screenshot/index.vue'),
+    meta: { title: '截图工具' }
+  },
+  {
+    path: '/screenshot/capture',
+    component: () => import('@/views/Screenshot/components/CaptureWindow.vue'),
+    meta: { title: '截图选择' }
+  },
+  {
+    path: '/screenshot/preview',
+    component: () => import('@/views/Screenshot/components/PreviewWindow.vue'),
+    meta: { title: '截图预览' }
+  },
+  {
+    path: '/screenshot/editor',
+    component: () => import('@/views/Screenshot/components/EditorWindow.vue'),
+    meta: { title: '截图编辑' }
   }
 ]
 

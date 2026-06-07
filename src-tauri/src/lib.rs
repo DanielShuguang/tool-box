@@ -4,12 +4,17 @@ use download::{
 };
 use file_search::{cancel_search_task, search_disk_file_real_time};
 use font::get_system_fonts;
+use screenshot::{
+    capture_region, capture_screen, capture_window, create_capture_window, create_editor_window,
+    create_preview_window, get_screenshot_data, get_windows, ScreenshotState,
+};
 use utils::os::{get_cpu_info, get_harddisk_info};
 
 mod autostart;
 mod download;
 mod file_search;
 mod font;
+mod screenshot;
 mod utils;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -24,7 +29,11 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(file_search::init())
+        .manage(ScreenshotState {
+            data: std::sync::Mutex::new(None),
+        })
         .invoke_handler(tauri::generate_handler![
             download_file,
             download_file_with_config,
@@ -37,6 +46,14 @@ pub fn run() {
             cancel_search_task,
             set_auto_start,
             is_auto_start_enabled,
+            capture_screen,
+            capture_region,
+            capture_window,
+            get_windows,
+            create_capture_window,
+            create_preview_window,
+            create_editor_window,
+            get_screenshot_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
