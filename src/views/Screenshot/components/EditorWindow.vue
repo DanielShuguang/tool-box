@@ -206,6 +206,7 @@ const handleRedo = () => {
     <div class="editor-toolbar">
       <n-space>
         <n-button
+          data-testid="tool-pencil"
           size="small"
           :type="currentTool === 'pencil' ? 'primary' : 'default'"
           @click="currentTool = 'pencil'"
@@ -213,6 +214,7 @@ const handleRedo = () => {
           画笔
         </n-button>
         <n-button
+          data-testid="tool-rect"
           size="small"
           :type="currentTool === 'rect' ? 'primary' : 'default'"
           @click="currentTool = 'rect'"
@@ -220,6 +222,7 @@ const handleRedo = () => {
           矩形
         </n-button>
         <n-button
+          data-testid="tool-circle"
           size="small"
           :type="currentTool === 'circle' ? 'primary' : 'default'"
           @click="currentTool = 'circle'"
@@ -227,6 +230,7 @@ const handleRedo = () => {
           圆形
         </n-button>
         <n-button
+          data-testid="tool-arrow"
           size="small"
           :type="currentTool === 'arrow' ? 'primary' : 'default'"
           @click="currentTool = 'arrow'"
@@ -234,6 +238,7 @@ const handleRedo = () => {
           箭头
         </n-button>
         <n-button
+          data-testid="tool-text"
           size="small"
           :type="currentTool === 'text' ? 'primary' : 'default'"
           @click="currentTool = 'text'"
@@ -241,6 +246,7 @@ const handleRedo = () => {
           文字
         </n-button>
         <n-button
+          data-testid="tool-mosaic"
           size="small"
           :type="currentTool === 'mosaic' ? 'primary' : 'default'"
           @click="currentTool = 'mosaic'"
@@ -250,26 +256,26 @@ const handleRedo = () => {
       </n-space>
 
       <n-space>
-        <n-button size="small" @click="handleUndo">撤销</n-button>
-        <n-button size="small" @click="handleRedo">重做</n-button>
+        <n-button data-testid="btn-undo" size="small" @click="handleUndo">撤销</n-button>
+        <n-button data-testid="btn-redo" size="small" @click="handleRedo">重做</n-button>
       </n-space>
     </div>
 
     <div class="editor-canvas">
-      <canvas ref="canvasRef" />
+      <canvas ref="canvasRef" data-testid="editor-canvas" />
     </div>
 
     <div class="editor-properties">
       <n-space vertical>
-        <n-color-picker v-model:value="currentColor" />
-        <n-input-number v-model:value="currentLineWidth" :min="1" :max="10" />
+        <n-color-picker data-testid="color-picker" v-model:value="currentColor" />
+        <n-input-number data-testid="line-width-input" v-model:value="currentLineWidth" :min="1" :max="10" />
       </n-space>
     </div>
 
     <div class="editor-actions">
-      <n-button type="primary" @click="handleSave">保存</n-button>
-      <n-button @click="handleCopy">复制</n-button>
-      <n-button @click="handleClose">关闭</n-button>
+      <n-button data-testid="btn-save" type="primary" @click="handleSave">保存</n-button>
+      <n-button data-testid="btn-copy" @click="handleCopy">复制</n-button>
+      <n-button data-testid="btn-close-editor" @click="handleClose">关闭</n-button>
     </div>
   </div>
 </template>

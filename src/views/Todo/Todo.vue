@@ -94,7 +94,7 @@ const overdueCount = computed(
     <div class="flex-1 overflow-auto p-4">
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div data-testid="todo-stat-total" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-blue-500">
               <TimeOutline />
@@ -105,7 +105,7 @@ const overdueCount = computed(
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div data-testid="todo-stat-pending" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-orange-500">
               <AlertCircleOutline />
@@ -116,7 +116,7 @@ const overdueCount = computed(
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div data-testid="todo-stat-completed" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-green-500">
               <CheckmarkCircleOutline />
@@ -127,7 +127,7 @@ const overdueCount = computed(
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div data-testid="todo-stat-overdue" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-red-500">
               <TimeOutline />
@@ -144,16 +144,18 @@ const overdueCount = computed(
       <n-card class="mb-4" :bordered="false">
         <div class="flex flex-col sm:flex-row gap-3">
           <n-input
+            data-testid="todo-input"
             v-model:value="newTodo"
             placeholder="输入新任务..."
             class="flex-1"
             @keyup.enter="handleAddTodo" />
           <n-date-picker
+            data-testid="todo-deadline-picker"
             v-model:value="deadline"
             type="date"
             placeholder="截止日期"
             class="sm:w-44" />
-          <n-button type="primary" class="px-6" @click="handleAddTodo">
+          <n-button data-testid="todo-add-btn" type="primary" class="px-6" @click="handleAddTodo">
             <template #icon>
               <n-icon><AddOutline /></n-icon>
             </template>
@@ -169,11 +171,11 @@ const overdueCount = computed(
             <span class="text-base font-medium">任务列表</span>
 
             <!-- 过滤器 -->
-            <n-radio-group :value="filter" @update:value="setFilter">
+            <n-radio-group data-testid="todo-filters" :value="filter" @update:value="setFilter">
               <n-space>
-                <n-radio value="all">全部</n-radio>
-                <n-radio value="active">未完成</n-radio>
-                <n-radio value="completed">已完成</n-radio>
+                <n-radio data-testid="todo-filter-all" value="all">全部</n-radio>
+                <n-radio data-testid="todo-filter-active" value="active">未完成</n-radio>
+                <n-radio data-testid="todo-filter-completed" value="completed">已完成</n-radio>
               </n-space>
             </n-radio-group>
           </div>
@@ -184,9 +186,11 @@ const overdueCount = computed(
           <div
             v-for="todo in filteredTodos"
             :key="todo.id"
+            :data-testid="`todo-item-${todo.id}`"
             class="flex items-center gap-3 py-3 px-2 hover:bg-gray-50 transition-colors duration-150 group">
             <!-- 复选框 -->
             <n-checkbox
+              :data-testid="`todo-checkbox-${todo.id}`"
               :checked="todo.completed"
               @update:checked="toggleTodo(todo.id)"
               class="flex-shrink-0" />
@@ -194,6 +198,7 @@ const overdueCount = computed(
             <!-- 任务内容 -->
             <div class="flex-1 min-w-0">
               <div
+                :data-testid="`todo-text-${todo.id}`"
                 :class="[
                   'text-sm leading-relaxed',
                   todo.completed ? 'line-through text-gray-400' : 'text-gray-700'
@@ -204,6 +209,7 @@ const overdueCount = computed(
               <!-- 截止日期信息 -->
               <div
                 v-if="todo.deadline"
+                :data-testid="`todo-deadline-${todo.id}`"
                 :class="[
                   'flex items-center gap-1.5 mt-1 text-xs transition-colors',
                   isDeadlinePassed(todo.deadline, todo.completed)
@@ -234,6 +240,7 @@ const overdueCount = computed(
 
             <!-- 删除按钮 -->
             <n-button
+              :data-testid="`todo-delete-${todo.id}`"
               type="error"
               quaternary
               circle
@@ -247,7 +254,7 @@ const overdueCount = computed(
           </div>
 
           <!-- 空状态 -->
-          <div v-if="todos.length === 0" class="py-16 text-center">
+          <div v-if="todos.length === 0" data-testid="todo-empty-state" class="py-16 text-center">
             <div class="text-4xl mb-3">
               <n-icon size="48" :depth="3"><TimeOutline /></n-icon>
             </div>
@@ -284,6 +291,7 @@ const overdueCount = computed(
             </div>
 
             <n-button
+              data-testid="todo-clear-completed"
               @click="clearCompleted"
               v-if="todos.some(t => t.completed)"
               type="error"

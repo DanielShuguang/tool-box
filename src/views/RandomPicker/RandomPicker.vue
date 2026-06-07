@@ -42,16 +42,19 @@ const stats = computed(() => {
       <!-- 统计卡片区 -->
       <div class="grid grid-cols-3 gap-4 mb-8">
         <div
+          data-testid="picker-stat-total"
           class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg">
           <div class="text-4xl font-bold mb-1">{{ stats.total }}</div>
           <div class="text-sm opacity-90">总候选项</div>
         </div>
         <div
+          data-testid="picker-stat-available"
           class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-5 text-white shadow-lg">
           <div class="text-4xl font-bold mb-1">{{ stats.available }}</div>
           <div class="text-sm opacity-90">可用数量</div>
         </div>
         <div
+          data-testid="picker-stat-disabled"
           class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-5 text-white shadow-lg">
           <div class="text-4xl font-bold mb-1">{{ stats.disabled }}</div>
           <div class="text-sm opacity-90">已禁用</div>
@@ -78,7 +81,7 @@ const stats = computed(() => {
             <div class="text-sm font-medium text-[var(--text-color2)] mb-3">快捷操作</div>
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
-                <n-button block secondary @click="toggleHistory" class="flex-1">
+                <n-button data-testid="picker-btn-history" block secondary @click="toggleHistory" class="flex-1">
                   <template #icon>
                     <n-icon><TimeOutline /></n-icon>
                   </template>
@@ -86,7 +89,7 @@ const stats = computed(() => {
                 </n-button>
                 <n-badge v-if="history.length > 0" :value="history.length" :max="99" class="mr-2" />
               </div>
-              <n-button block secondary @click="handleExport">
+              <n-button data-testid="picker-btn-export" block secondary @click="handleExport">
                 <template #icon>
                   <n-icon><DownloadOutline /></n-icon>
                 </template>

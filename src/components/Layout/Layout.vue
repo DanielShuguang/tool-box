@@ -74,7 +74,7 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
 <template>
   <div class="flex flex-col size-full overflow-hidden" @contextmenu="disableContextmenu">
     <!-- 标题栏 -->
-    <header class="titlebar select-none shrink-0" data-tauri-drag-region>
+    <header class="titlebar select-none shrink-0" data-testid="titlebar" data-tauri-drag-region>
       <div class="flex items-center gap-2 h-full pl-3" data-tauri-drag-region>
         <div class="titlebar-dot" data-tauri-drag-region></div>
         <span class="text-[13px] font-medium text-[--textColor2]" data-tauri-drag-region>
@@ -107,6 +107,7 @@ const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
             <template #trigger>
               <button
                 class="nav-btn"
+                :data-testid="`nav-${item.path.slice(1)}`"
                 :class="{ active: routerStore.currentRoutePath === item.path }"
                 @click="router.push(item.path)">
                 <n-icon size="18"><component :is="item.icon" /></n-icon>

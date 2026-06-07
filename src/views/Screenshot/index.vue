@@ -26,18 +26,18 @@ const handleCapture = async () => {
   <div class="screenshot-page">
     <n-card title="截图工具">
       <n-space vertical>
-        <n-radio-group v-model:value="screenshotMode">
-          <n-radio-button value="fullscreen">全屏截图</n-radio-button>
-          <n-radio-button value="region">区域截图</n-radio-button>
-          <n-radio-button value="window">窗口截图</n-radio-button>
+        <n-radio-group data-testid="screenshot-mode-group" v-model:value="screenshotMode">
+          <n-radio-button data-testid="mode-fullscreen" value="fullscreen">全屏截图</n-radio-button>
+          <n-radio-button data-testid="mode-region" value="region">区域截图</n-radio-button>
+          <n-radio-button data-testid="mode-window" value="window">窗口截图</n-radio-button>
         </n-radio-group>
 
-        <n-button type="primary" @click="handleCapture"> 开始截图 </n-button>
+        <n-button data-testid="btn-capture" type="primary" @click="handleCapture"> 开始截图 </n-button>
 
         <n-divider />
 
         <n-space>
-          <n-button @click="$router.push('/screenshot/editor')"> 打开编辑器 </n-button>
+          <n-button data-testid="btn-open-editor" @click="$router.push('/screenshot/editor')"> 打开编辑器 </n-button>
         </n-space>
       </n-space>
     </n-card>

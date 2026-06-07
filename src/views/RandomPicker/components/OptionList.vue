@@ -95,7 +95,7 @@ const cancelBatchSelect = () => {
           <h3 class="text-lg font-semibold text-[var(--text-color1)]">候选项列表</h3>
           <n-tag size="medium" round type="primary">{{ options.length }}</n-tag>
         </div>
-        <n-button type="primary" size="medium" @click="showAddDialog = true">
+        <n-button data-testid="option-add-btn" type="primary" size="medium" @click="showAddDialog = true">
           <template #icon>
             <n-icon><AddOutline /></n-icon>
           </template>
@@ -114,22 +114,22 @@ const cancelBatchSelect = () => {
             </n-icon>
             已选 {{ selectedForBatch.length }} 项
           </span>
-          <n-button size="small" secondary @click="toggleSelectAll">
+          <n-button data-testid="option-select-all" size="small" secondary @click="toggleSelectAll">
             {{ selectedForBatch.length === options.length ? '取消全选' : '全选' }}
           </n-button>
-          <n-button size="small" type="error" @click="handleBatchRemove">
+          <n-button data-testid="option-batch-delete" size="small" type="error" @click="handleBatchRemove">
             <template #icon>
               <n-icon><TrashBinOutline /></n-icon>
             </template>
             删除
           </n-button>
-          <n-button size="small" @click="cancelBatchSelect">取消</n-button>
+          <n-button data-testid="option-batch-cancel" size="small" @click="cancelBatchSelect">取消</n-button>
         </div>
       </transition>
 
       <!-- 工具按钮 -->
       <div v-if="!showBatchActions && options.some(opt => opt.disabled)" class="flex items-center">
-        <n-button size="small" quaternary @click="handleClearAllDisabled">
+        <n-button data-testid="option-restore-all" size="small" quaternary @click="handleClearAllDisabled">
           <template #icon>
             <n-icon size="16"><RemoveCircleOutline /></n-icon>
           </template>
@@ -145,6 +145,7 @@ const cancelBatchSelect = () => {
           <div
             v-for="(option, index) in options"
             :key="option.id"
+            :data-testid="`option-item-${option.id}`"
             class="group flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-gray-50 border border-transparent hover:border-gray-200"
             :class="{
               'opacity-50 bg-gray-100': option.disabled,
@@ -159,6 +160,7 @@ const cancelBatchSelect = () => {
 
             <!-- 批量选择复选框 -->
             <n-checkbox
+              :data-testid="`option-checkbox-${option.id}`"
               :checked="selectedForBatch.includes(option.id)"
               @update:checked="toggleBatchSelect(option.id)"
               @click.stop />
@@ -166,6 +168,7 @@ const cancelBatchSelect = () => {
             <!-- 候选项内容 -->
             <div class="flex-1 flex items-center gap-3 min-w-0">
               <span
+                :data-testid="`option-name-${option.id}`"
                 class="flex-1 truncate text-sm font-medium"
                 :class="{
                   'line-through text-gray-400': option.disabled,
@@ -188,6 +191,7 @@ const cancelBatchSelect = () => {
               <n-tooltip trigger="hover">
                 <template #trigger>
                   <n-button
+                    :data-testid="`option-disable-${option.id}`"
                     quaternary
                     circle
                     size="small"
@@ -206,6 +210,7 @@ const cancelBatchSelect = () => {
               <n-tooltip trigger="hover">
                 <template #trigger>
                   <n-button
+                    :data-testid="`option-delete-${option.id}`"
                     quaternary
                     circle
                     size="small"
@@ -233,7 +238,7 @@ const cancelBatchSelect = () => {
         </div>
         <h4 class="text-lg font-semibold text-[var(--text-color1)] mb-2">还没有候选项</h4>
         <p class="text-sm text-[var(--text-color3)] mb-6">添加一些选项，开始随机选择</p>
-        <n-button type="primary" size="large" @click="showAddDialog = true">
+        <n-button data-testid="option-add-first" type="primary" size="large" @click="showAddDialog = true">
           <template #icon>
             <n-icon size="18"><AddOutline /></n-icon>
           </template>
@@ -261,6 +266,7 @@ const cancelBatchSelect = () => {
       :bordered="false">
       <div class="space-y-4">
         <n-input
+          data-testid="option-add-textarea"
           v-model:value="addText"
           type="textarea"
           placeholder="输入候选项，每行一个
@@ -281,8 +287,8 @@ const cancelBatchSelect = () => {
       </div>
       <template #footer>
         <div class="flex gap-3 justify-end">
-          <n-button @click="showAddDialog = false">取消</n-button>
-          <n-button type="primary" @click="handleAdd" :disabled="!addText.trim()">
+          <n-button data-testid="option-add-cancel" @click="showAddDialog = false">取消</n-button>
+          <n-button data-testid="option-add-confirm" type="primary" @click="handleAdd" :disabled="!addText.trim()">
             <template #icon>
               <n-icon><AddOutline /></n-icon>
             </template>

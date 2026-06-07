@@ -147,21 +147,21 @@ const toggleAlwaysOnTop = async () => {
 <template>
   <div class="preview-window">
     <div class="preview-header" data-tauri-drag-region>
-      <n-button size="small" @click.stop="toggleAlwaysOnTop">
+      <n-button data-testid="btn-toggle-pin" size="small" @click.stop="toggleAlwaysOnTop">
         {{ isAlwaysOnTop ? '取消置顶' : '置顶' }}
       </n-button>
-      <n-button size="small" @click.stop="handleClose">关闭</n-button>
+      <n-button data-testid="btn-close-preview" size="small" @click.stop="handleClose">关闭</n-button>
     </div>
 
     <div class="preview-content">
-      <img v-if="previewImageUrl" :src="previewImageUrl" class="preview-image" />
-      <div v-else class="placeholder">等待截图...</div>
+      <img v-if="previewImageUrl" :src="previewImageUrl" class="preview-image" data-testid="preview-image" />
+      <div v-else class="placeholder" data-testid="preview-placeholder">等待截图...</div>
     </div>
 
     <div class="preview-actions">
-      <n-button type="primary" size="small" @click="handleEdit">编辑</n-button>
-      <n-button size="small" @click="handleSave">保存</n-button>
-      <n-button size="small" @click="handleCopy">复制</n-button>
+      <n-button data-testid="btn-edit" type="primary" size="small" @click="handleEdit">编辑</n-button>
+      <n-button data-testid="btn-save" size="small" @click="handleSave">保存</n-button>
+      <n-button data-testid="btn-copy" size="small" @click="handleCopy">复制</n-button>
     </div>
   </div>
 </template>
