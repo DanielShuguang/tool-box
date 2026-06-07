@@ -57,6 +57,7 @@ export default defineConfig(({ command }) => {
     server: {
       port: 3000,
       strictPort: true,
+      host: '127.0.0.1',
       watch: {
         // 3. tell vite to ignore watching `src-tauri`
         ignored: ['**/src-tauri/**']
