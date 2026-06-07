@@ -35,14 +35,11 @@
 | 模块 | 说明 |
 |------|------|
 | RandomPicker | 随机选择器 |
-| Download | 下载管理（含断点续传） |
 | FileSearch | 文件搜索 |
 | ReadFile | 文件读取 |
 | EyeProtection | 护眼工具 |
 | Todo | 待办事项 |
-| Accounting | 记账功能 |
 | Translator | 翻译工具 |
-| CanvasBoard | 画板（支持历史记录、自动保存） |
 | WindowsActivatiion | Windows 激活 |
 
 ---

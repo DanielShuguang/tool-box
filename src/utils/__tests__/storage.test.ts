@@ -36,9 +36,5 @@ describe('storage utils', () => {
     it('应该包含 Router', () => {
       expect(ConfigFile.Router).toBe('.router.dat')
     })
-
-    it('应该包含 Download', () => {
-      expect(ConfigFile.Download).toBe('.download.dat')
-    })
   })
 })

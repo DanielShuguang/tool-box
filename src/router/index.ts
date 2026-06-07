@@ -16,11 +16,6 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '文件搜索' }
   },
   {
-    path: '/download',
-    component: () => import('@/views/Download/Download.vue'),
-    meta: { title: '下载管理' }
-  },
-  {
     path: '/windowsActivatiion',
     component: () => import('@/views/WindowsActivatiion/WindowsActivatiion.vue'),
     meta: { title: 'Windows激活' }
@@ -40,16 +35,6 @@ const routes: RouteRecordRaw[] = [
     name: 'Todo',
     component: () => import('@/views/Todo/Todo.vue'),
     meta: { title: '待办事项' }
-  },
-  {
-    path: '/accounting',
-    component: () => import('@/views/Accounting/Accounting.vue'),
-    meta: { title: '记账工具' }
-  },
-  {
-    path: '/canvasBoard',
-    component: () => import('@/views/CanvasBoard/CanvasBoard.vue'),
-    meta: { title: '画板' }
   },
   {
     path: '/randomPicker',

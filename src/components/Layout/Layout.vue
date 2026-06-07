@@ -12,13 +12,10 @@ import {
   Close,
   DocumentOutline,
   SearchOutline,
-  CloudDownloadOutline,
   DesktopOutline,
   EyeOutline,
   GlobeOutline,
   ListOutline,
-  WalletOutline,
-  ColorPaletteOutline,
   ShuffleOutline,
   ContrastOutline
 } from '@vicons/ionicons5'
@@ -44,13 +41,10 @@ onMounted(async () => {
 const navItems = [
   { path: '/readFile', title: '文件读取', icon: DocumentOutline },
   { path: '/fileSearch', title: '文件搜索', icon: SearchOutline },
-  { path: '/download', title: '下载管理', icon: CloudDownloadOutline },
   { path: '/windowsActivatiion', title: 'Windows 激活', icon: DesktopOutline },
   { path: '/eyeProtection', title: '护眼工具', icon: EyeOutline },
   { path: '/translator', title: '翻译工具', icon: GlobeOutline },
   { path: '/todo', title: '待办事项', icon: ListOutline },
-  { path: '/accounting', title: '记账工具', icon: WalletOutline },
-  { path: '/canvasBoard', title: '画板', icon: ColorPaletteOutline },
   { path: '/randomPicker', title: '随机选择', icon: ShuffleOutline }
 ]
 

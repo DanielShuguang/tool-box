@@ -1,7 +1,11 @@
 import { invoke } from '@tauri-apps/api/core'
-import { DownloadFilePayload, DownloadConfig } from './models/download'
+import {
+  DownloadFilePayload,
+  DownloadConfig,
+  ResumeDownloadInfo,
+  RangeSupportResult
+} from './models/download'
 import { BackendResp } from '@/types/common'
-import type { ResumeDownloadInfo, RangeSupportResult } from '@/views/Download/types'
 
 /** 下载文件 - 基础版本 */
 export async function downloadFile(payload: DownloadFilePayload) {

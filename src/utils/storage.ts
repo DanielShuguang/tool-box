@@ -8,9 +8,7 @@ import { Store } from '@tauri-apps/plugin-store'
 export enum ConfigFile {
   Settings = '.settings.dat',
   EyeProtection = '.eye-protection.dat',
-  Router = '.router.dat',
-  Download = '.download.dat',
-  Canvas = '.canvas.dat'
+  Router = '.router.dat'
 }
 
 // 存储Store实例的Map，用于缓存已加载的Store对象
