@@ -58,21 +58,26 @@ const isExpiringSoon = computed(() => {
 <template>
   <div class="w-full h-full flex flex-col overflow-hidden">
     <!-- 页面标题 -->
-    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
-      <h2 class="text-lg font-semibold">Windows 激活</h2>
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0" data-testid="activation-title">
+      <h2 class="text-lg font-semibold" data-testid="activation-page-title">Windows 激活</h2>
     </div>
 
     <!-- 主内容区 -->
     <div class="flex-1 overflow-auto p-4">
       <!-- 非 Windows 提示 -->
-      <div v-if="!isWindows" class="flex items-center justify-center h-full">
+      <div
+        v-if="!isWindows"
+        class="flex items-center justify-center h-full"
+        data-testid="activation-non-windows">
         <n-empty description="请在 Windows 下使用本功能" />
       </div>
 
       <template v-else>
         <!-- 统计卡片 -->
         <div class="grid grid-cols-3 gap-3 mb-4">
-          <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div
+            class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+            data-testid="activation-stat-status">
             <div class="flex items-center gap-2">
               <n-icon size="20" :class="statusColor">
                 <CheckmarkCircleOutline
@@ -88,7 +93,9 @@ const isExpiringSoon = computed(() => {
               </div>
             </div>
           </div>
-          <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div
+            class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+            data-testid="activation-stat-expiry">
             <div class="flex items-center gap-2">
               <n-icon size="20" class="text-blue-500">
                 <KeyOutline />
@@ -101,7 +108,9 @@ const isExpiringSoon = computed(() => {
               </div>
             </div>
           </div>
-          <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+          <div
+            class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+            data-testid="activation-stat-plan">
             <div class="flex items-center gap-2">
               <n-icon size="20" class="text-purple-500">
                 <KeyOutline />
@@ -115,7 +124,7 @@ const isExpiringSoon = computed(() => {
         </div>
 
         <!-- 激活状态卡片 -->
-        <n-card :bordered="false" class="mb-4">
+        <n-card :bordered="false" class="mb-4" data-testid="activation-status-card">
           <template #header>
             <div class="flex items-center gap-2">
               <span class="text-base font-medium">当前状态</span>
@@ -162,9 +171,11 @@ const isExpiringSoon = computed(() => {
 
           <template #footer>
             <div class="flex items-center">
-              <n-popconfirm @positive-click="handleClick">
+              <n-popconfirm @positive-click="handleClick" data-testid="activation-confirm">
                 <template #trigger>
-                  <n-button type="primary" :loading="loading">激活 Windows</n-button>
+                  <n-button type="primary" :loading="loading" data-testid="activation-btn"
+                    >激活 Windows</n-button
+                  >
                 </template>
                 此次激活非永久激活！如已有可用的激活码或已永久激活，请谨慎使用本功能。
               </n-popconfirm>
@@ -173,7 +184,7 @@ const isExpiringSoon = computed(() => {
         </n-card>
 
         <!-- 更多方案 -->
-        <n-card :bordered="false">
+        <n-card :bordered="false" data-testid="activation-programs-card">
           <template #header>
             <span class="text-base font-medium">更多方案</span>
           </template>

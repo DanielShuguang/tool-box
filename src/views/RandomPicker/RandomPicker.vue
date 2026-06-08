@@ -35,7 +35,7 @@ const stats = computed(() => {
     <div class="max-w-6xl mx-auto px-6 py-8">
       <!-- 页面标题区 -->
       <header class="mb-8">
-        <h1 class="text-3xl font-bold text-[var(--text-color1)] mb-2">随机选择器</h1>
+        <h1 data-testid="random-picker-title" class="text-3xl font-bold text-[var(--text-color1)] mb-2">随机选择器</h1>
         <p class="text-sm text-[var(--text-color3)]">快速、公平、随机 - 告别选择困难</p>
       </header>
 
@@ -81,7 +81,12 @@ const stats = computed(() => {
             <div class="text-sm font-medium text-[var(--text-color2)] mb-3">快捷操作</div>
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
-                <n-button data-testid="picker-btn-history" block secondary @click="toggleHistory" class="flex-1">
+                <n-button
+                  data-testid="picker-btn-history"
+                  block
+                  secondary
+                  @click="toggleHistory"
+                  class="flex-1">
                   <template #icon>
                     <n-icon><TimeOutline /></n-icon>
                   </template>

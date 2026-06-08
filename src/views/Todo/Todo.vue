@@ -94,7 +94,9 @@ const overdueCount = computed(
     <div class="flex-1 overflow-auto p-4">
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <div data-testid="todo-stat-total" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="todo-stat-total"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-blue-500">
               <TimeOutline />
@@ -105,7 +107,9 @@ const overdueCount = computed(
             </div>
           </div>
         </div>
-        <div data-testid="todo-stat-pending" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="todo-stat-pending"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-orange-500">
               <AlertCircleOutline />
@@ -116,7 +120,9 @@ const overdueCount = computed(
             </div>
           </div>
         </div>
-        <div data-testid="todo-stat-completed" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="todo-stat-completed"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-green-500">
               <CheckmarkCircleOutline />
@@ -127,7 +133,9 @@ const overdueCount = computed(
             </div>
           </div>
         </div>
-        <div data-testid="todo-stat-overdue" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="todo-stat-overdue"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-red-500">
               <TimeOutline />

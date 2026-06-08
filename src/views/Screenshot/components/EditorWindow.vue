@@ -155,15 +155,13 @@ const handleCopy = async () => {
           return
         }
         ctx.drawImage(img, 0, 0)
-        canvas.toBlob(async (b) => {
+        canvas.toBlob(async b => {
           if (!b) {
             reject(new Error('无法转换图片'))
             return
           }
           try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': b })
-            ])
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })])
             resolve()
           } catch (err) {
             reject(err)
@@ -209,48 +207,42 @@ const handleRedo = () => {
           data-testid="tool-pencil"
           size="small"
           :type="currentTool === 'pencil' ? 'primary' : 'default'"
-          @click="currentTool = 'pencil'"
-        >
+          @click="currentTool = 'pencil'">
           画笔
         </n-button>
         <n-button
           data-testid="tool-rect"
           size="small"
           :type="currentTool === 'rect' ? 'primary' : 'default'"
-          @click="currentTool = 'rect'"
-        >
+          @click="currentTool = 'rect'">
           矩形
         </n-button>
         <n-button
           data-testid="tool-circle"
           size="small"
           :type="currentTool === 'circle' ? 'primary' : 'default'"
-          @click="currentTool = 'circle'"
-        >
+          @click="currentTool = 'circle'">
           圆形
         </n-button>
         <n-button
           data-testid="tool-arrow"
           size="small"
           :type="currentTool === 'arrow' ? 'primary' : 'default'"
-          @click="currentTool = 'arrow'"
-        >
+          @click="currentTool = 'arrow'">
           箭头
         </n-button>
         <n-button
           data-testid="tool-text"
           size="small"
           :type="currentTool === 'text' ? 'primary' : 'default'"
-          @click="currentTool = 'text'"
-        >
+          @click="currentTool = 'text'">
           文字
         </n-button>
         <n-button
           data-testid="tool-mosaic"
           size="small"
           :type="currentTool === 'mosaic' ? 'primary' : 'default'"
-          @click="currentTool = 'mosaic'"
-        >
+          @click="currentTool = 'mosaic'">
           马赛克
         </n-button>
       </n-space>
@@ -267,8 +259,14 @@ const handleRedo = () => {
 
     <div class="editor-properties">
       <n-space vertical>
-        <n-color-picker data-testid="color-picker" v-model:value="currentColor" />
-        <n-input-number data-testid="line-width-input" v-model:value="currentLineWidth" :min="1" :max="10" />
+        <div data-testid="color-picker">
+          <n-color-picker v-model:value="currentColor" />
+        </div>
+        <n-input-number
+          data-testid="line-width-input"
+          v-model:value="currentLineWidth"
+          :min="1"
+          :max="10" />
       </n-space>
     </div>
 

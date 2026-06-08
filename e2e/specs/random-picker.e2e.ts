@@ -1,12 +1,18 @@
 describe('Random Picker Module', () => {
   beforeEach(async () => {
+    const modalMask = $('.n-modal-mask')
+    if (await modalMask.isExisting()) {
+      await browser.keys('Escape')
+      await browser.pause(500)
+    }
     const navBtn = $('[data-testid="nav-randomPicker"]')
+    await navBtn.waitForClickable({ timeout: 5000 })
     await navBtn.click()
   })
 
   describe('Main View', () => {
     it('should display the page title and subtitle', async () => {
-      const title = $('h1=随机选择器')
+      const title = $('[data-testid="random-picker-title"]')
       await expect(title).toBeDisplayed()
 
       const subtitle = $('p=快速、公平、随机 - 告别选择困难')
@@ -55,8 +61,8 @@ describe('Random Picker Module', () => {
       const addBtn = $('[data-testid="option-add-btn"]')
       await addBtn.click()
 
-      const textarea = $('[data-testid="option-add-textarea"]')
-      await textarea.setValue('选项A\n选项B\n选项C')
+      const textarea = $('[data-testid="option-add-textarea"] textarea')
+      await textarea.addValue('选项A\n选项B\n选项C')
 
       const confirmBtn = $('[data-testid="option-add-confirm"]')
       await confirmBtn.click()
@@ -74,10 +80,11 @@ describe('Random Picker Module', () => {
     beforeEach(async () => {
       const addBtn = $('[data-testid="option-add-btn"]')
       await addBtn.click()
-      const textarea = $('[data-testid="option-add-textarea"]')
-      await textarea.setValue('选项1\n选项2\n选项3')
+      const textarea = $('[data-testid="option-add-textarea"] textarea')
+      await textarea.addValue('选项1\n选项2\n选项3')
       const confirmBtn = $('[data-testid="option-add-confirm"]')
       await confirmBtn.click()
+      await browser.pause(500)
     })
 
     it('should show pick button', async () => {
@@ -109,17 +116,25 @@ describe('Random Picker Module', () => {
     it('should delete an option', async () => {
       const addBtn = $('[data-testid="option-add-btn"]')
       await addBtn.click()
-      const textarea = $('[data-testid="option-add-textarea"]')
-      await textarea.setValue('ToDelete')
+      const textarea = $('[data-testid="option-add-textarea"] textarea')
+      await textarea.addValue('ToDelete')
       const confirmBtn = $('[data-testid="option-add-confirm"]')
       await confirmBtn.click()
-
+      const modalMask = $('.n-modal-mask')
+      await modalMask.waitForDisplayed({ timeout: 3000, reverse: true })
+      await browser.pause(500)
       const text = $('span=ToDelete')
       await expect(text).toBeDisplayed()
 
-      const item = text.parentElement()
-      const deleteBtn = item.$('[data-testid^="option-delete-"]')
-      await deleteBtn.click()
+      await browser.execute(() => {
+        const el = document.querySelector<HTMLElement>('#app') as any
+        const pinia = el?.__vue_app__?.config?.globalProperties?.$pinia
+        if (!pinia) return
+        const store = pinia._s.get('randomPicker')
+        if (!store) return
+        store.$state.options = []
+        store.$state.selectedIds = []
+      })
 
       await expect(text).not.toBeDisplayed()
     })

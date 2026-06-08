@@ -32,12 +32,16 @@ const handleCapture = async () => {
           <n-radio-button data-testid="mode-window" value="window">窗口截图</n-radio-button>
         </n-radio-group>
 
-        <n-button data-testid="btn-capture" type="primary" @click="handleCapture"> 开始截图 </n-button>
+        <n-button data-testid="btn-capture" type="primary" @click="handleCapture">
+          开始截图
+        </n-button>
 
         <n-divider />
 
         <n-space>
-          <n-button data-testid="btn-open-editor" @click="$router.push('/screenshot/editor')"> 打开编辑器 </n-button>
+          <n-button data-testid="btn-open-editor" @click="$router.push('/screenshot/editor')">
+            打开编辑器
+          </n-button>
         </n-space>
       </n-space>
     </n-card>

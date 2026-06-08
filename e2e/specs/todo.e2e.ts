@@ -49,7 +49,7 @@ describe('Todo Module', () => {
 
   describe('Add Todo', () => {
     it('should add a task via button click', async () => {
-      const input = $('[data-testid="todo-input"]')
+      const input = $('[data-testid="todo-input"] input')
       const addBtn = $('[data-testid="todo-add-btn"]')
       const taskText = `E2E Task ${Date.now()}`
 
@@ -61,7 +61,7 @@ describe('Todo Module', () => {
     })
 
     it('should add a task via Enter key', async () => {
-      const input = $('[data-testid="todo-input"]')
+      const input = $('[data-testid="todo-input"] input')
       const taskText = `E2E Enter Task ${Date.now()}`
 
       await input.setValue(taskText)
@@ -72,7 +72,7 @@ describe('Todo Module', () => {
     })
 
     it('should clear input after adding a task', async () => {
-      const input = $('[data-testid="todo-input"]')
+      const input = $('[data-testid="todo-input"] input')
       const addBtn = $('[data-testid="todo-add-btn"]')
 
       await input.setValue('Temporary Task')
@@ -84,50 +84,74 @@ describe('Todo Module', () => {
   describe('Todo Actions', () => {
     it('should toggle task completion', async () => {
       const testText = `Toggle Task ${Date.now()}`
-      const input = $('[data-testid="todo-input"]')
+      const input = $('[data-testid="todo-input"] input')
       await input.setValue(testText)
       await browser.keys('Enter')
-
       const text = $(`div=${testText}`)
       await expect(text).toBeDisplayed()
-
-      const item = text.parentElement()
-      const checkbox = item.$('[data-testid^="todo-checkbox-"]')
+      const checkboxes = $$('[data-testid^="todo-checkbox-"]')
+      const lastIndex = (await checkboxes.length) - 1
+      const checkbox = checkboxes[lastIndex]
       await checkbox.click()
-
       const statPending = $('[data-testid="todo-stat-pending"]')
       await expect(statPending).toBeDisplayed()
     })
 
     it('should delete a task', async () => {
       const testText = `Delete Task ${Date.now()}`
-      const input = $('[data-testid="todo-input"]')
+      const input = $('[data-testid="todo-input"] input')
       await input.setValue(testText)
       await browser.keys('Enter')
-
       const text = $(`div=${testText}`)
       await expect(text).toBeDisplayed()
-
-      const item = text.parentElement()
-      const deleteBtn = item.$('[data-testid^="todo-delete-"]')
+      const deleteBtns = $$('[data-testid^="todo-delete-"]')
+      const lastIndex = (await deleteBtns.length) - 1
+      const deleteBtn = deleteBtns[lastIndex]
       await deleteBtn.click()
-
       await expect(text).not.toBeDisplayed()
     })
 
     it('should clear completed tasks', async () => {
       const testText = `Clear Task ${Date.now()}`
-      const input = $('[data-testid="todo-input"]')
+      const input = $('[data-testid="todo-input"] input')
       await input.setValue(testText)
       await browser.keys('Enter')
-
       const text = $(`div=${testText}`)
       await expect(text).toBeDisplayed()
-
-      const item = text.parentElement()
-      const checkbox = item.$('[data-testid^="todo-checkbox-"]')
+      const checkboxes = $$('[data-testid^="todo-checkbox-"]')
+      const lastIndex = (await checkboxes.length) - 1
+      const checkbox = checkboxes[lastIndex]
       await checkbox.click()
+      const clearBtn = $('[data-testid="todo-clear-completed"]')
+      await clearBtn.click()
+      await expect(text).not.toBeDisplayed()
+    })
 
+    it('should delete a task', async () => {
+      const testText = `Delete Task ${Date.now()}`
+      const input = $('[data-testid="todo-input"] input')
+      await input.setValue(testText)
+      await browser.keys('Enter')
+      const text = $(`div=${testText}`)
+      await expect(text).toBeDisplayed()
+      const deleteBtns = $$('[data-testid^="todo-delete-"]')
+      const lastIndex = (await deleteBtns.length) - 1
+      const deleteBtn = deleteBtns[lastIndex]
+      await deleteBtn.click()
+      await expect(text).not.toBeDisplayed()
+    })
+
+    it('should clear completed tasks', async () => {
+      const testText = `Clear Task ${Date.now()}`
+      const input = $('[data-testid="todo-input"] input')
+      await input.setValue(testText)
+      await browser.keys('Enter')
+      const text = $(`div=${testText}`)
+      await expect(text).toBeDisplayed()
+      const checkboxes = $$('[data-testid^="todo-checkbox-"]')
+      const lastIndex = (await checkboxes.length) - 1
+      const checkbox = checkboxes[lastIndex]
+      await checkbox.click()
       const clearBtn = $('[data-testid="todo-clear-completed"]')
       await clearBtn.click()
       await expect(text).not.toBeDisplayed()

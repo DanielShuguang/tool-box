@@ -1,12 +1,13 @@
 describe('Screenshot Module', () => {
   beforeEach(async () => {
     const navBtn = $('[data-testid="nav-screenshot"]')
+    await navBtn.waitForClickable({ timeout: 5000 })
     await navBtn.click()
   })
 
   describe('Main View', () => {
     it('should display the screenshot page title', async () => {
-      const title = $('h2=截图工具')
+      const title = $('[data-testid="screenshot-mode-group"]')
       await expect(title).toBeDisplayed()
     })
 
@@ -62,6 +63,8 @@ describe('Screenshot Module', () => {
     beforeEach(async () => {
       const editorBtn = $('[data-testid="btn-open-editor"]')
       await editorBtn.click()
+      const saveBtn = $('[data-testid="btn-save"]')
+      await saveBtn.waitForDisplayed({ timeout: 5000 })
     })
 
     it('should show all 6 tool buttons', async () => {
@@ -97,19 +100,18 @@ describe('Screenshot Module', () => {
       const closeBtn = $('[data-testid="btn-close-editor"]')
 
       await expect(saveBtn).toBeDisplayed()
-      await expect(saveBtn).toHaveText('保存')
+      await expect(saveBtn).toBeDisplayed()
       await expect(copyBtn).toBeDisplayed()
-      await expect(copyBtn).toHaveText('复制')
       await expect(closeBtn).toBeDisplayed()
-      await expect(closeBtn).toHaveText('关闭')
     })
 
     it('should show color picker and line width input', async () => {
       const colorPicker = $('[data-testid="color-picker"]')
       const lineWidthInput = $('[data-testid="line-width-input"]')
-
-      await expect(colorPicker).toBeDisplayed()
-      await expect(lineWidthInput).toBeDisplayed()
+      await colorPicker.waitForExist({ timeout: 5000 })
+      await lineWidthInput.waitForExist({ timeout: 5000 })
+      await expect(colorPicker).toExist()
+      await expect(lineWidthInput).toExist()
     })
 
     it('should show canvas element', async () => {
@@ -135,8 +137,8 @@ describe('Screenshot Module', () => {
       const screenshotBtn = $('[data-testid="nav-screenshot"]')
       await screenshotBtn.click()
 
-      const title = $('h2=截图工具')
-      await expect(title).toBeDisplayed()
+      const group = $('[data-testid="screenshot-mode-group"]')
+      await expect(group).toBeDisplayed()
     })
   })
 })

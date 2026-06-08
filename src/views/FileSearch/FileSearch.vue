@@ -66,7 +66,9 @@ const folderCount = computed(() => renderItems.value.filter(item => item.isDir).
     <div class="flex-1 overflow-auto p-4">
       <!-- 统计卡片 -->
       <div class="grid grid-cols-3 gap-3 mb-4">
-        <div data-testid="file-search-stat-total" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="file-search-stat-total"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-blue-500">
               <FileTextIcon />
@@ -77,7 +79,9 @@ const folderCount = computed(() => renderItems.value.filter(item => item.isDir).
             </div>
           </div>
         </div>
-        <div data-testid="file-search-stat-files" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="file-search-stat-files"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-orange-500">
               <DocumentTextOutline />
@@ -88,7 +92,9 @@ const folderCount = computed(() => renderItems.value.filter(item => item.isDir).
             </div>
           </div>
         </div>
-        <div data-testid="file-search-stat-folders" class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          data-testid="file-search-stat-folders"
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-green-500">
               <FolderOpenOutline />
@@ -123,7 +129,10 @@ const folderCount = computed(() => renderItems.value.filter(item => item.isDir).
 
           <div>
             <div class="flex items-center gap-2 mb-2">
-              <n-checkbox data-testid="file-search-select-all" v-model:checked="selectAll" label="全选" />
+              <n-checkbox
+                data-testid="file-search-select-all"
+                v-model:checked="selectAll"
+                label="全选" />
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
               <n-checkbox-group v-model:value="selectedPoint">
@@ -182,7 +191,12 @@ const folderCount = computed(() => renderItems.value.filter(item => item.isDir).
               @click="handleStopSearchTask">
               取消搜索
             </n-button>
-            <n-button data-testid="file-search-btn-clear" v-if="renderItems.length" @click="clearResult">清空结果</n-button>
+            <n-button
+              data-testid="file-search-btn-clear"
+              v-if="renderItems.length"
+              @click="clearResult"
+              >清空结果</n-button
+            >
           </div>
           <span v-if="renderItems.length" class="text-sm text-gray-500">
             共找到

@@ -118,7 +118,7 @@ const swapAndTranslate = () => {
 <template>
   <div class="w-full h-full flex flex-col overflow-hidden">
     <!-- 页面标题 -->
-    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0" data-testid="translator-title">
       <h2 class="text-lg font-semibold">翻译工具</h2>
     </div>
 
@@ -126,7 +126,9 @@ const swapAndTranslate = () => {
     <div class="flex-1 overflow-auto p-4">
       <!-- 统计卡片 -->
       <div class="grid grid-cols-3 gap-3 mb-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="translator-stat-input">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-green-500">
               <LanguageOutline />
@@ -137,7 +139,9 @@ const swapAndTranslate = () => {
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="translator-stat-output">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-orange-500">
               <LanguageOutline />
@@ -148,7 +152,9 @@ const swapAndTranslate = () => {
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="translator-stat-service">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-purple-500">
               <LanguageOutline />
@@ -164,16 +170,27 @@ const swapAndTranslate = () => {
       </div>
 
       <!-- 服务选择 -->
-      <n-card class="mb-4" :bordered="false">
+      <n-card class="mb-4" :bordered="false" data-testid="translator-service-card">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="text-sm font-medium">翻译服务</span>
-            <n-radio-group v-model:value="translationService" size="small">
-              <n-radio-button value="google">Google</n-radio-button>
-              <n-radio-button value="deepl">DeepL</n-radio-button>
+            <n-radio-group
+              v-model:value="translationService"
+              size="small"
+              data-testid="translator-service-group">
+              <n-radio-button value="google" data-testid="translator-service-google"
+                >Google</n-radio-button
+              >
+              <n-radio-button value="deepl" data-testid="translator-service-deepl"
+                >DeepL</n-radio-button
+              >
             </n-radio-group>
           </div>
-          <n-button size="tiny" @click="clearAll" :disabled="!inputText && !outputText">
+          <n-button
+            size="tiny"
+            data-testid="translator-clear-btn"
+            @click="clearAll"
+            :disabled="!inputText && !outputText">
             <template #icon>
               <n-icon><TrashOutline /></n-icon>
             </template>
@@ -182,7 +199,7 @@ const swapAndTranslate = () => {
       </n-card>
 
       <!-- 语言选择 -->
-      <n-card class="mb-4" :bordered="false">
+      <n-card class="mb-4" :bordered="false" data-testid="translator-lang-card">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-2">
             <!-- 源语言 -->
@@ -191,12 +208,14 @@ const swapAndTranslate = () => {
               :options="supportedLanguages.map(l => ({ label: l.name, value: l.code }))"
               placeholder="源语言"
               size="small"
-              class="w-28" />
+              class="w-28"
+              data-testid="translator-source-lang" />
 
             <!-- 交换按钮 -->
             <n-button
               text
               size="small"
+              data-testid="translator-swap-btn"
               @click="exchangeLanguages"
               :disabled="sourceLanguage === 'auto'"
               class="swap-btn">
@@ -211,13 +230,15 @@ const swapAndTranslate = () => {
               :options="targetLanguages.map(l => ({ label: l.name, value: l.code }))"
               placeholder="目标语言"
               size="small"
-              class="w-28" />
+              class="w-28"
+              data-testid="translator-target-lang" />
           </div>
 
           <!-- 翻译按钮 -->
           <n-button
             type="primary"
             size="small"
+            data-testid="translator-translate-btn"
             @click="translate"
             :disabled="!inputText.trim()"
             :loading="loading">
@@ -239,13 +260,16 @@ const swapAndTranslate = () => {
           <div class="flex flex-col">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">原文</span>
-              <span class="text-xs text-gray-400">{{ inputLength }} 字符</span>
+              <span class="text-xs text-gray-400" data-testid="translator-input-count"
+                >{{ inputLength }} 字符</span
+              >
             </div>
             <n-input
               v-model:value="inputText"
               type="textarea"
               placeholder="请输入要翻译的文本..."
               :rows="6"
+              data-testid="translator-input"
               @keydown.meta.enter="translate"
               @keydown.ctrl.enter="translate" />
           </div>
@@ -255,8 +279,15 @@ const swapAndTranslate = () => {
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">译文</span>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-400">{{ outputLength }} 字符</span>
-                <n-button v-if="outputText" text size="tiny" @click="copyOutput">
+                <span class="text-xs text-gray-400" data-testid="translator-output-count"
+                  >{{ outputLength }} 字符</span
+                >
+                <n-button
+                  v-if="outputText"
+                  text
+                  size="tiny"
+                  data-testid="translator-copy-btn"
+                  @click="copyOutput">
                   <template #icon>
                     <n-icon size="14"><CopyOutline /></n-icon>
                   </template>
@@ -265,6 +296,7 @@ const swapAndTranslate = () => {
                   v-if="outputText"
                   text
                   size="tiny"
+                  data-testid="translator-swap-translate-btn"
                   @click="swapAndTranslate"
                   title="交换并翻译">
                   <template #icon>
@@ -278,17 +310,21 @@ const swapAndTranslate = () => {
               type="textarea"
               placeholder="翻译结果..."
               :rows="6"
+              data-testid="translator-output"
               readonly />
           </div>
         </div>
 
         <!-- 空状态 -->
-        <div v-if="!isTranslated" class="text-center py-8">
+        <div v-if="!isTranslated" class="text-center py-8" data-testid="translator-empty-state">
           <n-empty description="输入文本后点击翻译" size="small" />
         </div>
 
         <!-- 错误信息 -->
-        <div v-if="errorMessage" class="mt-3 p-2 rounded bg-red-50 text-red-600 text-sm">
+        <div
+          v-if="errorMessage"
+          class="mt-3 p-2 rounded bg-red-50 text-red-600 text-sm"
+          data-testid="translator-error">
           {{ errorMessage }}
         </div>
       </n-card>

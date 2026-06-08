@@ -6,6 +6,7 @@ describe('File Search Module', () => {
 
   describe('Main View', () => {
     it('should display the page title', async () => {
+      await browser.pause(500)
       const title = $('h2=文件搜索')
       await expect(title).toBeDisplayed()
     })

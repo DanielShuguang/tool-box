@@ -125,7 +125,7 @@ onMounted(() => {
 <template>
   <div class="w-full h-full flex flex-col overflow-hidden">
     <!-- 页面标题 -->
-    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0" data-testid="eye-title">
       <h2 class="text-lg font-semibold">护眼工具</h2>
     </div>
 
@@ -133,7 +133,9 @@ onMounted(() => {
     <div class="flex-1 overflow-auto p-4">
       <!-- 统计卡片 -->
       <div class="grid grid-cols-3 gap-3 mb-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="eye-stat-close">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-blue-500">
               <TimeOutline />
@@ -146,7 +148,9 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="eye-stat-rest">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-orange-500">
               <SunnyOutline />
@@ -157,7 +161,9 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="eye-stat-status">
           <div class="flex items-center gap-2">
             <n-icon
               size="20"
@@ -177,18 +183,21 @@ onMounted(() => {
       </div>
 
       <!-- 功能配置 -->
-      <n-card :bordered="false" class="mb-4">
+      <n-card :bordered="false" class="mb-4" data-testid="eye-config-card">
         <template #header>
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-2">
               <n-icon size="18"><EyeOutline /></n-icon>
               <span class="text-base font-medium">功能配置</span>
             </div>
-            <n-switch v-model:value="eyeProtectionStore.isOpen" />
+            <n-switch v-model:value="eyeProtectionStore.isOpen" data-testid="eye-switch" />
           </div>
         </template>
 
-        <div v-if="!eyeProtectionStore.isOpen" class="text-center py-6 text-gray-400">
+        <div
+          v-if="!eyeProtectionStore.isOpen"
+          class="text-center py-6 text-gray-400"
+          data-testid="eye-closed-tip">
           开启护眼提醒来保护您的眼睛
         </div>
 
@@ -199,7 +208,8 @@ onMounted(() => {
               <n-input-number
                 v-model:value="eyeProtectionStore.closeEyesInterval"
                 :min="1"
-                class="w-full">
+                class="w-full"
+                data-testid="eye-close-interval">
                 <template #suffix>分钟</template>
               </n-input-number>
               <span class="text-xs text-gray-400">长时间工作后闭眼休息能放松眼球</span>
@@ -209,33 +219,40 @@ onMounted(() => {
               <n-input-number
                 v-model:value="eyeProtectionStore.restInterval"
                 :min="1"
-                class="w-full">
+                class="w-full"
+                data-testid="eye-rest-interval">
                 <template #suffix>分钟</template>
               </n-input-number>
               <span class="text-xs text-gray-400">每隔一小段时间远眺一会儿有助眼睛健康</span>
             </div>
           </div>
           <div class="mt-4 flex items-center justify-between">
-            <n-button type="primary" @click="handleRestart">重新计时</n-button>
+            <n-button type="primary" data-testid="eye-restart-btn" @click="handleRestart"
+              >重新计时</n-button
+            >
             <div class="flex gap-4">
               <div class="text-center">
                 <div class="text-xs text-gray-500 mb-1">闭眼倒计时</div>
                 <div class="text-xl font-bold text-blue-500">
-                  <n-countdown
-                    ref="closeEyes"
-                    :active="activeCountdown && !!eyeProtectionStore.closeEyesInterval"
-                    :duration="(eyeProtectionStore.closeEyesInterval || 0) * TimeUnits.Minute"
-                    @finish="closeEyesAlarm" />
+                  <div data-testid="eye-close-countdown">
+                    <n-countdown
+                      ref="closeEyes"
+                      :active="activeCountdown && !!eyeProtectionStore.closeEyesInterval"
+                      :duration="(eyeProtectionStore.closeEyesInterval || 0) * TimeUnits.Minute"
+                      @finish="closeEyesAlarm" />
+                  </div>
                 </div>
               </div>
               <div class="text-center">
                 <div class="text-xs text-gray-500 mb-1">远眺倒计时</div>
                 <div class="text-xl font-bold text-orange-500">
-                  <n-countdown
-                    ref="rest"
-                    :active="activeCountdown && !!eyeProtectionStore.restInterval"
-                    :duration="(eyeProtectionStore.restInterval || 0) * TimeUnits.Minute"
-                    @finish="restAlarm" />
+                  <div data-testid="eye-rest-countdown">
+                    <n-countdown
+                      ref="rest"
+                      :active="activeCountdown && !!eyeProtectionStore.restInterval"
+                      :duration="(eyeProtectionStore.restInterval || 0) * TimeUnits.Minute"
+                      @finish="restAlarm" />
+                  </div>
                 </div>
               </div>
             </div>

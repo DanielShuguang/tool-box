@@ -108,15 +108,13 @@ const handleCopy = async () => {
           return
         }
         ctx.drawImage(img, 0, 0)
-        canvas.toBlob(async (b) => {
+        canvas.toBlob(async b => {
           if (!b) {
             reject(new Error('无法转换图片'))
             return
           }
           try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': b })
-            ])
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })])
             resolve()
           } catch (err) {
             reject(err)
@@ -150,16 +148,24 @@ const toggleAlwaysOnTop = async () => {
       <n-button data-testid="btn-toggle-pin" size="small" @click.stop="toggleAlwaysOnTop">
         {{ isAlwaysOnTop ? '取消置顶' : '置顶' }}
       </n-button>
-      <n-button data-testid="btn-close-preview" size="small" @click.stop="handleClose">关闭</n-button>
+      <n-button data-testid="btn-close-preview" size="small" @click.stop="handleClose"
+        >关闭</n-button
+      >
     </div>
 
     <div class="preview-content">
-      <img v-if="previewImageUrl" :src="previewImageUrl" class="preview-image" data-testid="preview-image" />
+      <img
+        v-if="previewImageUrl"
+        :src="previewImageUrl"
+        class="preview-image"
+        data-testid="preview-image" />
       <div v-else class="placeholder" data-testid="preview-placeholder">等待截图...</div>
     </div>
 
     <div class="preview-actions">
-      <n-button data-testid="btn-edit" type="primary" size="small" @click="handleEdit">编辑</n-button>
+      <n-button data-testid="btn-edit" type="primary" size="small" @click="handleEdit"
+        >编辑</n-button
+      >
       <n-button data-testid="btn-save" size="small" @click="handleSave">保存</n-button>
       <n-button data-testid="btn-copy" size="small" @click="handleCopy">复制</n-button>
     </div>

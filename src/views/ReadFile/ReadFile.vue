@@ -39,7 +39,7 @@ const matchedCount = computed(() => searched.value.length)
 <template>
   <div class="w-full h-full flex flex-col overflow-hidden">
     <!-- 页面标题 -->
-    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+    <div class="px-4 py-3 border-b border-gray-200 flex-shrink-0" data-testid="readfile-title">
       <h2 class="text-lg font-semibold">文件读取</h2>
     </div>
 
@@ -47,7 +47,9 @@ const matchedCount = computed(() => searched.value.length)
     <div class="flex-1 overflow-auto p-4">
       <!-- 统计卡片 -->
       <div class="grid grid-cols-3 gap-3 mb-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="readfile-stat-files">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-blue-500">
               <DocumentTextOutline />
@@ -58,7 +60,9 @@ const matchedCount = computed(() => searched.value.length)
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="readfile-stat-matched">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-green-500">
               <AnalyticsOutline />
@@ -69,7 +73,9 @@ const matchedCount = computed(() => searched.value.length)
             </div>
           </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+        <div
+          class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm"
+          data-testid="readfile-stat-downloaded">
           <div class="flex items-center gap-2">
             <n-icon size="20" class="text-orange-500">
               <DownloadOutline />
@@ -83,10 +89,10 @@ const matchedCount = computed(() => searched.value.length)
       </div>
 
       <!-- 文件上传区 -->
-      <n-card :bordered="false" class="mb-4">
+      <n-card :bordered="false" class="mb-4" data-testid="readfile-upload-card">
         <n-upload :file-list="fileList" @update:file-list="handleSelectFile">
           <n-upload-dragger>
-            <div class="flex items-center gap-4 px-2 py-3">
+            <div class="flex items-center gap-4 px-2 py-3" data-testid="readfile-upload-area">
               <n-icon size="36" :depth="3">
                 <ArchiveOutline />
               </n-icon>
@@ -102,7 +108,7 @@ const matchedCount = computed(() => searched.value.length)
       </n-card>
 
       <!-- 查询配置 -->
-      <n-card :bordered="false" class="mb-4">
+      <n-card :bordered="false" class="mb-4" data-testid="readfile-config-card">
         <template #header>
           <span class="text-base font-medium">查询配置</span>
         </template>
@@ -114,12 +120,14 @@ const matchedCount = computed(() => searched.value.length)
               <n-input
                 v-model:value="regText"
                 placeholder="输入正则表达式，例如：(https|http)://.*\.(jpg|png)"
+                data-testid="readfile-regex-input"
                 @update:value="selectedReg = null" />
               <n-select
                 placeholder="预制正则"
                 :value="selectedReg"
                 class="w-[130px] shrink-0"
                 :options="regList"
+                data-testid="readfile-regex-select"
                 @update:value="handleSelect" />
             </div>
           </div>
@@ -131,6 +139,7 @@ const matchedCount = computed(() => searched.value.length)
               placeholder="点击选择保存目录"
               :input-props="{ class: 'cursor-pointer' }"
               readonly
+              data-testid="readfile-dir-input"
               @click="selectSavingDir" />
           </div>
 
@@ -141,6 +150,7 @@ const matchedCount = computed(() => searched.value.length)
                 v-model:value="maxDownloadCount"
                 :min="1"
                 class="w-full"
+                data-testid="readfile-max-download"
                 :disabled="downloadStatus === DownloadStatus.Processing" />
             </div>
             <div>
@@ -149,6 +159,7 @@ const matchedCount = computed(() => searched.value.length)
                 v-model:value="concurrentCount"
                 :min="1"
                 class="w-full"
+                data-testid="readfile-concurrent-count"
                 :disabled="downloadStatus === DownloadStatus.Processing" />
             </div>
           </div>
@@ -156,16 +167,21 @@ const matchedCount = computed(() => searched.value.length)
       </n-card>
 
       <!-- 操作栏 -->
-      <n-card :bordered="false" class="mb-4">
+      <n-card :bordered="false" class="mb-4" data-testid="readfile-action-card">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <n-button
               type="primary"
               :disabled="!regText || !fileList.length"
+              data-testid="readfile-analysis-btn"
               @click="analysisContent">
               读取匹配内容
             </n-button>
-            <n-button v-if="searched.length" :disabled="!dirPath" @click="saveToFile">
+            <n-button
+              v-if="searched.length"
+              :disabled="!dirPath"
+              data-testid="readfile-export-btn"
+              @click="saveToFile">
               导出到文件
             </n-button>
             <template v-if="isUrl && searched.length">
@@ -174,6 +190,7 @@ const matchedCount = computed(() => searched.value.length)
                   ![DownloadStatus.Processing, DownloadStatus.Shutdown].includes(downloadStatus)
                 "
                 type="success"
+                data-testid="readfile-download-btn"
                 @click="handleDownload">
                 开始下载
               </n-button>
@@ -181,6 +198,7 @@ const matchedCount = computed(() => searched.value.length)
                 v-else
                 :loading="downloadStatus === DownloadStatus.Shutdown"
                 type="warning"
+                data-testid="readfile-stop-btn"
                 @click="stopDownload">
                 停止下载
               </n-button>
@@ -204,18 +222,23 @@ const matchedCount = computed(() => searched.value.length)
       </n-card>
 
       <!-- 输出日志 -->
-      <n-card :bordered="false">
+      <n-card :bordered="false" data-testid="readfile-log-card">
         <template #header>
           <div class="flex items-center justify-between">
             <span class="text-base font-medium">输出日志</span>
-            <n-button v-show="outputs.length" size="tiny" quaternary @click="clearOutputs">
+            <n-button
+              v-show="outputs.length"
+              size="tiny"
+              quaternary
+              data-testid="readfile-clear-logs"
+              @click="clearOutputs">
               清空
             </n-button>
           </div>
         </template>
 
         <div class="log-panel flex-1 min-h-0">
-          <div ref="output" class="log-body">
+          <div ref="output" class="log-body" data-testid="readfile-log-body">
             <p v-if="!outputs.length" class="log-empty">暂无输出，操作完成后将在此显示进度</p>
             <p v-for="(m, i) of outputs" :key="i" class="log-line">
               <span class="log-arrow">›</span>{{ m }}

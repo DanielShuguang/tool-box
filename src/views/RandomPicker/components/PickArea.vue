@@ -70,7 +70,11 @@ const handleReset = () => {
         <div class="flex items-center gap-3">
           <span class="text-sm font-medium text-[var(--text-color2)] w-16">选择模式</span>
           <n-radio-group data-testid="pick-mode-group" v-model:value="mode" size="medium">
-            <n-radio-button :data-testid="`pick-mode-${item.value}`" v-for="item in modeOptions" :key="item.value" :value="item.value">
+            <n-radio-button
+              :data-testid="`pick-mode-${item.value}`"
+              v-for="item in modeOptions"
+              :key="item.value"
+              :value="item.value">
               {{ item.label }}
             </n-radio-button>
           </n-radio-group>
@@ -91,7 +95,10 @@ const handleReset = () => {
 
         <!-- 剔除配置 -->
         <div class="flex items-center gap-3">
-          <n-switch data-testid="pick-remove-switch" v-model:value="config.removeSelected" size="medium" />
+          <n-switch
+            data-testid="pick-remove-switch"
+            v-model:value="config.removeSelected"
+            size="medium" />
           <span class="text-sm font-medium text-[var(--text-color2)]">选中后自动移除</span>
         </div>
       </div>
@@ -207,7 +214,12 @@ const handleReset = () => {
             </template>
             再选一次
           </n-button>
-          <n-button data-testid="pick-result-ok" type="primary" size="large" @click="closeResult" class="flex-1 font-medium">
+          <n-button
+            data-testid="pick-result-ok"
+            type="primary"
+            size="large"
+            @click="closeResult"
+            class="flex-1 font-medium">
             知道了！
           </n-button>
         </div>

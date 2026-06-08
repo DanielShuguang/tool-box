@@ -6,14 +6,14 @@ describe('Tool Box App', () => {
 
   it('should show sidebar navigation', async () => {
     const navBtns = $$('[data-testid^="nav-"]')
-    expect(navBtns.length).toBeGreaterThanOrEqual(8)
+    expect(await navBtns.length).toBeGreaterThanOrEqual(8)
   })
 
   it('should navigate to translator page on click', async () => {
     const translatorBtn = $('[data-testid="nav-translator"]')
     await translatorBtn.click()
-
-    const translatorTitle = $('h2=翻译工具')
+    await browser.pause(500)
+    const translatorTitle = $('[data-testid="translator-title"]')
     await expect(translatorTitle).toBeDisplayed()
   })
 
