@@ -12,6 +12,7 @@ use winreg::enums::*;
 #[cfg(target_os = "windows")]
 use winreg::RegKey;
 
+#[cfg(target_os = "windows")]
 const APP_NAME: &str = "ToolBox";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -26,7 +27,9 @@ pub struct AutostartStatus {
     pub enabled: bool,
 }
 
-async fn run(payload: AutostartPayload) -> anyhow::Result<()> {
+async fn run(_payload: AutostartPayload) -> anyhow::Result<()> {
+    #[cfg(target_os = "windows")]
+    let payload = _payload;
     #[cfg(target_os = "windows")]
     {
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);

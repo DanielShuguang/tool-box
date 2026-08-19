@@ -4,7 +4,52 @@ use std::fs;
 pub fn get_system_fonts() -> Result<Vec<String>, String> {
     let mut fonts = Vec::new();
 
-    if let Ok(font_dir) = fs::read_dir("C:\\Windows\\Fonts") {
+    #[cfg(target_os = "windows")]
+    {
+        collect_fonts_from_dir("C:\\Windows\\Fonts", &mut fonts);
+
+        let hkcu = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
+        if let Ok(software) =
+            hkcu.open_subkey("Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts")
+        {
+            for result in software.enum_values().flatten() {
+                let (name, _) = result;
+                if !fonts.contains(&name) {
+                    fonts.push(name);
+                }
+            }
+        }
+
+        if let Ok(software) =
+            hkcu.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Fonts")
+        {
+            for result in software.enum_values().flatten() {
+                let (name, _) = result;
+                if !fonts.contains(&name) {
+                    fonts.push(name);
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        collect_fonts_from_dir("/System/Library/Fonts", &mut fonts);
+        collect_fonts_from_dir("/Library/Fonts", &mut fonts);
+        if let Some(home) = std::env::var_os("HOME") {
+            let user_fonts = std::path::Path::new(&home).join("Library/Fonts");
+            if let Some(dir) = user_fonts.to_str() {
+                collect_fonts_from_dir(dir, &mut fonts);
+            }
+        }
+    }
+
+    fonts.sort();
+    Ok(fonts)
+}
+
+fn collect_fonts_from_dir(dir: &str, fonts: &mut Vec<String>) {
+    if let Ok(font_dir) = fs::read_dir(dir) {
         for entry in font_dir.flatten() {
             if let Some(file_name) = entry.file_name().to_str() {
                 let lower = file_name.to_lowercase();
@@ -21,30 +66,6 @@ pub fn get_system_fonts() -> Result<Vec<String>, String> {
             }
         }
     }
-
-    let hkcu = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
-    if let Ok(software) = hkcu.open_subkey("Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts")
-    {
-        for result in software.enum_values().flatten() {
-            let (name, _) = result;
-            if !fonts.contains(&name) {
-                fonts.push(name);
-            }
-        }
-    }
-
-    let hkcu = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
-    if let Ok(software) = hkcu.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Fonts") {
-        for result in software.enum_values().flatten() {
-            let (name, _) = result;
-            if !fonts.contains(&name) {
-                fonts.push(name);
-            }
-        }
-    }
-
-    fonts.sort();
-    Ok(fonts)
 }
 
 fn remove_font_extension(file_name: &str) -> String {

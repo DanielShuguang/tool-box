@@ -34,7 +34,6 @@ async-recursion = "1.1.1"
 tauri-plugin-notification = "2.3.3"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-store = "2.4.3"
-winreg = "0.55.0"
 md5 = "0.8.0"
 tauri-plugin-http = "2.5.9"
 chrono = "0.4"
@@ -45,10 +44,15 @@ image = "0.25"
 tauri-plugin-global-shortcut = "2.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
+winreg = "0.55.0"
 windows-sys = { version = "0.59", features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
 ] }
+
+# macOS 透明窗口（截图覆盖层）需要 macos-private-api 特性
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri = { version = "2.10", features = ["macos-private-api"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-cli = "2.4.1"
