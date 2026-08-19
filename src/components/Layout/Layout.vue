@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {
   useAppWindowOperation,
+  usePlatformInfo,
   useSystemTheme,
   useToggleSettingsView,
   useUpdateThemeVariables
@@ -69,19 +70,20 @@ useUpdateThemeVariables()
 
 const { openSettings, toggleSettingsView } = useToggleSettingsView()
 const { exitApp, handleMaximize, handleMinimize } = useAppWindowOperation()
+const { isMacOS } = usePlatformInfo()
 </script>
 
 <template>
   <div class="flex flex-col size-full overflow-hidden" @contextmenu="disableContextmenu">
     <!-- 标题栏 -->
     <header class="titlebar select-none shrink-0" data-testid="titlebar" data-tauri-drag-region>
-      <div class="flex items-center gap-2 h-full pl-3" data-tauri-drag-region>
-        <div class="titlebar-dot" data-tauri-drag-region></div>
+      <div class="flex items-center gap-2 h-full" :class="isMacOS ? 'pl-[78px]' : 'pl-3'" data-tauri-drag-region>
+        <div v-if="!isMacOS" class="titlebar-dot" data-tauri-drag-region></div>
         <span class="text-[13px] font-medium text-[--textColor2]" data-tauri-drag-region>
           {{ appName }}
         </span>
       </div>
-      <div class="flex h-full">
+      <div v-if="!isMacOS" class="flex h-full">
         <button class="wc-btn" aria-label="最小化" @click="handleMinimize">
           <n-icon size="16"><MinimizeRound /></n-icon>
         </button>

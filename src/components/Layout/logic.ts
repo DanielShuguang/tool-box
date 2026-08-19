@@ -1,7 +1,13 @@
+import { platform } from '@tauri-apps/plugin-os'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useThemeVars } from 'naive-ui'
 import { useAppSettingsStore } from '@/stores/appSettings'
 import { settingEmitter } from '../AppSettings/logic'
+
+export function usePlatformInfo() {
+  const isMacOS = platform() === 'macos'
+  return { isMacOS }
+}
 
 export function useSystemTheme() {
   const appSettingsStore = useAppSettingsStore()
