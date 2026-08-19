@@ -199,9 +199,7 @@ const cancelBatchSelect = () => {
             </div>
 
             <!-- 操作按钮 -->
-            <div
-              class="flex items-center gap-1"
-              @click.stop>
+            <div class="flex items-center gap-1" @click.stop>
               <n-tooltip trigger="hover">
                 <template #trigger>
                   <n-button
